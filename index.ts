@@ -8,6 +8,7 @@ import { px } from './size.js';
 import { RailroadsGeoJson } from './railload.js';
 import { StationsGeoJson } from './station.js';
 import { toPathchain } from './pathchain.js';
+import { walk } from './walk.js';
 
 const railroadsGeoJson = JSON.parse(readFileSync('./geojsons/railroads.json', 'utf-8').toString()) as RailroadsGeoJson;
 const stationsGeoJson = JSON.parse(readFileSync('./geojsons/stations.json', 'utf-8').toString()) as StationsGeoJson;
@@ -30,23 +31,11 @@ const actualPaths = railroadsGeoJson.features.map(f =>
 )
 
 const paths = [...actualPaths]
-console.log("ends: ", results[0].ends().map(v => v.positions))
 const end = results[0].ends()[0]
 paths.push(path({d: toPathData(end.positions), stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.001))}))
 let next = end.from()
 
-for(let i=0; i<1000; i++) {
-  const visits = next()
-  if (visits.length === 0) break
-  console.log("visits: ", visits.length)
-  const res  = visits[0]()
-  const rail = res.path
-  
-  console.log(rail.positions)
-  paths.push(path({d: toPathData(rail.positions), stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.005))}))
-
-  next = res.next
-}
+walk(next, (p) => paths.push(path({d: toPathData(p.positions), stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.005))})))
 
 const svgTag = svg(
   {
@@ -59,4 +48,3 @@ const svgTag = svg(
 
 writeFileSync('./out.json', JSON.stringify(results))
 writeFileSync('./out.svg', tagToString(svgTag))
-

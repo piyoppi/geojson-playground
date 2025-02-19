@@ -1,8 +1,13 @@
 import { Position2D } from "./geojson"
 
+export type NextFn = () => VisitFn[]
+export type PathChain = { positions: Position2D[], isEnded: boolean, from: () => NextFn }
+type VisitFn = () => Visited
 type PathInternal = { positions: Position2D[], neighbors: [number[], number[]] }
+type Visited = { path: PathChain, next: NextFn }
 
 const diffPosition = (p1: Position2D, p2: Position2D) => (p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1])
+
 
 export const toPathchain = (pos: Position2D[][]) => {
   const pathInternals = pos.map((r, index): PathInternal => {
@@ -26,11 +31,10 @@ export const toPathchain = (pos: Position2D[][]) => {
       neighbors: [i1, i2]
     }
   })
-  
-  const generateVisit = (visited: Set<number>, current: number) => () => {
+
+  const generateVisit = (visited: Set<number>, current: number): VisitFn => (): Visited => {
     const path = pathchain[current]
     const pathInternal = pathInternals[current]
-    console.log("visit!: ", current)
     visited.add(current)
 
     return {
@@ -40,19 +44,17 @@ export const toPathchain = (pos: Position2D[][]) => {
   }
 
   const generateNext = (visited: Set<number>, neighbors: [number[], number[]]) => () => {
-    console.log("neighbors: ", neighbors)
-    console.log("visited: ", visited)
     const notVisitedNeighborByPoints = neighbors.filter(n => n.every(i => !visited.has(i))).flat()
-    console.log("notVisited: ", notVisitedNeighborByPoints)
 
     return notVisitedNeighborByPoints.map(i => generateVisit(visited, i))
   }
+
 
   const pathchain = pathInternals.map((r, index) => {
     return {
       positions: r.positions,
       isEnded: r.neighbors.some(n => n.length === 0),
-      from() {
+        from() {
         const visited = new Set<number>()
         visited.add(index)
 
