@@ -1,13 +1,12 @@
 import { Position2D } from "./geojson"
+import { diff } from "./geometry"
+import { Path } from "./path"
 
 export type NextFn = () => VisitFn[]
-export type PathChain = { positions: Position2D[], isEnded: boolean, from: () => NextFn }
+export type PathChain = { path: Path, isEnded: boolean, from: () => NextFn }
 type VisitFn = () => Visited
-type PathInternal = { positions: Position2D[], neighbors: [number[], number[]] }
+type PathInternal = { path: Path, neighbors: [number[], number[]] }
 type Visited = { path: PathChain, next: NextFn }
-
-const diffPosition = (p1: Position2D, p2: Position2D) => (p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1])
-
 
 export const toPathchain = (pos: Position2D[][]) => {
   const pathInternals = pos.map((r, index): PathInternal => {
@@ -20,14 +19,14 @@ export const toPathchain = (pos: Position2D[][]) => {
 
       if (pp1 === undefined || pp2 === undefined) return current
 
-      if (Math.min(diffPosition(p1, pp1), diffPosition(p1, pp2)) === 0) current[0].push(pairIndex)
-      if (Math.min(diffPosition(p2, pp1), diffPosition(p2, pp2)) === 0) current[1].push(pairIndex)
+      if (Math.min(diff(p1, pp1), diff(p1, pp2)) === 0) current[0].push(pairIndex)
+      if (Math.min(diff(p2, pp1), diff(p2, pp2)) === 0) current[1].push(pairIndex)
 
       return current
     }, [[], []]) : [[], []]
 
     return {
-      positions: r,
+      path: r,
       neighbors: [i1, i2]
     }
   })
@@ -44,24 +43,21 @@ export const toPathchain = (pos: Position2D[][]) => {
   }
 
   const generateNext = (visited: Set<number>, neighbors: [number[], number[]]) => () => {
-    const notVisitedNeighborByPoints = neighbors.filter(n => n.every(i => !visited.has(i))).flat()
+    const notVisitedNeighborByPoints = neighbors.flat().filter(i => !visited.has(i))
 
     return notVisitedNeighborByPoints.map(i => generateVisit(visited, i))
   }
 
+  const pathchain = pathInternals.map((r, index) => ({
+    path: r.path,
+    isEnded: r.neighbors.some(n => n.length === 0),
+      from() {
+      const visited = new Set<number>()
+      visited.add(index)
 
-  const pathchain = pathInternals.map((r, index) => {
-    return {
-      positions: r.positions,
-      isEnded: r.neighbors.some(n => n.length === 0),
-        from() {
-        const visited = new Set<number>()
-        visited.add(index)
-
-        return generateNext(visited, r.neighbors)
-      }
+      return generateNext(visited, r.neighbors)
     }
-  })
+  }))
 
   return {
     pathchain,

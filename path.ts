@@ -1,50 +1,45 @@
-import { RGB, RGBA } from './color.js'
-import { Tag } from './element.js'
-import { Length } from './size.js'
+import { innerProduction, Position2D, subtract, length } from "./geometry"
 
-export type StrokeWidth = ['stroke-width', Length]
-export type PresentationAttributes = {
-  stroke?: RGBA | RGB,
-  strokeWidth?: StrokeWidth
+export type Path = Position2D[]
+
+export type PointInPath = {
+  path: WeakRef<Path>
+  order: number,
+  distance: number
 }
 
-export const strokeWidth = (v: Length): StrokeWidth => ['stroke-width', v]
+export const pointInPath = (p: Position2D, path: Path): PointInPath | null => {
+  const [index, distance] = path.slice(1).reduce((current, end, i) => {
+    if (current) return current
 
-type Shape = { points: () => [number, number][] }
+    const start = path[i]
 
-type PathCommand<Name> = {
-  name: Name,
-  points: [number, number][],
-  toString: () => string
+    const b = subtract(start, p)
+    const lb = length(b)
+
+    const a = subtract(start, end)
+    const prod1 = innerProduction(a, b)
+    const angle1 = prod1 / (length(a) * lb)
+
+    if (angle1 < 0) return current
+
+    const c = subtract(end, start)
+    const prod2 = innerProduction(b, c)
+    const angle2 = prod2 / (length(c) * lb)
+
+    if (angle2 < 0) return current
+
+    if (Math.max(angle1, angle2) < 0.95) return current
+
+    return [i, lb]
+
+  }, [-1, -1])
+
+  if (index < 0) return null
+
+  return {
+    path: new WeakRef(path),
+    order: index,
+    distance
+  }
 }
-
-type Line = PathCommand<'line'>
-export const line = (x: number, y: number): Line => ({
-  name: 'line',
-  points: [[x, y]],
-  toString: () => `L ${x},${y}`
-})
-
-type Move = PathCommand<'move'>
-export const move = (x: number, y: number): Move => ({
-  name: 'move',
-  points: [[x, y]],
-  toString: () => `M ${x},${y}`
-})
-
-export const pathDatas = (v: PathCommand<unknown>[]) => ({
-  name: 'pathDatas',
-  points: () => v.map(c => c.points).flat(),
-  toString: () => v.join(' ')
-})
-export type PathDatas = ReturnType<typeof pathDatas>
-
-export type Path = (Tag & { attributes: PathAttributes }) & Shape
-export type PathAttributes = PresentationAttributes & {
-  d?: PathDatas
-}
-export const path = (attr: PathAttributes): Path => ({
-  name: "path",
-  attributes: attr,
-  points: () => attr.d?.points() || []
-})

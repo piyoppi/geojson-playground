@@ -1,3 +1,5 @@
+// ref: https://datatracker.ietf.org/doc/html/rfc7946
+
 export type FeatureCollection<G extends Geometry, P extends Record<string, unknown>> = {
   type: 'FeatureCollection'
   features: Feature<G, P>
