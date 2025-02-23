@@ -43,3 +43,9 @@ export const pointInPath = (p: Position2D, path: Path): PointInPath | null => {
     distance
   }
 }
+
+export const pathLength = (path: Path) => path.slice(1).reduce((acc, end, i) => {
+  const start = path[i]
+  
+  return acc + length(subtract(start, end))
+}, 0)

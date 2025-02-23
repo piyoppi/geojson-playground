@@ -37,6 +37,7 @@ export const toRailRoad = (railroadState: RailroadState) => {
       if (!station) return null
 
       const point = center(station.position)
+      
     }
   }
 }
