@@ -1,16 +1,5 @@
-import { Color } from './color.js'
 import { Tag } from './element.js'
-import { Paint } from './paint.js'
-import { Length } from './size.js'
-
-export type StrokeWidth = ['stroke-width', Length]
-export type PresentationAttributes = {
-  stroke?: Color,
-  strokeWidth?: StrokeWidth,
-  fill?: Paint
-}
-
-export const strokeWidth = (v: Length): StrokeWidth => ['stroke-width', v]
+import { PresentationAttributes } from './presentationalAttributes.js'
 
 type Shape = { points: () => [number, number][] }
 
@@ -45,8 +34,8 @@ export type Path = (Tag & { attributes: PathAttributes }) & Shape
 export type PathAttributes = PresentationAttributes & {
   d?: PathDatas
 }
-export const path = (attr: PathAttributes): Path => ({
+export const path = (attributes: PathAttributes): Path => ({
   name: "path",
-  attributes: attr,
-  points: () => attr.d?.points() || []
+  attributes,
+  points: () => attributes.d?.points() || []
 })

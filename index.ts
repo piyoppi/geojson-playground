@@ -3,14 +3,14 @@ import { addPadding, getBoundaryViewBox, svg } from './svg/svg.js'
 import { path, strokeWidth } from './svg/path.js'
 import { tagToString } from './svg/element.js'
 import { rgb } from './svg/color.js'
-import { toPathData } from './pathutils.js'
+import { toPathData } from './svg/pathutils.js'
 import { px } from './svg/size.js'
 import { RailroadsGeoJson } from './MLITGisTypes/railroad'
 import { StationsGeoJson } from './MLITGisTypes/station'
 import { toPathchain } from './pathchain.js'
-import { walk } from './walk.js'
 import { randomRgb } from './colorutils.js'
 import { fromMLITGeoJson, toRailRoad } from './railroad.js';
+import { walk } from './graphwalk.js';
 
 const railroadsGeoJson = JSON.parse(readFileSync('./geojsons/railroads.json', 'utf-8').toString()) as RailroadsGeoJson
 const stationsGeoJson = JSON.parse(readFileSync('./geojsons/stations.json', 'utf-8').toString()) as StationsGeoJson
@@ -21,7 +21,12 @@ console.log(railroadState)
 
 const railroad = toRailRoad(railroadState[0])
 
-console.log(railroad)
+const stationGraph = railroad.stationGraph
+if (stationGraph) {
+  walk(stationGraph, (current, prev) => {
+    console.log(prev.name, '->>', current.name)
+  })
+}
 
 // const railroads = Object.groupBy(railroadsGeoJson.features, (f) => f.properties.N02_003)
 // const stations = Object.groupBy(stationsGeoJson.features, (f) => f.properties.N02_003)
@@ -51,5 +56,5 @@ console.log(railroad)
 //   paths
 // )
 // 
-// writeFileSync('./out.json', JSON.stringify(results))
+writeFileSync('./out.json', JSON.stringify(railroad))
 // writeFileSync('./out.svg', tagToString(svgTag))

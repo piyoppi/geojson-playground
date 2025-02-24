@@ -39,13 +39,6 @@ export const toRailRoad = (railroadState: RailroadState) => {
 
   return {
     stationGraph
-    //visit: (stationName: string) => {
-    //  const station = railroadState.stations.get(stationName)
-    //  if (!station) return null
-
-    //  const point = center(station.position)
-    //  
-    //}
   }
 }
 

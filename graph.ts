@@ -3,11 +3,11 @@ import { PathChain, PointInPathchain } from "./pathchain"
 import { walk } from "./walk"
 import { pathLength } from "./path"
 
-type GraphNode = {
+export type GraphNode = {
   arcs: Arc[]
 }
 
-type Arc = {
+export type Arc = {
   cost: number,
   from: WeakRef<GraphNode> | null
   to: WeakRef<GraphNode>
@@ -26,8 +26,8 @@ const generateArc = (from: GraphNode | null, to: GraphNode): Arc => ({
 type NodeOnPath = {
   position: Position2D,
 }
-export const fromPathChain = <T extends NodeOnPath, U>(nodes: T[], callback: (node: T, found: PointInPathchain) => U) => (pathchain: PathChain): (U | GraphNode) | null => {
-  const pointInPathchains = nodes.map(n => ({node: n, pointInPathChain: pathchain.findPointInPathChain(n.position)})).flatMap(p => p ? [p] : [])
+export const fromPathChain = <T extends NodeOnPath, U>(nodes: T[], callback: (node: T, found: PointInPathchain) => U) => (pathchain: PathChain): (U & GraphNode) | null => {
+  const pointInPathchains = nodes.map(n => ({node: n, pointInPathChain: pathchain.findPointInPathChain()(n.position)})).flatMap(p => p ? [p] : [])
 
   let startNode: U | null = null
 
@@ -38,7 +38,7 @@ export const fromPathChain = <T extends NodeOnPath, U>(nodes: T[], callback: (no
       const pointInPathchain = pp.pointInPathChain
       if (!pointInPathchain) continue
 
-      const currentPointPathChain = pp.pointInPathChain?.pathChain.deref()
+      const currentPointPathChain = pp.pointInPathChain?.pathchain.deref()
       if (!currentPointPathChain) continue
 
       if (currentPointPathChain === pathchain) {

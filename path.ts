@@ -10,7 +10,7 @@ export type PointInPath = {
 
 export const pointInPath = (p: Position2D, path: Path): PointInPath | null => {
   const [index, distance] = path.slice(1).reduce((current, end, i) => {
-    if (current) return current
+    if (current[0] > 0) return current
 
     const start = path[i]
 
@@ -21,18 +21,16 @@ export const pointInPath = (p: Position2D, path: Path): PointInPath | null => {
     const prod1 = innerProduction(a, b)
     const angle1 = prod1 / (length(a) * lb)
 
-    if (angle1 < 0) return current
-
     const c = subtract(end, start)
     const prod2 = innerProduction(b, c)
     const angle2 = prod2 / (length(c) * lb)
 
-    if (angle2 < 0) return current
+    // Check direction
+    if (angle1 * angle2 > 0) return current
 
     if (Math.max(angle1, angle2) < 0.95) return current
 
     return [i, lb]
-
   }, [-1, -1])
 
   if (index < 0) return null

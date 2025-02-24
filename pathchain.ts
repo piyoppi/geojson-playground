@@ -2,31 +2,36 @@ import { diff, Position2D } from "./geometry"
 import { Path, PointInPath, pointInPath } from "./path"
 
 export type NextFn = () => VisitFn[]
+export type PathChainState = {
+  path: Path,
+  isEnded: boolean
+}
 export type PathChain = {
   path: Path,
   isEnded: boolean,
   from: () => NextFn,
-  findPointInPathChain: (p: Position2D) => PointInPathchain | null
+  findPointInPathChain: () => (p: Position2D) => PointInPathchain | null
 }
+
 type VisitFn = () => Visited
 type PathInternal = { path: Path, neighbors: [number[], number[]] }
 type Visited = { path: PathChain, next: NextFn }
 
 export type PointInPathchain = {
   pointInPath: PointInPath,
-  pathChain: WeakRef<PathChain>
+  pathchain: WeakRef<PathChain>
 }
 
-const findPointInPathChain = (pathChains: PathChain[]) => (p: Position2D) => {
-  return pathChains.reduce((acc, pathChain) => {
+const findPointInPathChain = (pathchains: PathChain[]) => (p: Position2D) => {
+  return pathchains.reduce((acc, pathchain) => {
     if (acc) return acc
 
-    const found = pointInPath(p, pathChain.path)
+    const found = pointInPath(p, pathchain.path)
     if (!found) return acc
 
     return {
       pointInPath: found,
-      pathChain: new WeakRef(pathChain)
+      pathchain: new WeakRef(pathchain)
     }
   }, null as null | PointInPathchain)
 }
@@ -71,7 +76,7 @@ export const toPathchain = (paths: Path[]) => {
     return notVisitedNeighborByPoints.map(i => generateVisit(visited, i))
   }
 
-  const pathchains: PathChain[] = pathInternals.map((r, index) => ({
+  const pathchains = pathInternals.map((r, index) => ({
     path: r.path,
     isEnded: r.neighbors.some(n => n.length === 0),
     from() {
@@ -80,7 +85,7 @@ export const toPathchain = (paths: Path[]) => {
 
       return generateNext(visited, r.neighbors)
     },
-    findPointInPathChain: findPointInPathChain(pathchains)
+    findPointInPathChain: () => findPointInPathChain(pathchains)
   }))
 
   return {
