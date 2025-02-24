@@ -17,13 +17,11 @@ const stationsGeoJson = JSON.parse(readFileSync('./geojsons/stations.json', 'utf
 
 const railroadState = fromMLITGeoJson(railroadsGeoJson, stationsGeoJson)
 
-console.log(railroadState)
-
 const railroad = toRailRoad(railroadState[0])
 
 const stationGraph = railroad.stationGraph
 if (stationGraph) {
-  walk(stationGraph, (current, prev) => {
+  walk(stationGraph, async (current, prev) => {
     console.log(prev.name, '->>', current.name)
   })
 }

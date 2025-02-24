@@ -8,3 +8,7 @@ export const innerProduction = ([ax, ay]: Position2D, [bx, by]: Position2D): num
 export const add = ([ax, ay]: Position2D, [bx, by]: Position2D): Position2D => [ax + bx, ay + by]
 export const subtract = ([ax, ay]: Position2D, [bx, by]: Position2D): Position2D => [ax - bx, ay - by]
 export const length = ([x, y]: Position2D): number => Math.sqrt(x * x + y * y)
+export const normalize = (v: Position2D): Position2D => {
+  const l = length(v)
+  return l === 0 ? [0, 0] : [v[0] / l, v[1] / l];
+}
