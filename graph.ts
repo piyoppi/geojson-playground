@@ -1,6 +1,5 @@
-import { argv0 } from "process"
 import { Position2D } from "./geometry"
-import { PathChain } from "./pathchain"
+import { PathChain, PointInPathchain } from "./pathchain"
 import { walk } from "./walk"
 import { pathLength } from "./path"
 
@@ -10,7 +9,7 @@ type GraphNode = {
 
 type Arc = {
   cost: number,
-  from: WeakRef<GraphNode>
+  from: WeakRef<GraphNode> | null
   to: WeakRef<GraphNode>
 }
 
@@ -18,36 +17,46 @@ const generateNode = (): GraphNode => ({
   arcs: []
 })
 
-const generateArc = (from: GraphNode, to: GraphNode): Arc => ({
+const generateArc = (from: GraphNode | null, to: GraphNode): Arc => ({
   cost: 0,
-  from: new WeakRef(from),
+  from: from ? new WeakRef(from) : null,
   to: new WeakRef(to)
 })
 
-export const fromPathChain = (points: Position2D[]) => (pathchain: PathChain) => {
-  const pointInPathchains = points.map(p => pathchain.findPointInPathChain(p)).flatMap(p => p ? [p] : [])
+type NodeOnPath = {
+  position: Position2D,
+}
+export const fromPathChain = <T extends NodeOnPath, U>(nodes: T[], callback: (node: T, found: PointInPathchain) => U) => (pathchain: PathChain): (U | GraphNode) | null => {
+  const pointInPathchains = nodes.map(n => ({node: n, pointInPathChain: pathchain.findPointInPathChain(n.position)})).flatMap(p => p ? [p] : [])
 
-  walk<[GraphNode, number]>(pathchain.from(), (pathchain, [currentNode, distance]) => {
+  let startNode: U | null = null
+
+  walk<[GraphNode | null, number]>(pathchain.from(), (pathchain, [currentNode, distance]) => {
     const newDistance = distance + pathLength(pathchain.path)
 
-    const found = pointInPathchains.find(pp => {
-      const currentPointPathChain = pp.pathChain.deref()
+    for (const pp of pointInPathchains) {
+      const pointInPathchain = pp.pointInPathChain
+      if (!pointInPathchain) continue
 
-      if (!currentPointPathChain) return false
+      const currentPointPathChain = pp.pointInPathChain?.pathChain.deref()
+      if (!currentPointPathChain) continue
 
-      return currentPointPathChain === pathchain
-    })
+      if (currentPointPathChain === pathchain) {
+        const newNode = {...generateNode(), ...callback(pp.node, pointInPathchain)}
 
-    if (found) {
-      const newNode = generateNode()
-      const arc = generateArc(currentNode, newNode)
+        if (!startNode) startNode = newNode
 
-      currentNode.arcs.push(arc)
-      newNode.arcs.push(arc)
+        const arc = generateArc(currentNode, newNode)
 
-      return [newNode, 0]
+        currentNode?.arcs.push(arc)
+        newNode.arcs.push(arc)
+
+        return [newNode, 0]
+      }
     }
 
     return [currentNode, newDistance]
-  }, [generateNode(), 0])
+  }, [null, 0])
+
+  return startNode
 }

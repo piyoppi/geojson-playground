@@ -12,7 +12,7 @@ type VisitFn = () => Visited
 type PathInternal = { path: Path, neighbors: [number[], number[]] }
 type Visited = { path: PathChain, next: NextFn }
 
-type PointInPathchain = {
+export type PointInPathchain = {
   pointInPath: PointInPath,
   pathChain: WeakRef<PathChain>
 }
