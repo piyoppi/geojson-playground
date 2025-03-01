@@ -1,4 +1,4 @@
-import { innerProduction, Position2D, subtract, length } from "./geometry"
+import { type Position2D, innerProduction, subtract, length } from "./geometry.ts"
 
 export type Path = Position2D[]
 
@@ -8,7 +8,7 @@ export type PointInPath = {
   distance: number
 }
 
-export const pointInPath = (pos: Position2D, path: Path): PointInPath | null => {
+export const pointInPath = (pos: Readonly<Position2D>, path: Path): PointInPath | null => {
   const [index, distance] = path.slice(1).reduce((current, end, i) => {
     if (current[0] > 0) return current
 
@@ -27,7 +27,7 @@ export const pointInPath = (pos: Position2D, path: Path): PointInPath | null => 
     // Check direction
     if (angle1 * angle2 < 0) return current
 
-    if (Math.max(Math.abs(angle1), Math.abs(angle2)) < 0.98) return current
+    if (Math.max(Math.abs(angle1), Math.abs(angle2)) < 0.999) return current
 
     return [i, lp1]
   }, [-1, -1])

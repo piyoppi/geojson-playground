@@ -1,4 +1,4 @@
-import { Arc, GraphNode } from "./graph";
+import { Arc, GraphNode } from "./graph"
 
 const toNode = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
   const from = arc.from?.deref()
