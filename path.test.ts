@@ -36,4 +36,3 @@ describe('pathLength', () => {
     t.assert.equal(length, 10)
   })
 })
-

@@ -1,5 +1,5 @@
-import { diff, Position2D } from "./geometry"
-import { Path, PointInPath, pointInPath } from "./path"
+import { type Position2D, diff } from "./geometry.ts"
+import { type Path, type PointInPath, pointInPath } from "./path.ts"
 
 export type NextFn = () => VisitFn[]
 export type PathChainState = {
@@ -22,7 +22,7 @@ export type PointInPathchain = {
   pathchain: WeakRef<PathChain>
 }
 
-const findPointInPathChain = (pathchains: PathChain[]) => (p: Position2D) => {
+const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly<Position2D>) => {
   return pathchains.reduce((acc, pathchain) => {
     if (acc) return acc
 
@@ -36,7 +36,7 @@ const findPointInPathChain = (pathchains: PathChain[]) => (p: Position2D) => {
   }, null as null | PointInPathchain)
 }
 
-export const toPathchain = (paths: Path[]) => {
+export const toPathchain = (paths: Readonly<Path[]>) => {
   const pathInternals = paths.map((r, index): PathInternal => {
     const [p1, p2] = [r.at(0), r.at(-1)]
 
