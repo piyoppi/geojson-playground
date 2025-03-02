@@ -1,7 +1,7 @@
-import { Position2D } from "./geometry"
-import { PathChain, PointInPathchain } from "./pathchain"
-import { walk } from "./walk"
-import { pathLength } from "./path"
+import type { Position2D } from "./geometry.ts"
+import type { PathChain, PointInPathchain } from "./pathchain.ts"
+import { walk } from "./walk.ts"
+import { pathLength } from "./path.ts"
 
 export type GraphNode = {
   arcs: Arc[]

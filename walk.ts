@@ -1,4 +1,4 @@
-import { NextFn, PathChain } from "./pathchain"
+import type { NextFn, PathChain } from "./pathchain.ts"
 
 type CallbackFn<T> = (pathchain: PathChain, state: T) => T
 

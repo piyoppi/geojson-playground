@@ -1,4 +1,10 @@
-import { Arc, GraphNode } from "./graph"
+import type { Arc, GraphNode } from "./graph.ts"
+
+export const walk = <T extends GraphNode>(node: T, callback: (current: T, from: T) => void) => {
+  const visited = new WeakSet<Arc>
+
+  _walkDepthFirst(node, callback, visited)
+}
 
 const toNode = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
   const from = arc.from?.deref()
@@ -12,22 +18,15 @@ const toNode = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
   return null
 }
 
-export const walk = <T extends GraphNode>(node: T, callback: (current: T, from: T) => void) => {
-  const visited = new WeakSet<T>
-
-  _walk(node, callback, visited)
-}
-
-const _walk = <T extends GraphNode>(node: T, callback: (current: T, from: T) => void, visited: WeakSet<T>) => {
+const _walkDepthFirst = <T extends GraphNode>(node: T, callback: (current: T, from: T) => void, visited: WeakSet<Arc>) => {
   let currentNode = node
 
   const visit = (arc: Arc, from: T) => {
     const to = toNode(currentNode, arc)
-    if (!to) return null
-    if (visited.has(to)) return null
+    if (!to || visited.has(arc)) return null
 
     callback(to, from)
-    visited.add(to)
+    visited.add(arc)
 
     return to
   }
@@ -35,28 +34,27 @@ const _walk = <T extends GraphNode>(node: T, callback: (current: T, from: T) => 
   while(true) {
     if (currentNode.arcs.length === 0) break
 
-    const [firstVisited, remainingArcs] = currentNode.arcs.reduce(([visited, remain]: [T | null, Arc[]], arc): [T | null, Arc[]] => {
-      if (visited) {
-        remain.push(arc)
-        return [visited, remain]
-      }
-
+    const firstArcWithTarget = currentNode.arcs.find(arc => {
       const to = visit(arc, currentNode)
+      return to !== null
+    })
 
-      return to ? [to, [arc]] : [null, []]
-    }, [null, []])
+    const firstVisited = firstArcWithTarget
+      ? toNode(currentNode, firstArcWithTarget)
+      : null
+
+    const remainingArcs = firstVisited
+      ? currentNode.arcs.filter(arc => arc !== firstArcWithTarget)
+      : []
 
     if (!firstVisited) break
 
-    remainingArcs.slice(1).map(arc => {
+    for (let i = 1; i < remainingArcs.length; i++) {
+      const arc = remainingArcs[i];
       const to = visit(arc, currentNode)
 
-      if (to) {
-        _walk(to, callback, visited)
-      }
-
-      return !!to
-    })
+      if (to) _walkDepthFirst(to, callback, visited)
+    }
 
     currentNode = firstVisited
   }

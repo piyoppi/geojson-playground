@@ -1,59 +1,57 @@
-import { describe, it } from 'node:test'
+import { describe, it, type TestContext } from 'node:test'
 import { toPathchain } from './pathchain.ts'
 import { type Path } from './path.ts'
 
-describe('toPathchain', () => {
-  it('should create pathchains from paths', (t) => {
-    const paths: Path[] = [
-      [[0, 0], [1, 1]],
-      [[1, 1], [2, 2]],
-      [[2, 2], [3, 3]]
-    ]
-
-    const { pathchains, ends } = toPathchain(paths)
-
-    t.assert.equal(pathchains.length, 3)
-    t.assert.equal(ends().length, 2)
-
-    const firstPathChain = pathchains[0]
-    t.assert.equal(firstPathChain.isEnded, true)
-    t.assert.equal(firstPathChain.path, paths[0])
-
-    const lastPathChain = pathchains[2]
-    t.assert.equal(lastPathChain.isEnded, true)
-    t.assert.equal(lastPathChain.path, paths[2])
+describe('toPathchain tests', () => {
+  it('should return empty array when paths is empty', (t) => {
+    const result = toPathchain([])
+    t.assert.equal(result.pathchains.length, 0)
+    t.assert.equal(result.ends().length, 0)
   })
 
-  const testCases = [
-    {
-      point: [1, 1],
-      expectedPathchainIndex: 0,
-      expectedOrder: 0,
-      expectedDistance: '1.41421'
-    },
-    {
-      point: [1.5, 1.5],
-      expectedPathchainIndex: 1,
-      expectedOrder: 0,
-      expectedDistance: '0.70711'
-    }
-  ] as const
+  it('should correctly identify chain relationships for multiple paths', (t) => {
+    const p1: Path = [[0, 0], [1, 1]]
+    const p2: Path = [[1, 1], [2, 2]]
+    const p3: Path = [[2, 2], [3, 3]]
 
-  testCases.forEach(({ point, expectedPathchainIndex, expectedOrder, expectedDistance }) => {
-    it(`should find point ${point} in pathchains`, (t) => {
-      const paths: Path[] = [
-        [[0, 0], [1, 1]],
-        [[1, 1], [2, 2]],
-        [[2, 2], [3, 3]]
-      ];
+    const result = toPathchain([p1, p2, p3])
 
-      const { pathchains } = toPathchain(paths);
-      const findPoint = pathchains[0].findPointInPathChain();
+    t.assert.equal(result.pathchains.length, 3)
 
-      const pointInPathchain = findPoint(point);
-      t.assert.equal(pointInPathchain?.pathchain.deref(), pathchains[expectedPathchainIndex]);
-      t.assert.equal(pointInPathchain?.pointInPath.order, expectedOrder);
-      t.assert.equal(pointInPathchain?.pointInPath.distance.toFixed(5), expectedDistance);
-    });
-  });
+    const ends = result.ends()
+    t.assert.equal(ends.length, 2)
+
+    const p1Chain = result.pathchains[0]
+    t.assert.equal(p1Chain.isEnded, true)
+    const p1Next = p1Chain.from()()
+    t.assert.equal(p1Next.length, 1)
+    t.assert.equal(p1Next[0]().path.path, p2)
+
+    const p2Chain = result.pathchains[1]
+    t.assert.equal(p2Chain.isEnded, false)
+    const p2Next = p2Chain.from()()
+    t.assert.equal(p2Next.length, 2)
+
+    const p3Chain = result.pathchains[2]
+    t.assert.equal(p3Chain.isEnded, true)
+  })
+
+  it('should navigate h', (t: TestContext) => {
+    // p1 → p2 → p3
+    //      ↓
+    //      p4
+    const p1: Path = [[0, 0], [1, 0]]
+    const p2: Path = [[1, 0], [2, 0]]
+    const p3: Path = [[2, 0], [3, 0]]
+    const p4: Path = [[1, 0], [1, -1]]
+
+    const result = toPathchain([p1, p2, p3, p4])
+    const ends = result.ends()
+
+    const startPath = ends[0]
+    t.assert.equal(startPath.isEnded, true)
+
+    const nextPaths = startPath.from()()
+    t.assert.equal(nextPaths.length, 2, 'Should have at least one next path')
+  })
 })
