@@ -1,9 +1,9 @@
-import { center, Position2D } from "./geometry"
-import { fromPathChain } from "./graph"
-import { RailroadsGeoJson } from "./MLITGisTypes/railroad"
-import { StationsGeoJson } from './MLITGisTypes/station'
-import { Path } from "./path"
-import { toPathchain } from './pathchain'
+import { center, type Position2D } from "./geometry.ts"
+import { fromPathChain } from "./graph/fromPathChain.ts"
+import type { RailroadsGeoJson } from "./MLITGisTypes/railroad.ts"
+import type { StationsGeoJson } from './MLITGisTypes/station.ts'
+import type { Path } from "./path.ts"
+import { toPathchain } from './pathchain.ts'
 
 export type RailroadState = {
   name: string,

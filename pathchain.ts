@@ -1,6 +1,7 @@
 import { type Position2D, diff } from "./geometry.ts"
 import { type Path, type PointInPath, pointInPath } from "./path.ts"
 
+export type VisitFn = () => Visited
 export type NextFn = () => VisitFn[]
 export type PathChainState = {
   path: Path,
@@ -9,11 +10,9 @@ export type PathChainState = {
 export type PathChain = {
   path: Path,
   isEnded: boolean,
-  from: () => NextFn,
+  from: () => VisitFn,
   findPointInPathChain: () => (p: Position2D) => PointInPathchain | null
 }
-
-type VisitFn = () => Visited
 type PathInternal = { path: Path, neighbors: [number[], number[]] }
 type Visited = { path: PathChain, next: NextFn }
 
@@ -83,7 +82,7 @@ export const toPathchain = (paths: Readonly<Path[]>) => {
       const visited = new Set<number>()
       visited.add(index)
 
-      return generateNext(visited, r.neighbors)
+      return generateVisit(visited, index)
     },
     findPointInPathChain: () => findPointInPathChain(pathchains)
   }))

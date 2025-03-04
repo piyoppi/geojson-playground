@@ -1,23 +1,32 @@
-import type { NextFn, PathChain } from "./pathchain.ts"
+import type { PathChain, VisitFn } from "./pathchain.ts"
 
-type CallbackFn<T> = (pathchain: PathChain, state: T) => T
+type CallbackFn = (pathchain: PathChain, branchNum: number, previousBranchNum: number | null) => void
 
-export const walk = <T>(next: NextFn, callback: CallbackFn<T>, state: T) => {
-  let currentState = state
+export const pathChainWalk = (start: VisitFn, callback: CallbackFn) => {
+  _walk([start], callback, generateBranchNum(), null)
+}
 
+const generateBranchNum = () => Math.floor(Math.random() * 10000000000000)
+
+const _walk = (visits: VisitFn[], callback: CallbackFn, branchNum: number, previousBranchNum: number | null) => {
   while(true) {
-    const visits = next()
     if (visits.length === 0) break
 
+    if (visits.length > 1) {
+      branchNum = generateBranchNum()
+    }
+
     const res = visits[0]()
-    currentState = callback(res.path, currentState)
+    callback(res.path, branchNum, previousBranchNum)
 
     for (const visit of visits.slice(1)) {
       const res = visit()
-      const newState = callback(res.path, currentState)
-      walk(res.next, callback, newState)
+      const newBranchNum = generateBranchNum()
+      callback(res.path, newBranchNum, previousBranchNum)
+
+      _walk(res.next(), callback, newBranchNum, branchNum)
     }
 
-    next = res.next
+    visits = res.next()
   }
 }

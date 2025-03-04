@@ -7,11 +7,11 @@ export const walk = <T extends GraphNode>(node: T, callback: (current: T, from: 
 }
 
 const toNode = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
-  const from = arc.from?.deref()
+  const from = arc.a?.deref()
 
   if (fromNode !== from && from) return from as T
 
-  const to = arc.to.deref()
+  const to = arc.b.deref()
 
   if (fromNode !== to && to) return to as T
 
