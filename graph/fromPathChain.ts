@@ -30,7 +30,10 @@ const mapping = <T extends NodeOnPath, U>(
   const nodeChainInBranch = new Map<number, GraphNode[]>()
   const distances = new Map<number, number>()
 
-  pathChainWalk(pathchain.from(), (pathchain, branchNum, previousBranchNum) => {
+  pathChainWalk(pathchain.from(), (pathchain, branchNums) => {
+    const branchNum = branchNums.at(-1)
+    if (branchNum === undefined) return
+
     let distance = distances.get(branchNum) ?? 0
     const newDistance = distance + pathLength(pathchain.path)
     distances.set(branchNum, newDistance)
