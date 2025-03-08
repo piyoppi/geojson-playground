@@ -34,6 +34,8 @@ const mapping = <T extends NodeOnPath, U>(
     const branchNum = branchNums.at(-1)
     if (branchNum === undefined) return
 
+    const previousBranchNum = branchNums.find(n => nodeChainInBranch.get(n)?.length ?? 0 > 0)
+
     let distance = distances.get(branchNum) ?? 0
     const newDistance = distance + pathLength(pathchain.path)
     distances.set(branchNum, newDistance)
