@@ -69,20 +69,20 @@ export const toPathchain = (paths: Readonly<Path[]>) => {
     }
   }
 
-  const generateNext = (visited: Set<number>, neighbors: [number[], number[]]) => () => {
-    const notVisitedNeighborByPoints = neighbors.flat().filter(i => !visited.has(i))
+  const generateNext = (visitedIndexes: Set<number>, neighborIndexes: [number[], number[]]) => () => {
+    const notVisitedNeighborIndexes = neighborIndexes.flat().filter(i => !visitedIndexes.has(i))
 
-    return notVisitedNeighborByPoints.map(i => generateVisit(visited, i))
+    return notVisitedNeighborIndexes.map(i => generateVisit(visitedIndexes, i))
   }
 
   const pathchains = pathInternals.map((r, index) => ({
     path: r.path,
     isEnded: r.neighbors.some(n => n.length === 0),
     from() {
-      const visited = new Set<number>()
-      visited.add(index)
+      const visitedIndexes = new Set<number>()
+      visitedIndexes.add(index)
 
-      return generateVisit(visited, index)
+      return generateVisit(visitedIndexes, index)
     },
     findPointInPathChain: () => findPointInPathChain(pathchains)
   }))

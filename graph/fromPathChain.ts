@@ -27,23 +27,23 @@ const mapping = <T extends NodeOnPath, U>(
   pointInPathchains: [T, PointInPathchain][]
 ) => {
   let firstNode: U & GraphNode | null = null
-  const nodeChainInBranch = new Map<number, GraphNode[]>()
-  const distances = new Map<number, number>()
+  const nodeChainInBranch = new Map<string, GraphNode[]>()
+  const distances = new Map<string, number>()
 
-  pathChainWalk(pathchain.from(), (pathchain, branchNums) => {
-    const branchNum = branchNums.at(-1)
-    if (branchNum === undefined) return
+  pathChainWalk(pathchain.from(), (pathchain, branchIds) => {
+    const branchId = branchIds.at(-1)
+    if (branchId === undefined) return
 
-    const previousBranchNum = branchNums.find(n => nodeChainInBranch.get(n)?.length ?? 0 > 0)
+    const previousBranchNum = branchIds.findLast(id => nodeChainInBranch.get(id)?.length ?? 0 > 0)
 
-    let distance = distances.get(branchNum) ?? 0
+    let distance = distances.get(branchId) ?? 0
     const newDistance = distance + pathLength(pathchain.path)
-    distances.set(branchNum, newDistance)
+    distances.set(branchId, newDistance)
 
-    if (!nodeChainInBranch.has(branchNum)) {
-      nodeChainInBranch.set(branchNum, [])
+    if (!nodeChainInBranch.has(branchId)) {
+      nodeChainInBranch.set(branchId, [])
     }
-    const nodeChain = nodeChainInBranch.get(branchNum)
+    const nodeChain = nodeChainInBranch.get(branchId)
 
     for (const [node, pointInPathChain] of pointInPathchains) {
       const currentPointPathChain = pointInPathChain.pathchain.deref()
@@ -51,9 +51,7 @@ const mapping = <T extends NodeOnPath, U>(
 
       if (currentPointPathChain === pathchain) {
         const newNode = {...generateNode(), ...callback(node, pointInPathChain)}
-
-        const previousNode = nodeChainInBranch.get(branchNum)?.at(-1) || (previousBranchNum ? nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
-        console.log(previousNode, branchNum, previousBranchNum)
+        const previousNode = nodeChainInBranch.get(branchId)?.at(-1) || (previousBranchNum ? nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
 
         nodeChain?.push(newNode)
 

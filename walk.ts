@@ -1,23 +1,23 @@
 import type { PathChain, VisitFn } from "./pathchain.ts"
 
-type CallbackFn = (pathchain: PathChain, branchNums: number[]) => void
+type CallbackFn = (pathchain: PathChain, branchNums: string[]) => void
 
 export const pathChainWalk = (start: VisitFn, callback: CallbackFn) => {
   _walk([start], callback, [generateBranchNum()])
 }
 
-const generateBranchNum = () => Math.floor(Math.random() * 10000000000000)
+const generateBranchNum = () => Math.floor(Math.random() * 10000000000000).toString()
 
-const _walk = (visits: VisitFn[], callback: CallbackFn, branchNums: number[]) => {
+const _walk = (visits: VisitFn[], callback: CallbackFn, branchId: string[]) => {
   while(true) {
     if (visits.length === 0) break
 
     const res = visits[0]()
-    callback(res.path, visits.length > 1 ? [...branchNums, generateBranchNum()] : branchNums)
+    callback(res.path, visits.length > 1 ? [...branchId, generateBranchNum()] : branchId)
 
     for (const visit of visits.slice(1)) {
       const res = visit()
-      const newBranchNum = [...branchNums, generateBranchNum()]
+      const newBranchNum = [...branchId, generateBranchNum()]
       callback(res.path, newBranchNum)
 
       _walk(res.next(), callback, newBranchNum)
