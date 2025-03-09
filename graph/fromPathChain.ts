@@ -1,5 +1,5 @@
 import type { Position2D } from "../geometry.ts"
-import type { PathChain, PointInPathchain } from "../pathchain.ts"
+import { type PathChain, type PointInPathchain } from "../pathchain.ts"
 import { pathChainWalk } from "../walk.ts"
 import { pathLength } from "../path.ts"
 import { generateArc, generateNode, type GraphNode } from "./graph.ts"
@@ -59,13 +59,14 @@ const mapping = <T extends NodeOnPath, U>(
 
     if (found.length > 0) {
       let previousNode = nodeChainInBranch.get(branchId)?.at(-1) || (previousBranchNum ? nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
-      let newDistance = distance
+      let lastDistance = 0
 
       found
         .sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
         .forEach(([node, pointInPathChain]) => {
           const newNode = {...generateNode(), ...callback(node, pointInPathChain)}
-          newDistance += pointInPathChain.pointInPath.distance()
+
+          lastDistance = pointInPathChain.pointInPath.distance()
           nodeChainInBranch.get(branchId)?.push(newNode)
 
           if (!firstNode) {
@@ -73,7 +74,7 @@ const mapping = <T extends NodeOnPath, U>(
           }
 
           if (previousNode) {
-            const arc = generateArc(previousNode, newNode, newDistance)
+            const arc = generateArc(previousNode, newNode, distance + lastDistance)
 
             previousNode.arcs.push(arc)
             newNode.arcs.push(arc)
@@ -82,7 +83,7 @@ const mapping = <T extends NodeOnPath, U>(
           previousNode = newNode
         })
 
-      distances.set(distanceKey(branchIds), 0)
+      distances.set(distanceKey(branchIds), pathLength(pathchain.path) - lastDistance)
     } else {
       distances.set(distanceKey(branchIds), distance + pathLength(pathchain.path))
     }

@@ -12,13 +12,13 @@ describe('fromPathChain', () => {
       { position: [5, 0], id: 'B' },
       { position: [2, 2], id: 'C' }
     ]
-    //        0     1     2    3 .. 6
+    //        0    1    2    ..    5    6
     //
-    //     0  * --- A --- * -- B -- *
-    //                    |
-    //     1              |
-    //                    |
-    //     2              C
+    //     0  * -- A -- * -- .. -- B -- *
+    //                  |
+    //     1            |
+    //                  |
+    //     2            C
     //
     const paths: Path[] = [
       [[0, 0], [1, 0], [2, 0]],
@@ -40,8 +40,8 @@ describe('fromPathChain', () => {
 
     t.assert.ok(['B', 'C'].includes(next1?.id ?? ''))
     t.assert.ok(['B', 'C'].includes(next2?.id ?? ''))
-    t.assert.ok([4, 6].includes(next1.arcs[0].cost))
-    t.assert.ok([4, 6].includes(next2.arcs[0].cost))
+    t.assert.ok([3, 4].includes(next1.arcs[0].cost))
+    t.assert.ok([3, 4].includes(next2.arcs[0].cost))
 
     t.assert.strictEqual(next1.arcs.length, 1)
     t.assert.strictEqual(next2.arcs.length, 1)
@@ -52,9 +52,9 @@ describe('fromPathChain', () => {
 
   it('Should calculated costs', (t: TestContext) => {
     const nodes: { position: Position2D, id: string }[] = [
-      { position: [0, 0], id: 'A' },
-      { position: [3, 0], id: 'B' },
-      { position: [5, 0], id: 'C' }
+      { position: [0, 0], id: 'AA' },
+      { position: [3, 0], id: 'BB' },
+      { position: [5, 0], id: 'CC' }
     ]
     //        0     1     2     3     4     5     6
     //
@@ -73,12 +73,14 @@ describe('fromPathChain', () => {
 
     t.assert.strictEqual(node.arcs.length, 1)
 
-    const next = to(node, node.arcs[0])
+    const next1 = to(node, node.arcs[0])
+    if (next1 === null) t.assert.fail('Next should not be null')
 
-    if (next === null) t.assert.fail('Next should not be null')
+    t.assert.strictEqual(next1.arcs[0].cost, 3)
 
-    console.log(next)
+    const next2 = to(next1, next1.arcs[1])
+    if (next2 === null) t.assert.fail('Next should not be null')
 
-    t.assert.strictEqual(next.arcs[0].cost, 3)
+    t.assert.strictEqual(next2.arcs[0].cost, 2)
   })
 })
