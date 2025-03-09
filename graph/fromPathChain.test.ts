@@ -12,10 +12,14 @@ describe('fromPathChain', () => {
       { position: [5, 0], id: 'B' },
       { position: [2, 2], id: 'C' }
     ]
-
-    //  A --- + --- + -- B -- ]
-    //        |
-    //        C
+    //        0     1     2    3 .. 6
+    //
+    //     0  * --- A --- * -- B -- *
+    //                    |
+    //     1              |
+    //                    |
+    //     2              C
+    //
     const paths: Path[] = [
       [[0, 0], [1, 0], [2, 0]],
       [[2, 0], [2, 2]],
@@ -23,24 +27,58 @@ describe('fromPathChain', () => {
     ]
     const pathChain = toPathchain(paths).ends()[0]
 
-    const graph = fromPathChain(nodes, (s) => ({...s}))(pathChain)
+    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)
 
-    if (graph === null) t.assert.fail('Graph should not be null')
+    if (node === null) t.assert.fail('Graph should not be null')
 
-    t.assert.strictEqual(graph.arcs.length, 2)
+    t.assert.strictEqual(node.arcs.length, 2)
 
-    const next1 = to(graph, graph.arcs[0])
-    const next2 = to(graph, graph.arcs[1])
+    const next1 = to(node, node.arcs[0])
+    const next2 = to(node, node.arcs[1])
 
     if (next1 === null || next2 === null) t.assert.fail('Next should not be null')
 
     t.assert.ok(['B', 'C'].includes(next1?.id ?? ''))
     t.assert.ok(['B', 'C'].includes(next2?.id ?? ''))
+    t.assert.ok([4, 6].includes(next1.arcs[0].cost))
+    t.assert.ok([4, 6].includes(next2.arcs[0].cost))
 
     t.assert.strictEqual(next1.arcs.length, 1)
     t.assert.strictEqual(next2.arcs.length, 1)
 
     t.assert.ok(to(next1, next1?.arcs[0])?.id === 'A')
     t.assert.ok(to(next2, next2?.arcs[0])?.id === 'A')
+  })
+
+  it('Should calculated costs', (t: TestContext) => {
+    const nodes: { position: Position2D, id: string }[] = [
+      { position: [0, 0], id: 'A' },
+      { position: [3, 0], id: 'B' },
+      { position: [5, 0], id: 'C' }
+    ]
+    //        0     1     2     3     4     5     6
+    //
+    //     0  A --- + --- * --- B --- * --- C --- *
+    //
+    const paths: Path[] = [
+      [[0, 0], [1, 0], [2, 0]],
+      [[2, 0], [4, 0]],
+      [[4, 0], [6, 0]]
+    ]
+    const pathChain = toPathchain(paths).ends()[0]
+
+    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)
+
+    if (node === null) t.assert.fail('Graph should not be null')
+
+    t.assert.strictEqual(node.arcs.length, 1)
+
+    const next = to(node, node.arcs[0])
+
+    if (next === null) t.assert.fail('Next should not be null')
+
+    console.log(next)
+
+    t.assert.strictEqual(next.arcs[0].cost, 3)
   })
 })

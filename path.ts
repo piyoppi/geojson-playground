@@ -5,7 +5,7 @@ export type Path = Position2D[]
 export type PointInPath = {
   path: WeakRef<Path>
   order: number,
-  distance: number
+  distance: () => number
 }
 
 export const pointInPath = (pos: Readonly<Position2D>, path: Path): PointInPath | null => {
@@ -37,7 +37,7 @@ export const pointInPath = (pos: Readonly<Position2D>, path: Path): PointInPath 
   return {
     path: new WeakRef(path),
     order: index,
-    distance
+    distance: () => pathLength(path.slice(0, index - 1)) + distance
   }
 }
 

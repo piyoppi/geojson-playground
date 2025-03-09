@@ -1,6 +1,8 @@
 import type { Arc, GraphNode } from "./graph.ts"
 
-export const walk = <T extends GraphNode>(node: T, callback: (current: T, from: T) => void) => {
+type WalkCallback<T extends GraphNode> = (current: T, from: T, arc: Arc) => void
+
+export const walk = <T extends GraphNode>(node: T, callback: WalkCallback<T>) => {
   const visited = new WeakSet<Arc>
 
   _walkDepthFirst(node, callback, visited)
@@ -18,14 +20,14 @@ const toNode = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
   return null
 }
 
-const _walkDepthFirst = <T extends GraphNode>(node: T, callback: (current: T, from: T) => void, visited: WeakSet<Arc>) => {
+const _walkDepthFirst = <T extends GraphNode>(node: T, callback: WalkCallback<T>, visited: WeakSet<Arc>) => {
   let currentNode = node
 
   const visit = (arc: Arc, from: T) => {
     const to = toNode(currentNode, arc)
     if (!to || visited.has(arc)) return null
 
-    callback(to, from)
+    callback(to, from, arc)
     visited.add(arc)
 
     return to

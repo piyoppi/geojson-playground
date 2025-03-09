@@ -1,5 +1,6 @@
 import { type Position2D, diff } from "./geometry.ts"
-import { type Path, type PointInPath, pointInPath } from "./path.ts"
+import { type Path, pathLength, type PointInPath, pointInPath } from "./path.ts"
+import { pathChainWalk } from "./walk"
 
 export type VisitFn = () => Visited
 export type NextFn = () => VisitFn[]
@@ -19,6 +20,27 @@ type Visited = { path: PathChain, next: NextFn }
 export type PointInPathchain = {
   pointInPath: PointInPath,
   pathchain: WeakRef<PathChain>
+}
+
+export const distance = (pp: PointInPathchain) => {
+  const pathchain = pp.pathchain.deref()
+  if (!pathchain) return 0
+
+  const distances = new Map<string, number>()
+
+  pathChainWalk(pathchain.from(), (pathchain, branchNums) => {
+    const currentKey = branchNums.at(-1)
+    if (currentKey === undefined) return
+
+    const currentDistance = distances.get(currentKey) ?? 0
+
+    if (pathchain === pp.pathchain.deref()) {
+      return branchNums.slice(0, -1).reduce((acc, branchNum) => acc + (distances.get(branchNum) ?? 0))
+        + pp.pointInPath.distance()
+    } else {
+      distances.set(currentKey, currentDistance + pathLength(pathchain.path))
+    }
+  })
 }
 
 const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly<Position2D>) => {

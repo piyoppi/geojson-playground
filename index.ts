@@ -13,8 +13,8 @@ const railroad = toRailRoad(railroadState[0])
 
 const stationGraph = railroad.stationGraph
 if (stationGraph) {
-  walk(stationGraph, async (current, prev) => {
-    console.log(prev.name, '->>', current.name)
+  walk(stationGraph, async (current, prev, arc) => {
+    console.log(prev.name, '->>', current.name, arc.cost)
   })
 }
 

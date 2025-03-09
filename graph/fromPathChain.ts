@@ -21,6 +21,8 @@ export const fromPathChain = <T extends NodeOnPath, U>(
   return mapping(pathchain, callback, pointInPathchains)
 }
 
+const distanceKey = (branchIds: string[]) => branchIds.join('-')
+
 const mapping = <T extends NodeOnPath, U>(
   pathchain: PathChain,
   callback: CallbackFn<T, U>,
@@ -36,36 +38,53 @@ const mapping = <T extends NodeOnPath, U>(
 
     const previousBranchNum = branchIds.findLast(id => nodeChainInBranch.get(id)?.length ?? 0 > 0)
 
-    let distance = distances.get(branchId) ?? 0
-    const newDistance = distance + pathLength(pathchain.path)
-    distances.set(branchId, newDistance)
-
     if (!nodeChainInBranch.has(branchId)) {
       nodeChainInBranch.set(branchId, [])
     }
-    const nodeChain = nodeChainInBranch.get(branchId)
+
+    const found: [T, PointInPathchain][] = []
 
     for (const [node, pointInPathChain] of pointInPathchains) {
       const currentPointPathChain = pointInPathChain.pathchain.deref()
       if (!currentPointPathChain) continue
 
       if (currentPointPathChain === pathchain) {
-        const newNode = {...generateNode(), ...callback(node, pointInPathChain)}
-        const previousNode = nodeChainInBranch.get(branchId)?.at(-1) || (previousBranchNum ? nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
-
-        nodeChain?.push(newNode)
-
-        if (!firstNode) {
-          firstNode = newNode
-        }
-
-        if (previousNode) {
-          const arc = generateArc(previousNode, newNode)
-
-          previousNode.arcs.push(arc)
-          newNode.arcs.push(arc)
-        }
+        found.push([node, pointInPathChain])
       }
+    }
+
+    const distance = distances.get(distanceKey(branchIds))
+      ?? distances.get(distanceKey(branchIds.slice(0, -1)))
+      ?? 0
+
+    if (found.length > 0) {
+      let previousNode = nodeChainInBranch.get(branchId)?.at(-1) || (previousBranchNum ? nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
+      let newDistance = distance
+
+      found
+        .sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
+        .forEach(([node, pointInPathChain]) => {
+          const newNode = {...generateNode(), ...callback(node, pointInPathChain)}
+          newDistance += pointInPathChain.pointInPath.distance()
+          nodeChainInBranch.get(branchId)?.push(newNode)
+
+          if (!firstNode) {
+            firstNode = newNode
+          }
+
+          if (previousNode) {
+            const arc = generateArc(previousNode, newNode, newDistance)
+
+            previousNode.arcs.push(arc)
+            newNode.arcs.push(arc)
+          }
+
+          previousNode = newNode
+        })
+
+      distances.set(distanceKey(branchIds), 0)
+    } else {
+      distances.set(distanceKey(branchIds), distance + pathLength(pathchain.path))
     }
   })
 

@@ -12,8 +12,8 @@ export const generateNode = (): GraphNode => ({
   arcs: []
 })
 
-export const generateArc = (a: GraphNode, b: GraphNode): Arc => ({
-  cost: 0,
+export const generateArc = (a: GraphNode, b: GraphNode, cost: number): Arc => ({
+  cost: cost,
   a: new WeakRef(a),
   b: new WeakRef(b),
 })
