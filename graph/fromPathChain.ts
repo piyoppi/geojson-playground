@@ -23,71 +23,88 @@ export const fromPathChain = <T extends NodeOnPath, U>(
 
 const distanceKey = (branchIds: string[]) => branchIds.join('-')
 
+type MappingContext<T extends NodeOnPath, U> = {
+  nodeChainInBranch: Map<string, GraphNode[]>
+  distances: Map<string, number>
+  firstNode: (U & GraphNode) | null
+  callback: CallbackFn<T, U>
+}
+
+const createMappingContext = <T extends NodeOnPath, U>(callback: CallbackFn<T, U>): MappingContext<T, U> => ({
+  nodeChainInBranch: new Map(),
+  distances: new Map(),
+  firstNode: null,
+  callback
+})
+
+const buildBranchNodeChain = <T extends NodeOnPath, U>(
+  context: MappingContext<T, U>,
+  found: [T, PointInPathchain][],
+  branchId: string,
+  previousBranchNum: string | undefined,
+  distance: number
+) => {
+  let previousNode = context.nodeChainInBranch.get(branchId)?.at(-1) || 
+    (previousBranchNum ? context.nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
+  let lastDistance = 0
+
+  found
+    .sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
+    .forEach(([node, pointInPathChain]) => {
+      const newNode = {...generateNode(), ...context.callback(node, pointInPathChain)}
+
+      lastDistance = pointInPathChain.pointInPath.distance()
+      context.nodeChainInBranch.get(branchId)?.push(newNode)
+
+      if (!context.firstNode) {
+        context.firstNode = newNode
+      }
+
+      if (previousNode) {
+        const arc = generateArc(previousNode, newNode, distance + lastDistance)
+        previousNode.arcs.push(arc)
+        newNode.arcs.push(arc)
+      }
+
+      previousNode = newNode
+    })
+
+  return lastDistance
+}
+
 const mapping = <T extends NodeOnPath, U>(
   pathchain: PathChain,
   callback: CallbackFn<T, U>,
   pointInPathchains: [T, PointInPathchain][]
 ) => {
-  let firstNode: U & GraphNode | null = null
-  const nodeChainInBranch = new Map<string, GraphNode[]>()
-  const distances = new Map<string, number>()
+  const context = createMappingContext(callback)
 
   pathChainWalk(pathchain.from(), (pathchain, branchIds) => {
     const branchId = branchIds.at(-1)
     if (branchId === undefined) return
 
-    const previousBranchNum = branchIds.findLast(id => nodeChainInBranch.get(id)?.length ?? 0 > 0)
+    const previousBranchNum = branchIds.findLast(id => context.nodeChainInBranch.get(id)?.length ?? 0 > 0)
 
-    if (!nodeChainInBranch.has(branchId)) {
-      nodeChainInBranch.set(branchId, [])
+    if (!context.nodeChainInBranch.has(branchId)) {
+      context.nodeChainInBranch.set(branchId, [])
     }
 
-    const found: [T, PointInPathchain][] = []
-
-    for (const [node, pointInPathChain] of pointInPathchains) {
+    const found = pointInPathchains.filter(([_, pointInPathChain]) => {
       const currentPointPathChain = pointInPathChain.pathchain.deref()
-      if (!currentPointPathChain) continue
+      return currentPointPathChain === pathchain
+    })
 
-      if (currentPointPathChain === pathchain) {
-        found.push([node, pointInPathChain])
-      }
-    }
-
-    const distance = distances.get(distanceKey(branchIds))
-      ?? distances.get(distanceKey(branchIds.slice(0, -1)))
+    const distance = context.distances.get(distanceKey(branchIds))
+      ?? context.distances.get(distanceKey(branchIds.slice(0, -1)))
       ?? 0
 
     if (found.length > 0) {
-      let previousNode = nodeChainInBranch.get(branchId)?.at(-1) || (previousBranchNum ? nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
-      let lastDistance = 0
-
-      found
-        .sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
-        .forEach(([node, pointInPathChain]) => {
-          const newNode = {...generateNode(), ...callback(node, pointInPathChain)}
-
-          lastDistance = pointInPathChain.pointInPath.distance()
-          nodeChainInBranch.get(branchId)?.push(newNode)
-
-          if (!firstNode) {
-            firstNode = newNode
-          }
-
-          if (previousNode) {
-            const arc = generateArc(previousNode, newNode, distance + lastDistance)
-
-            previousNode.arcs.push(arc)
-            newNode.arcs.push(arc)
-          }
-
-          previousNode = newNode
-        })
-
-      distances.set(distanceKey(branchIds), pathLength(pathchain.path) - lastDistance)
+      const lastDistance = buildBranchNodeChain(context, found, branchId, previousBranchNum, distance)
+      context.distances.set(distanceKey(branchIds), pathLength(pathchain.path) - lastDistance)
     } else {
-      distances.set(distanceKey(branchIds), distance + pathLength(pathchain.path))
+      context.distances.set(distanceKey(branchIds), distance + pathLength(pathchain.path))
     }
   })
 
-  return firstNode
+  return context.firstNode
 }

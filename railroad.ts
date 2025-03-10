@@ -14,7 +14,9 @@ export type RailroadState = {
 
 export type Station = {
   name: string,
-  platform: [Position2D, Position2D]
+  id: string,
+  groupId: string,
+  platform: [Position2D, Position2D],
 }
 
 export type StationChainResult = {
@@ -60,7 +62,9 @@ export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJ
       stations: stations.map(s => 
         ({
           name: s.properties.N02_005,
-          platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]]
+          id: s.properties.N02_005c,
+          groupId: s.properties.N02_005g,
+          platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]],
         })
       )
     }]

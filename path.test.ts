@@ -3,9 +3,9 @@ import { type Path, pointInPath, pathLength } from './path.ts'
 
 describe('pointInPath', () => {
   const testCases = [
-    { point: [3, 4], expectedOrder: 1, expectedDistance: 0 },
+    { point: [3, 4], expectedOrder: 1, expectedDistance: Math.sqrt(3**2 + 4**2) },
     { point: [0, 0], expectedOrder: 0, expectedDistance: 0 },
-    { point: [6, 8], expectedOrder: 1, expectedDistance: 5 },
+    { point: [6, 8], expectedOrder: 1, expectedDistance: Math.sqrt(3**2 + 4**2) + Math.sqrt((6-3)**2 + (8-4)**2) },
     { point: [1, 1], expectedOrder: null, expectedDistance: null }
   ] as const
   
@@ -19,7 +19,7 @@ describe('pointInPath', () => {
   
       const result = pointInPath(point, path)
       t.assert.equal(result?.order, expectedOrder)
-      t.assert.equal(result?.distance, expectedDistance)
+      t.assert.equal(result?.distance(), expectedDistance)
     })
   })
 })

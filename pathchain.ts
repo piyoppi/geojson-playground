@@ -1,6 +1,5 @@
 import { type Position2D, diff } from "./geometry.ts"
-import { type Path, pathLength, type PointInPath, pointInPath } from "./path.ts"
-import { pathChainWalk } from "./walk.ts"
+import { type Path, type PointInPath, pointInPath } from "./path.ts"
 
 export type VisitFn = () => Visited
 export type NextFn = () => VisitFn[]
