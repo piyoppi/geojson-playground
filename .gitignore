@@ -1,3 +1,4 @@
 node_modules/
 geojsons/*.json
+geojsons/*.geojson
 out.*

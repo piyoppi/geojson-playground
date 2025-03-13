@@ -13,7 +13,7 @@ type CallbackFn<T, U> = (node: T, found: PointInPathchain) => U
 export const fromPathChain = <T extends NodeOnPath, U>(
   nodes: T[],
   callback: CallbackFn<T, U>
-) => (pathchain: PathChain): (U & GraphNode) | null => {
+) => (pathchain: PathChain): (U & GraphNode)[] => {
   const pointInPathchains: [T, PointInPathchain][] = nodes
     .map<[T, PointInPathchain | null]>(n => [n, pathchain.findPointInPathChain()(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
@@ -26,14 +26,14 @@ const distanceKey = (branchIds: string[]) => branchIds.join('-')
 type MappingContext<T extends NodeOnPath, U> = {
   nodeChainInBranch: Map<string, GraphNode[]>
   distances: Map<string, number>
-  firstNode: (U & GraphNode) | null
+  nodes: (U & GraphNode)[]
   callback: CallbackFn<T, U>
 }
 
 const createMappingContext = <T extends NodeOnPath, U>(callback: CallbackFn<T, U>): MappingContext<T, U> => ({
   nodeChainInBranch: new Map(),
   distances: new Map(),
-  firstNode: null,
+  nodes: [],
   callback
 })
 
@@ -56,10 +56,6 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
       lastDistance = pointInPathChain.pointInPath.distance()
       context.nodeChainInBranch.get(branchId)?.push(newNode)
 
-      if (!context.firstNode) {
-        context.firstNode = newNode
-      }
-
       if (previousNode) {
         const arc = generateArc(previousNode, newNode, distance + lastDistance)
         previousNode.arcs.push(arc)
@@ -67,6 +63,7 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
       }
 
       previousNode = newNode
+      context.nodes.push(newNode)
     })
 
   return lastDistance
@@ -106,5 +103,5 @@ const mapping = <T extends NodeOnPath, U>(
     }
   })
 
-  return context.firstNode
+  return context.nodes
 }

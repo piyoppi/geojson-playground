@@ -19,13 +19,19 @@ export const generateArc = (a: GraphNode, b: GraphNode, cost: number): Arc => ({
 })
 
 export const to = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
-  const from = arc.a?.deref()
+  const nodeA = arc.a?.deref()
+  const nodeB = arc.b.deref()
 
-  if (fromNode !== from && from) return from as T
-
-  const to = arc.b.deref()
-
-  if (fromNode !== to && to) return to as T
+  if (fromNode !== nodeA && nodeB === fromNode) return nodeA as T
+  if (fromNode !== nodeB && nodeA === fromNode) return nodeB as T
 
   return null
+}
+
+export const arcExists = (a: GraphNode, b: GraphNode): boolean => {
+  return a.arcs.some(arc => {
+    const nodeA = arc.a.deref()
+    const nodeB = arc.b.deref()
+    return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
+  })
 }

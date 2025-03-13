@@ -27,7 +27,7 @@ describe('fromPathChain', () => {
     ]
     const pathChain = toPathchain(paths).ends()[0]
 
-    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)
+    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)[0]
 
     if (node === null) t.assert.fail('Graph should not be null')
 
@@ -67,7 +67,7 @@ describe('fromPathChain', () => {
     ]
     const pathChain = toPathchain(paths).ends()[0]
 
-    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)
+    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)[0]
 
     if (node === null) t.assert.fail('Graph should not be null')
 
