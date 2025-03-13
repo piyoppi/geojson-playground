@@ -75,6 +75,7 @@ describe('mergeNodes', () => {
     const node2 = generateNode()
     const node3 = generateNode()
 
+    // Create arcs
     //           arc1             arc2
     // [node1] ---10--- [node3] ---20--- [node2]
     //    |                                 |
@@ -88,6 +89,17 @@ describe('mergeNodes', () => {
     node2.arcs.push(arc2, arc3)
     node3.arcs.push(arc1, arc2)
 
+    // Merge node1 and node2
+    // 
+    //                [mergedNode]
+    //                    |  |
+    //                   10 20
+    //           arc1     |  |    arc2
+    // [node1] ---10--- [node3] ---20--- [node2]
+    //    |                                 |
+    //    |              arc3               |
+    //    '----------------5----------------'
+    //
     const mergedNode = mergeNodes(node1, node2)
     t.assert.equal(mergedNode.arcs.length, 2)
 
@@ -99,6 +111,44 @@ describe('mergeNodes', () => {
     )
     t.assert.equal(arcsToNode3.length, 2)
     t.assert.deepEqual(arcsToNode3.map(arc => arc.cost).sort(), [10, 20])
+  })
+
+  it('should merge nodes and connect an arc when merged node has an arc that has same cost', (t: TestContext) => {
+    // Create test nodes
+    const node1 = generateNode()
+    const node2 = generateNode()
+    const node3 = generateNode()
+
+    // Create arcs
+    //           arc1             arc2
+    // [node1] ---10--- [node3] ---10--- [node2]
+    //    |                                 |
+    //    |              arc3               |
+    //    '----------------5----------------'
+    //
+    const arc1 = generateArc(node1, node3, 10)
+    const arc2 = generateArc(node2, node3, 10)
+    const arc3 = generateArc(node1, node2, 5)
+    node1.arcs.push(arc1, arc3)
+    node2.arcs.push(arc2, arc3)
+    node3.arcs.push(arc1, arc2)
+
+    // Merge node1 and node2
+    // 
+    //                [mergedNode]
+    //                     |
+    //                    10
+    //           arc1      |      arc2
+    // [node1] ---10--- [node3] ---10--- [node2]
+    //    |                                 |
+    //    |              arc3               |
+    //    '----------------5----------------'
+    //
+    const mergedNode = mergeNodes(node1, node2)
+    t.assert.equal(mergedNode.arcs.length, 1)
+    t.assert.equal(mergedNode.arcs[0].cost, 10)
+
+    t.assert.equal(node3.arcs.length, 3)
   })
 
   it('should return an empty node when merging no nodes', (t: TestContext) => {
