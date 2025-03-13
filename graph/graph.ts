@@ -35,3 +35,35 @@ export const arcExists = (a: GraphNode, b: GraphNode): boolean => {
     return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
   })
 }
+
+export const mergeNodes = (...nodes: GraphNode[]): GraphNode => {
+  const mergedNode: GraphNode = generateNode()
+  const processedConnections: Map<GraphNode, number> = new Map()
+
+  for (const node of nodes) {
+    for (const arc of node.arcs) {
+      const nodeA = arc.a.deref()
+      const nodeB = arc.b.deref()
+
+      if (nodeA && nodeB && nodes.includes(nodeA) && nodes.includes(nodeB)) {
+        continue
+      }
+
+      const otherNode = nodeA === node ? nodeB : nodeA
+
+      if (otherNode) {
+        if (processedConnections.has(otherNode) && processedConnections.get(otherNode) === arc.cost) {
+          continue
+        }
+
+        const newArc = generateArc(mergedNode, otherNode, arc.cost)
+        mergedNode.arcs.push(newArc)
+        otherNode.arcs.push(newArc)
+
+        processedConnections.set(otherNode, arc.cost)
+      }
+    }
+  }
+
+  return mergedNode
+}

@@ -40,7 +40,7 @@ export const toStationGraph = (railroads: Railroad[]): StationNode | null => {
     if (!groupedNode) return
 
     groupedNode.forEach(current => {
-      if (node !== current && arcExists(node, current) && node.railroadId !== current.railroadId) {
+      if (node !== current && !arcExists(node, current) && node.railroadId !== current.railroadId) {
         const arc = generateArc(node, current, 0)
         node.arcs.push(arc)
       }
@@ -66,7 +66,7 @@ export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJ
       name: lineName,
       company: railroad[0].properties.N02_004,
       rails: railroad.map(r => r.geometry.coordinates),
-      stations: stations.map(s => 
+      stations: stations.map(s =>
         ({
           name: s.properties.N02_005,
           id: s.properties.N02_005c,
