@@ -13,8 +13,5 @@ const stationGraph = toStationGraph(railroads)
 if (stationGraph) {
   walk(stationGraph, async (current, prev, arc) => {
     console.log(prev.name, `(${prev.railroadId})`, '->>', current.name, `(${current.railroadId})`, arc.cost)
-    if (current.name === '新宿') {
-      console.log(current.arcs.map(a => a.a.deref()?.name + `(${a.a.deref()?.railroadId})` + ' -> ' + a.b.deref()?.name +  `(${a.b.deref()?.railroadId})`))
-    }
   })
 }

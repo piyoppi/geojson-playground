@@ -51,7 +51,7 @@ const _walkDepthFirst = <T extends GraphNode>(node: T, callback: WalkCallback<T>
 
     if (!firstVisited) break
 
-    for (let i = 1; i < remainingArcs.length; i++) {
+    for (let i = 0; i < remainingArcs.length; i++) {
       const arc = remainingArcs[i];
       const to = visit(arc, currentNode)
 
