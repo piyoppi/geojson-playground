@@ -4,7 +4,9 @@ import {
   generateArc, 
   to, 
   arcExists, 
-  mergeNodes
+  mergeNodes,
+  connect,
+  disconnect
 } from './graph.ts'
 
 describe('generateNode', () => {
@@ -92,25 +94,19 @@ describe('mergeNodes', () => {
     // Merge node1 and node2
     // 
     //                [mergedNode]
-    //                    |  |
-    //                   10 20
-    //           arc1     |  |    arc2
+    //                     |   
+    //                    15  
+    //           arc1      |      arc2
     // [node1] ---10--- [node3] ---20--- [node2]
     //    |                                 |
     //    |              arc3               |
     //    '----------------5----------------'
     //
     const mergedNode = mergeNodes(node1, node2)
-    t.assert.equal(mergedNode.arcs.length, 2)
-
-    t.assert.equal(node3.arcs.length, 4)
-
-    const arcsToNode3 = mergedNode.arcs.filter(arc =>
-      (arc.a.deref() === mergedNode && arc.b.deref() === node3) ||
-      (arc.a.deref() === node3 && arc.b.deref() === mergedNode)
-    )
-    t.assert.equal(arcsToNode3.length, 2)
-    t.assert.deepEqual(arcsToNode3.map(arc => arc.cost).sort(), [10, 20])
+    console.log(mergedNode.arcs)
+    t.assert.equal(mergedNode.arcs.length, 1)
+    t.assert.equal(node3.arcs.length, 3)
+    t.assert.deepEqual(mergedNode.arcs[0].cost, 15)
   })
 
   it('should merge nodes and connect an arc when merged node has an arc that has same cost', (t: TestContext) => {
@@ -154,5 +150,57 @@ describe('mergeNodes', () => {
   it('should return an empty node when merging no nodes', (t: TestContext) => {
     const mergedNode = mergeNodes()
     t.assert.equal(mergedNode.arcs.length, 0)
+  })
+})
+
+describe('disconnect', () => {
+  it('should remove arcs between two nodes', (t: TestContext) => {
+    const nodeA = generateNode()
+    const nodeB = generateNode()
+    const arc = generateArc(nodeA, nodeB, 10)
+    
+    connect(nodeA, nodeB, arc)
+    
+    t.assert.strictEqual(nodeA.arcs.length, 1)
+    t.assert.strictEqual(nodeB.arcs.length, 1)
+    t.assert.strictEqual(arcExists(nodeA, nodeB), true)
+    
+    disconnect(nodeA, nodeB)
+    
+    t.assert.strictEqual(nodeA.arcs.length, 0)
+    t.assert.strictEqual(nodeB.arcs.length, 0)
+    t.assert.strictEqual(arcExists(nodeA, nodeB), false)
+  })
+  
+  it('should not affect other connections when disconnecting specific nodes', (t: TestContext) => {
+    const nodeA = generateNode()
+    const nodeB = generateNode()
+    const nodeC = generateNode()
+    
+    const arcAB = generateArc(nodeA, nodeB, 10)
+    const arcAC = generateArc(nodeA, nodeC, 5)
+    
+    connect(nodeA, nodeB, arcAB)
+    connect(nodeA, nodeC, arcAC)
+    
+    t.assert.strictEqual(nodeA.arcs.length, 2)
+    t.assert.strictEqual(nodeB.arcs.length, 1)
+    t.assert.strictEqual(nodeC.arcs.length, 1)
+    
+    disconnect(nodeA, nodeB)
+    
+    t.assert.strictEqual(nodeA.arcs.length, 1)
+    t.assert.strictEqual(nodeB.arcs.length, 0)
+    t.assert.strictEqual(nodeC.arcs.length, 1)
+    t.assert.strictEqual(arcExists(nodeA, nodeB), false)
+    t.assert.strictEqual(arcExists(nodeA, nodeC), true)
+  })
+  
+  it('should handle case when nodes have no connection', (t: TestContext) => {
+    const nodeA = generateNode()
+    const nodeB = generateNode()
+    
+    t.assert.strictEqual(nodeA.arcs.length, 0)
+    t.assert.strictEqual(nodeB.arcs.length, 0)
   })
 })

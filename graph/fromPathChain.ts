@@ -2,7 +2,7 @@ import type { Position2D } from "../geometry.ts"
 import { type PathChain, type PointInPathchain } from "../pathchain.ts"
 import { pathChainWalk } from "../walk.ts"
 import { pathLength } from "../path.ts"
-import { generateArc, generateNode, type GraphNode } from "./graph.ts"
+import { connect, generateArc, generateNode, type GraphNode } from "./graph.ts"
 
 type NodeOnPath = {
   position: Position2D,
@@ -58,8 +58,7 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
 
       if (previousNode) {
         const arc = generateArc(previousNode, newNode, distance + lastDistance)
-        previousNode.arcs.push(arc)
-        newNode.arcs.push(arc)
+        connect(previousNode, newNode, arc)
       }
 
       previousNode = newNode

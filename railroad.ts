@@ -1,6 +1,6 @@
 import { center, type Position2D } from "./geometry.ts"
 import { fromPathChain } from "./graph/fromPathChain.ts"
-import { arcExists, generateArc, type GraphNode } from "./graph/graph.ts"
+import { arcExists, connect, disconnectAll, generateArc, mergeNodes, removeNode, type GraphNode } from "./graph/graph.ts"
 import type { RailroadsGeoJson } from "./MLITGisTypes/railroad.ts"
 import type { StationsGeoJson } from './MLITGisTypes/station.ts'
 import type { Path } from "./path.ts"
@@ -33,21 +33,33 @@ export const toStationGraph = (railroads: Railroad[]): StationNode | null => {
     )(pathchain.ends()[0])
   })
 
-  const nodesByGroup = Map.groupBy(stationNodes, n => n.groupId)
+  const stationNodesMap = Map.groupBy(stationNodes, n => n.id)
+  const nodesToRemove = new Set()
+  
+  stationNodesMap.values().forEach(nodes => {
+    if (nodes.length > 1) {
+      const merged = mergeNodes(...nodes)
+      nodes.forEach(node => {
+        removeNode(node)
+        nodesToRemove.add(node)
+      })
+      stationNodes.push(merged)
+    }
+  })
+  
+  const filteredStationNodes = stationNodes.filter(node => !nodesToRemove.has(node))
 
-  stationNodes.map(node => {
-    const groupedNode = nodesByGroup.get(node.groupId)
-    if (!groupedNode) return
-
-    groupedNode.forEach(current => {
+  const nodesByGroup = Map.groupBy(filteredStationNodes, n => n.groupId)
+  filteredStationNodes.forEach(node => {
+    nodesByGroup.get(node.groupId)?.forEach(current => {
       if (node !== current && !arcExists(node, current) && node.railroadId !== current.railroadId) {
         const arc = generateArc(node, current, 0)
-        node.arcs.push(arc)
+        connect(node, current, arc)
       }
     })
   })
 
-  return stationNodes[0]
+  return filteredStationNodes[0]
 }
 
 export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJson: StationsGeoJson): Railroad[] => {
