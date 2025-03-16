@@ -24,7 +24,7 @@ export type Station = {
 
 export type StationNode = Station & GraphNode
 
-export const toStationGraph = (railroads: Railroad[]): StationNode | null => {
+export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
   const stationNodes = railroads.flatMap(railroad => {
     const pathchain = toPathchain(railroad.rails)
     return fromPathChain(
@@ -59,7 +59,7 @@ export const toStationGraph = (railroads: Railroad[]): StationNode | null => {
     })
   })
 
-  return filteredStationNodes[0]
+  return filteredStationNodes
 }
 
 export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJson: StationsGeoJson): Railroad[] => {
