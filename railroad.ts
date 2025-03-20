@@ -63,19 +63,19 @@ export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
 }
 
 export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJson: StationsGeoJson): Railroad[] => {
-  const railroadsFeature = Object.groupBy(railroadsGeoJson.features, (f) => f.properties.N02_003)
-  const stationsFeature = Object.groupBy(stationsGeoJson.features, (f) => f.properties.N02_003)
-  const lineNames = new Set([...Object.keys(railroadsFeature), ...Object.keys(stationsFeature)])
+  const railroadsFeature = Map.groupBy(railroadsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
+  const stationsFeature = Map.groupBy(stationsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
 
-  return Array.from(lineNames).flatMap(lineName => {
-    const railroad = railroadsFeature[lineName] || []
+  return Array.from(railroadsFeature.keys()).flatMap(key => {
+    const railroad = railroadsFeature.get(key) || []
     if (railroad.length === 0) return []
 
-    const stations =  stationsFeature[lineName] || []
+    const stations =  stationsFeature.get(key) || []
+    const lineName = railroad[0].properties.N02_003
     const company = railroad[0].properties.N02_004
 
     return [{
-      id: `${company}-${lineName}`,
+      id: key,
       name: lineName,
       company,
       rails: railroad.map(r => r.geometry.coordinates),
@@ -83,7 +83,7 @@ export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJ
         ({
           name: s.properties.N02_005,
           id: s.properties.N02_005c,
-          railroadId: lineName,
+          railroadId: key,
           groupId: s.properties.N02_005g,
           platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]],
         })
