@@ -25,9 +25,9 @@ export const pointInPath = (pos: Readonly<Position2D>, path: Path): PointInPath 
     const angle2 = innerProduction(b, p2) / (length(b) * lp2)
 
     // Check direction
-    if (angle1 * angle2 < 0) return current
+    if (angle1 < 0 || angle2 < 0) return current
 
-    if (Math.max(Math.abs(angle1), Math.abs(angle2)) < 0.999) return current
+    if (Math.max(angle1, angle2) < 0.999) return current
 
     return [i, lp1]
   }, [-1, -1])
