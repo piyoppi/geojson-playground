@@ -31,23 +31,23 @@ export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
     if (!end) return []
     return fromPathChain(
       railroad.stations.map(s => ({...s, position: center(s.platform)})),
-      (station, _point) => ({...station})
+      station => ({...station})
     )(end)
   })
 
-  const nodesToRemove = new Set()
+  const duplicatedNodes = new Set()
   
   Map.groupBy(stationNodes, n => n.id).values().forEach(nodes => {
     if (nodes.length > 1) {
       nodes.forEach(node => {
         removeNode(node)
-        nodesToRemove.add(node)
+        duplicatedNodes.add(node)
       })
       stationNodes.push(mergeNodes(...nodes))
     }
   })
   
-  const filteredStationNodes = stationNodes.filter(node => !nodesToRemove.has(node))
+  const filteredStationNodes = stationNodes.filter(node => !duplicatedNodes.has(node))
 
   const nodesByGroup = Map.groupBy(filteredStationNodes, n => n.groupId)
   filteredStationNodes.forEach(node => {
