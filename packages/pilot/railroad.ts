@@ -39,11 +39,12 @@ export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
   
   Map.groupBy(stationNodes, n => n.id).values().forEach(nodes => {
     if (nodes.length > 1) {
+      const mergedNode = mergeNodes(...nodes)
+      stationNodes.push(mergedNode)
       nodes.forEach(node => {
         removeNode(node)
         duplicatedNodes.add(node)
       })
-      stationNodes.push(mergeNodes(...nodes))
     }
   })
   

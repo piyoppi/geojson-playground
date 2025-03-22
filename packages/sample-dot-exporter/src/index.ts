@@ -5,8 +5,8 @@ import { fromMLITGeoJson, toStationGraph } from '@piyoppi/sansaku-pilot/railroad
 import { walk } from '@piyoppi/sansaku-pilot/graph/graphwalk'
 import { toDotGraph } from '@piyoppi/sansaku-pilot/graph/toDotGraph'
 
-const railroadsGeoJson = JSON.parse(readFileSync('./geojsons/railroads-all.json', 'utf-8').toString()) as RailroadsGeoJson
-const stationsGeoJson = JSON.parse(readFileSync('./geojsons/stations-all.json', 'utf-8').toString()) as StationsGeoJson
+const railroadsGeoJson = JSON.parse(readFileSync('./geojsons/railroads-all.geojson', 'utf-8').toString()) as RailroadsGeoJson
+const stationsGeoJson = JSON.parse(readFileSync('./geojsons/stations-all.geojson', 'utf-8').toString()) as StationsGeoJson
 
 const railroads = fromMLITGeoJson(railroadsGeoJson, stationsGeoJson)
 const stationGraph = toStationGraph(railroads)

@@ -16,7 +16,7 @@ console.log(stationNodes)
 
 const graph = new Graph({ multi: true })
 stationNodes.forEach(node => {
-  graph.addNode(node.id, { label: node.name, size: 0.5, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
+  graph.addNode(node.id, { label: node.name, size: 0.7, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
 })
 
 stationNodes.forEach(node => {

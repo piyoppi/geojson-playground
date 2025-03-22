@@ -103,10 +103,54 @@ describe('mergeNodes', () => {
     //    '----------------5----------------'
     //
     const mergedNode = mergeNodes(node1, node2)
-    console.log(mergedNode.arcs)
     t.assert.equal(mergedNode.arcs.length, 1)
     t.assert.equal(node3.arcs.length, 3)
     t.assert.deepEqual(mergedNode.arcs[0].cost, 15)
+  })
+
+  it('should merge nodes and connect arcs properly', (t: TestContext) => {
+    // Create test nodes
+    const node1 = generateNode()
+    const node2 = generateNode()
+    const node3 = generateNode()
+    const node4 = generateNode()
+
+    // Create arcs
+    //         arc1                arc2
+    //    +-----10------[node2]-----20------+
+    //    |                                 |
+    // [node1]                           [node4]
+    //    |                                 |
+    //    +-----30------[node3]-----40------+
+    //         arc3                arc4
+    //
+    const arc1 = generateArc(node1, node2, 10)
+    const arc2 = generateArc(node2, node4, 20)
+    const arc3 = generateArc(node1, node3, 30)
+    const arc4 = generateArc(node3, node4, 40)
+    node1.arcs.push(arc1, arc3)
+    node2.arcs.push(arc2, arc4)
+    node3.arcs.push(arc3, arc4)
+    node4.arcs.push(arc2, arc4)
+
+    // Merge node2 and node3
+    // 
+    //         arc1                arc2
+    //    +-----10------[node2]-----20------+
+    //    |                                 |
+    // [node1]-------[mergedNode]--------[node4]
+    //    |                                 |
+    //    +-----30------[node3]-----40------+
+    //         arc3                arc4
+    //
+    const mergedNode = mergeNodes(node2, node3)
+    t.assert.equal(mergedNode.arcs.length, 2)
+    t.assert.ok([node1, mergedNode].includes(mergedNode.arcs[1].a.deref()))
+    t.assert.ok([node1, mergedNode].includes(mergedNode.arcs[1].b.deref()))
+    t.assert.ok([node4, mergedNode].includes(mergedNode.arcs[0].a.deref()))
+    t.assert.ok([node4, mergedNode].includes(mergedNode.arcs[0].b.deref()))
+    t.assert.equal(node1.arcs.length, 3)
+    t.assert.equal(node4.arcs.length, 3)
   })
 
   it('should merge nodes and connect an arc when merged node has an arc that has same cost', (t: TestContext) => {
