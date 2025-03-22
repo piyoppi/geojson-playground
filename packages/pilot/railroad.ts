@@ -1,6 +1,6 @@
 import { center, type Position2D } from "./geometry"
 import { fromPathChain } from "./graph/fromPathChain"
-import { arcExists, connect, generateArc, type GraphNode } from "./graph/graph"
+import { arcExists, connect, generateArc, mergeNodes, removeNode, type GraphNode } from "./graph/graph"
 import type { RailroadsGeoJson } from "./MLITGisTypes/railroad"
 import type { StationsGeoJson } from './MLITGisTypes/station'
 import type { Path } from "./path"
@@ -37,15 +37,15 @@ export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
 
   const duplicatedNodes = new Set()
   
-  //Map.groupBy(stationNodes, n => n.id).values().forEach(nodes => {
-  //  if (nodes.length > 1) {
-  //    nodes.forEach(node => {
-  //      removeNode(node)
-  //      duplicatedNodes.add(node)
-  //    })
-  //    stationNodes.push(mergeNodes(...nodes))
-  //  }
-  //})
+  Map.groupBy(stationNodes, n => n.id).values().forEach(nodes => {
+    if (nodes.length > 1) {
+      nodes.forEach(node => {
+        removeNode(node)
+        duplicatedNodes.add(node)
+      })
+      stationNodes.push(mergeNodes(...nodes))
+    }
+  })
   
   const filteredStationNodes = stationNodes.filter(node => !duplicatedNodes.has(node))
 

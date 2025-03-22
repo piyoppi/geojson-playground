@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "tsx --test",
-    "build": "tsc"
+    "build": "rm -rf ./dist && tsc"
   },
   "exports": {
     ".": {

@@ -1,24 +1,40 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import Graph from "graphology"
+import Sigma from "sigma"
+import railroadsGeoJsonRaw from "./geojsons/railroads-all.json"
+import stationsGeoJsonRaw from "./geojsons/stations-all.json"
+import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
+import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
+import { fromMLITGeoJson, toStationGraph } from '@piyoppi/sansaku-pilot/railroad'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+const railroadsGeoJson = railroadsGeoJsonRaw as RailroadsGeoJson
+const stationsGeoJson = stationsGeoJsonRaw as StationsGeoJson
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+const railroads = fromMLITGeoJson(railroadsGeoJson, stationsGeoJson)
+const stationNodes = toStationGraph(railroads)
+
+console.log(stationNodes)
+
+const graph = new Graph({ multi: true })
+stationNodes.forEach(node => {
+  graph.addNode(node.id, { label: node.name, size: 0.5, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
+})
+
+stationNodes.forEach(node => {
+  node.arcs.forEach(arc => {
+    const aNode = arc.a.deref()
+    const bNode = arc.b.deref()
+
+    if (!aNode || !bNode) return
+
+    graph.addEdge(aNode.id, bNode.id, { color: "black" })
+  })
+})
+
+window.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("app")
+
+  if (container) {
+    new Sigma(graph, container)
+  }
+})
+

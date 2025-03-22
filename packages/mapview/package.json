@@ -9,8 +9,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "~5.7.2",
     "@piyoppi/sansaku-pilot": "1.0.0",
+    "typescript": "~5.7.2",
     "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "graphology": "^0.26.0",
+    "sigma": "^3.0.1"
   }
 }
