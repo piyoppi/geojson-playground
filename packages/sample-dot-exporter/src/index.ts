@@ -1,9 +1,9 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { RailroadsGeoJson } from './MLITGisTypes/railroad'
-import { StationsGeoJson } from './MLITGisTypes/station'
-import { fromMLITGeoJson, toStationGraph } from './railroad.js'
-import { walk } from './graph/graphwalk.ts'
-import { toDotGraph } from './graph/toDotGraph';
+import { readFileSync, writeFileSync } from 'fs'
+import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
+import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
+import { fromMLITGeoJson, toStationGraph } from '@piyoppi/sansaku-pilot/railroad'
+import { walk } from '@piyoppi/sansaku-pilot/graph/graphwalk'
+import { toDotGraph } from '@piyoppi/sansaku-pilot/graph/toDotGraph'
 
 const railroadsGeoJson = JSON.parse(readFileSync('./geojsons/railroads-all.json', 'utf-8').toString()) as RailroadsGeoJson
 const stationsGeoJson = JSON.parse(readFileSync('./geojsons/stations-all.json', 'utf-8').toString()) as StationsGeoJson

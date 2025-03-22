@@ -1,5 +1,5 @@
-import { Tag } from './element.js'
-import { PresentationAttributes } from './presentationalAttributes.js'
+import { Tag } from './element'
+import { PresentationAttributes } from './presentationalAttributes'
 
 type Shape = { points: () => [number, number][] }
 

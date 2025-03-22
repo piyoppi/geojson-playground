@@ -1,8 +1,8 @@
-import type { Position2D } from "../geometry.ts"
-import { type PathChain, type PointInPathchain } from "../pathchain.ts"
-import { pathChainWalk } from "../walk.ts"
-import { pathLength } from "../path.ts"
-import { connect, generateArc, generateNode, type GraphNode } from "./graph.ts"
+import type { Position2D } from "../geometry"
+import { type PathChain, type PointInPathchain } from "../pathchain"
+import { pathChainWalk } from "../walk"
+import { pathLength } from "../path"
+import { connect, generateArc, generateNode, type GraphNode } from "./graph"
 
 type NodeOnPath = {
   position: Position2D,

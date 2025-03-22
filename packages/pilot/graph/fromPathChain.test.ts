@@ -1,9 +1,9 @@
 import { describe, it, type TestContext } from 'node:test'
-import { fromPathChain } from './fromPathChain.ts'
-import { to } from './graph.ts'
-import { toPathchain } from '../pathchain.ts'
-import type { Position2D } from '../geojson.ts'
-import type { Path } from '../path.ts'
+import { fromPathChain } from './fromPathChain'
+import { to } from './graph'
+import { toPathchain } from '../pathchain'
+import type { Position2D } from '../geojson'
+import type { Path } from '../path'
 
 describe('fromPathChain', () => {
   it('Should return nodes', (t: TestContext) => {

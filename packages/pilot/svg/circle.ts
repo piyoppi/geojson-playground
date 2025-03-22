@@ -1,6 +1,6 @@
-import { Tag } from './element.js'
-import { PresentationAttributes } from './presentationalAttributes.js'
-import { Length, Percentage } from './size.js'
+import { Tag } from './element'
+import { PresentationAttributes } from './presentationalAttributes'
+import { Length, Percentage } from './size'
 
 export type CircleAttributes = PresentationAttributes & {
   cx: Length | Percentage

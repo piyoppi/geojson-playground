@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
-import { toPathchain } from './pathchain.ts'
-import { type Path } from './path.ts'
+import { toPathchain } from './pathchain'
+import { type Path } from './path'
 
 describe('toPathchain tests', () => {
   it('should return empty array when paths is empty', (t) => {

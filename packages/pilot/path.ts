@@ -1,4 +1,4 @@
-import { type Position2D, innerProduction, subtract, length } from "./geometry.ts"
+import { type Position2D, innerProduction, subtract, length } from "./geometry"
 
 export type Path = Position2D[]
 

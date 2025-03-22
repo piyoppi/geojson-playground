@@ -1,6 +1,6 @@
-import { Tag } from './element.js'
-import { Path } from './path.js'
-import { SizeAttribute } from './size.js'
+import { Tag } from './element'
+import { Path } from './path'
+import { SizeAttribute } from './size'
 
 type ViewBox = [number, number, number, number]
 type SvgChildren = Path

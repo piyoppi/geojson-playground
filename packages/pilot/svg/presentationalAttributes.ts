@@ -1,6 +1,6 @@
-import { Paint } from './paint.js'
-import { Length } from './size.js'
-import { Color } from './color.js'
+import { Paint } from './paint'
+import { Length } from './size'
+import { Color } from './color'
 
 export type StrokeWidth = ['stroke-width', Length]
 export type PresentationAttributes = {

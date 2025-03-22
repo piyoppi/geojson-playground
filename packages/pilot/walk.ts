@@ -1,4 +1,4 @@
-import type { PathChain, VisitFn } from "./pathchain.ts"
+import type { PathChain, VisitFn } from "./pathchain"
 
 type CallbackFn = (pathchain: PathChain, branchNums: string[]) => void
 

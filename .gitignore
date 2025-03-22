@@ -2,3 +2,11 @@ node_modules/
 geojsons/*.json
 geojsons/*.geojson
 out.*
+*.svg
+*.dot
+dist
+
+.nx/cache
+.nx/workspace-data
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
