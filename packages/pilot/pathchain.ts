@@ -1,5 +1,6 @@
 import { type Position2D, diff } from "./geometry"
 import { type Path, type PointInPath, pointInPath } from "./path"
+import { pathChainWalk } from "./walk"
 
 export type VisitFn = () => Visited
 export type NextFn = () => VisitFn[]
@@ -36,25 +37,28 @@ const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly
 }
 
 export const toPathchain = (paths: Readonly<Path[]>) => {
-  const pathInternals = paths.map((r, index): PathInternal => {
-    const [p1, p2] = [r.at(0), r.at(-1)]
+  const pathInternals = paths.map((path, index): PathInternal => {
+    const [p1, p2] = [path.at(0), path.at(-1)]
 
-    const [i1, i2] = (p1 !== undefined && p2 !== undefined) ? paths.reduce((current: [number[], number[]], pair, pairIndex) => {
-      if (index === pairIndex) return current
+    const neighbors: [number[], number[]] =
+      (p1 !== undefined && p2 !== undefined) ?
+        paths.reduce((current: [number[], number[]], pair, pairIndex) => {
+          if (index === pairIndex) return current
 
-      const [pp1, pp2] = [pair.at(0), pair.at(-1)]
+          const [pp1, pp2] = [pair.at(0), pair.at(-1)]
 
-      if (pp1 === undefined || pp2 === undefined) return current
+          if (pp1 === undefined || pp2 === undefined) return current
 
-      if (Math.min(diff(p1, pp1), diff(p1, pp2)) === 0) current[0].push(pairIndex)
-      if (Math.min(diff(p2, pp1), diff(p2, pp2)) === 0) current[1].push(pairIndex)
+          if (Math.min(diff(p1, pp1), diff(p1, pp2)) === 0) current[0].push(pairIndex)
+          if (Math.min(diff(p2, pp1), diff(p2, pp2)) === 0) current[1].push(pairIndex)
 
-      return current
-    }, [[], []]) : [[], []]
+          return current
+          }, [[], []])
+        : [[], []]
 
     return {
-      path: r,
-      neighbors: [i1, i2]
+      path,
+      neighbors
     }
   })
 
@@ -87,8 +91,22 @@ export const toPathchain = (paths: Readonly<Path[]>) => {
     findPointInPathChain: () => findPointInPathChain(pathchains)
   }))
 
-  return {
-    pathchains,
-    ends: () => pathchains.filter(r => r.isEnded)
+  return pathchains
+}
+
+export const ends = (pathchains: Readonly<PathChain[]>) => pathchains.filter(r => r.isEnded)
+
+export const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
+  const groups: Set<PathChain>[] = []
+  for (const end of ends(pathchains)) {
+    if (groups.some(g => g.has(end))) continue
+
+    const group = new Set<PathChain>()
+    pathChainWalk(end.from(), pathchain => {
+      group.add(pathchain)
+    })
+    groups.push(group)
   }
+
+  return groups.map(g => Array.from(g))
 }

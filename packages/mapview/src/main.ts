@@ -12,8 +12,6 @@ const stationsGeoJson = stationsGeoJsonRaw as StationsGeoJson
 const railroads = fromMLITGeoJson(railroadsGeoJson, stationsGeoJson)
 const stationNodes = toStationGraph(railroads)
 
-console.log(stationNodes)
-
 const graph = new Graph({ multi: true })
 stationNodes.forEach(node => {
   graph.addNode(node.id, { label: node.name, size: 0.7, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })

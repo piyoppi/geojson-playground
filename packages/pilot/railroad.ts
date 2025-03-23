@@ -4,7 +4,7 @@ import { arcExists, connect, generateArc, mergeNodes, removeNode, type GraphNode
 import type { RailroadsGeoJson } from "./MLITGisTypes/railroad"
 import type { StationsGeoJson } from './MLITGisTypes/station'
 import type { Path } from "./path"
-import { toPathchain } from './pathchain'
+import { ends, groupByIsolated, toPathchain } from './pathchain'
 
 export type Railroad = {
   id: string,
@@ -26,13 +26,16 @@ export type StationNode = Station & GraphNode
 
 export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
   const stationNodes = railroads.flatMap(railroad => {
-    const pathchain = toPathchain(railroad.rails)
-    const end = pathchain.ends()[0]
-    if (!end) return []
-    return fromPathChain(
-      railroad.stations.map(s => ({...s, position: center(s.platform)})),
-      station => ({...station})
-    )(end)
+    const pathchainGroups = groupByIsolated(toPathchain(railroad.rails))
+
+    return pathchainGroups.flatMap((pathchain) => {
+      const end = ends(pathchain)[0]
+
+      return fromPathChain(
+        railroad.stations.map(s => ({...s, position: center(s.platform)})),
+        station => ({...station})
+      )(end)
+    })
   })
 
   const duplicatedNodes = new Set()
