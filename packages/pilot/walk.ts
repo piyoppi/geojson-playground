@@ -13,12 +13,12 @@ const _walk = (visits: VisitFn[], callback: CallbackFn, branchId: string[]) => {
     if (visits.length === 0) break
 
     const res = visits[0]()
-    callback(res.path, visits.length > 1 ? [...branchId, generateBranchNum()] : branchId)
+    callback(res.pathChain, visits.length > 1 ? [...branchId, generateBranchNum()] : branchId)
 
     for (const visit of visits.slice(1)) {
       const res = visit()
       const newBranchNum = [...branchId, generateBranchNum()]
-      callback(res.path, newBranchNum)
+      callback(res.pathChain, newBranchNum)
 
       _walk(res.next(), callback, newBranchNum)
     }

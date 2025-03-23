@@ -15,7 +15,7 @@ export type PathChain = {
   findPointInPathChain: () => (p: Position2D) => PointInPathchain | null
 }
 type PathInternal = { path: Path, neighbors: [number[], number[]] }
-type Visited = { path: PathChain, next: NextFn }
+type Visited = { pathChain: PathChain, next: NextFn }
 
 export type PointInPathchain = {
   pointInPath: PointInPath,
@@ -62,32 +62,29 @@ export const toPathchain = (paths: Readonly<Path[]>) => {
     }
   })
 
-  const generateVisit = (visited: Set<number>, current: number): VisitFn => (): Visited => {
-    const path = pathchains[current]
+  const generateVisit = (visitedIndexes: Set<number>, current: number): VisitFn => (): Visited => {
+    const pathChain = pathchains[current]
     const pathInternal = pathInternals[current]
-    visited.add(current)
+    visitedIndexes.add(current)
 
     return {
-      path,
-      next: generateNext(visited, pathInternal.neighbors)
+      pathChain,
+      next: generateNext(current, visitedIndexes, pathInternal.neighbors)
     }
   }
 
-  const generateNext = (visitedIndexes: Set<number>, neighborIndexes: [number[], number[]]) => () => {
-    const notVisitedNeighborIndexes = neighborIndexes.flat().filter(i => !visitedIndexes.has(i))
-
-    return notVisitedNeighborIndexes.map(i => generateVisit(visitedIndexes, i))
+  const generateNext = (current: number, visitedIndexes: Set<number>, neighborsIndexes: [number[], number[]]) => () => {
+    return neighborsIndexes
+      .filter(neighborIndexes => !neighborIndexes.find(i => i === current))
+      .flat()
+      .filter(i => !visitedIndexes.has(i))
+      .map(i => generateVisit(visitedIndexes, i))
   }
 
   const pathchains = pathInternals.map((r, index) => ({
     path: r.path,
     isEnded: r.neighbors.some(n => n.length === 0),
-    from() {
-      const visitedIndexes = new Set<number>()
-      visitedIndexes.add(index)
-
-      return generateVisit(visitedIndexes, index)
-    },
+    from: () => generateVisit(new Set<number>([index]), index),
     findPointInPathChain: () => findPointInPathChain(pathchains)
   }))
 
@@ -102,9 +99,7 @@ export const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
     if (groups.some(g => g.has(end))) continue
 
     const group = new Set<PathChain>()
-    pathChainWalk(end.from(), pathchain => {
-      group.add(pathchain)
-    })
+    pathChainWalk(end.from(), pathchain => group.add(pathchain))
     groups.push(group)
   }
 
