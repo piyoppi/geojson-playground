@@ -36,8 +36,8 @@ const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly
   }, null as null | PointInPathchain)
 }
 
-export const toPathchain = (paths: Readonly<Path[]>) => {
-  const pathInternals = paths.map((path, index): PathInternal => {
+const buildPathInternal = (paths: Readonly<Path[]>) => {
+  return paths.map((path, index): PathInternal => {
     const [p1, p2] = [path.at(0), path.at(-1)]
 
     const neighbors: [number[], number[]] =
@@ -61,9 +61,11 @@ export const toPathchain = (paths: Readonly<Path[]>) => {
       neighbors
     }
   })
+}
 
+const generateStep = (pathInternals: Readonly<PathInternal[]>, pathChains: (index: number) => Readonly<PathChain>) => {
   const generateVisit = (visitedIndexes: Set<number>, current: number): VisitFn => (): Visited => {
-    const pathChain = pathchains[current]
+    const pathChain = pathChains(current)
     const pathInternal = pathInternals[current]
     visitedIndexes.add(current)
 
@@ -81,10 +83,17 @@ export const toPathchain = (paths: Readonly<Path[]>) => {
       .map(i => generateVisit(visitedIndexes, i))
   }
 
+  return { generateVisit, generateNext }
+}
+
+export const buildPathchain = (paths: Readonly<Path[]>) => {
+  const pathInternals = buildPathInternal(paths)
+  const step = generateStep(pathInternals, index => pathchains[index])
+
   const pathchains = pathInternals.map((r, index) => ({
     path: r.path,
     isEnded: r.neighbors.some(n => n.length === 0),
-    from: () => generateVisit(new Set<number>([index]), index),
+    from: () => step.generateVisit(new Set<number>([index]), index),
     findPointInPathChain: () => findPointInPathChain(pathchains)
   }))
 

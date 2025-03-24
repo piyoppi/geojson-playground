@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs"
 import { RailroadsGeoJson } from "./MLITGisTypes/railroad"
 import { StationsGeoJson } from "./MLITGisTypes/station"
-import { ends, toPathchain } from "./pathchain"
+import { ends, buildPathchain } from "./pathchain"
 import { path } from "./svg/path"
 import { toPathData } from "./svg/pathutils"
 import { rgb } from "./svg/color"
@@ -28,7 +28,7 @@ const trainLines = Array.from(lineNames).map(lineName => ({
   stations:  stations[lineName] || []
 }))
 
-const results = trainLines.map(l => toPathchain(l.railroads.map(r => r.geometry.coordinates)))
+const results = trainLines.map(l => buildPathchain(l.railroads.map(r => r.geometry.coordinates)))
 
 const paths = []
 const end = ends(results[0])[0]

@@ -4,7 +4,7 @@ import { arcExists, connect, generateArc, mergeNodes, removeNode, type GraphNode
 import type { RailroadsGeoJson } from "./MLITGisTypes/railroad"
 import type { StationsGeoJson } from './MLITGisTypes/station'
 import type { Path } from "./path"
-import { ends, groupByIsolated, toPathchain } from './pathchain'
+import { ends, groupByIsolated, buildPathchain } from './pathchain'
 
 export type Railroad = {
   id: string,
@@ -26,7 +26,7 @@ export type StationNode = Station & GraphNode
 
 export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
   const stationNodes = railroads.flatMap(railroad => {
-    const pathchainGroups = groupByIsolated(toPathchain(railroad.rails))
+    const pathchainGroups = groupByIsolated(buildPathchain(railroad.rails))
 
     return pathchainGroups.flatMap((pathchain) => {
       const end = ends(pathchain)[0]
