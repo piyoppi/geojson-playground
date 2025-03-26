@@ -1,7 +1,7 @@
 import Graph from "graphology"
 import Sigma from "sigma"
-import railroadsGeoJsonRaw from "./geojsons/railroads-all.json"
-import stationsGeoJsonRaw from "./geojsons/stations-all.json"
+import railroadsGeoJsonRaw from "./geojsons/railroads-sanyo.json"
+import stationsGeoJsonRaw from "./geojsons/stations-sanyo.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { fromMLITGeoJson, toStationGraph } from '@piyoppi/sansaku-pilot/railroad'

@@ -10,11 +10,16 @@ export type PathChainState = {
 }
 export type PathChain = {
   path: Path,
+  ends: [Position2D | undefined, Position2D | undefined],
   isEnded: boolean,
   from: () => VisitFn,
-  findPointInPathChain: () => (p: Position2D) => PointInPathchain | null
 }
-type PathInternal = { path: Path, neighbors: [number[], number[]] }
+type PathInternal = {
+  path: Path,
+  index: number,
+  neighbors: [number[], number[]],
+  ends: [Position2D | undefined, Position2D | undefined]
+}
 type Visited = { pathChain: PathChain, next: NextFn }
 
 export type PointInPathchain = {
@@ -22,7 +27,25 @@ export type PointInPathchain = {
   pathchain: WeakRef<PathChain>
 }
 
-const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly<Position2D>) => {
+export const buildPathchain = (paths: Readonly<Path[]>): PathChain[][] => {
+  const pathInternals = buildPathInternal(paths)
+  const step = generateStep(pathInternals, index => pathchains[index])
+
+  const pathchains = pathInternals.map((r, index) => ({
+    path: r.path,
+    ends: r.ends,
+    isEnded: r.neighbors.some(n => n.length === 0),
+    from: () => step.generateVisit(new Set([index]), index),
+  }))
+
+  const grouped = groupByIsolated(pathchains)
+
+  return grouped
+}
+
+export const ends = (pathchains: Readonly<PathChain[]>) => pathchains.filter(r => r.isEnded)
+
+export const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly<Position2D>) => {
   return pathchains.reduce((acc, pathchain) => {
     if (acc) return acc
 
@@ -58,7 +81,9 @@ const buildPathInternal = (paths: Readonly<Path[]>) => {
 
     return {
       path,
-      neighbors
+      index,
+      neighbors,
+      ends: [p1, p2]
     }
   })
 }
@@ -86,23 +111,7 @@ const generateStep = (pathInternals: Readonly<PathInternal[]>, pathChains: (inde
   return { generateVisit, generateNext }
 }
 
-export const buildPathchain = (paths: Readonly<Path[]>) => {
-  const pathInternals = buildPathInternal(paths)
-  const step = generateStep(pathInternals, index => pathchains[index])
-
-  const pathchains = pathInternals.map((r, index) => ({
-    path: r.path,
-    isEnded: r.neighbors.some(n => n.length === 0),
-    from: () => step.generateVisit(new Set<number>([index]), index),
-    findPointInPathChain: () => findPointInPathChain(pathchains)
-  }))
-
-  return pathchains
-}
-
-export const ends = (pathchains: Readonly<PathChain[]>) => pathchains.filter(r => r.isEnded)
-
-export const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
+const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
   const groups: Set<PathChain>[] = []
   for (const end of ends(pathchains)) {
     if (groups.some(g => g.has(end))) continue
@@ -113,4 +122,41 @@ export const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
   }
 
   return groups.map(g => Array.from(g))
+}
+
+const mergeTIntersection = (aInternal: PathInternal, aInternals: PathInternal[], bInternals: PathInternal[]) => {
+  const point = aInternal.ends.find(e => e !== undefined)
+  if (!point) return
+
+  const intersected = bInternals.reduce((acc, pathInternal, index) => {
+    if (acc) return acc
+
+    const found = pointInPath(point, pathInternal.path)
+    if (!found) return acc
+
+    return {index, found}
+  }, null as null | {index: number, found: PointInPath})
+
+  if (!intersected) return
+
+  const target = bInternals[intersected.index]
+  const targetPath = intersected.found.path.deref()
+  if (!targetPath) return
+
+  const splittedPaths = [
+    [...targetPath.slice(intersected.found.startIndex), point],
+    [point, ...targetPath.slice(intersected.found.startIndex + 1)]
+  ]
+
+  bInternals.push(...aInternals.map((r, index) => ({
+    ...r,
+    index: bInternals.length + index,
+  })))
+  bInternals.splice(intersected.index, 1)
+  bInternals.push({
+    path: splittedPaths[0],
+    index: bInternals.length,
+    neighbors: [[aInternal.index], []],
+    ends: [point, target.ends[1]]
+  })
 }

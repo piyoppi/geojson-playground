@@ -1,5 +1,5 @@
 import type { Position2D } from "../geometry"
-import { type PathChain, type PointInPathchain } from "../pathchain"
+import { findPointInPathChain, VisitFn, type PathChain, type PointInPathchain } from "../pathchain"
 import { pathChainWalk } from "../walk"
 import { pathLength } from "../path"
 import { connect, generateArc, generateNode, type GraphNode } from "./graph"
@@ -13,12 +13,12 @@ type CallbackFn<T, U> = (node: T, found: PointInPathchain) => U
 export const fromPathChain = <T extends NodeOnPath, U>(
   nodes: T[],
   callback: CallbackFn<T, U>
-) => (pathchain: PathChain): (U & GraphNode)[] => {
+) => (pathChains: PathChain[], from: VisitFn): (U & GraphNode)[] => {
   const pointInPathchains: [T, PointInPathchain][] = nodes
-    .map<[T, PointInPathchain | null]>(n => [n, pathchain.findPointInPathChain()(n.position)])
+    .map<[T, PointInPathchain | null]>(n => [n, findPointInPathChain(pathChains)(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
 
-  return mapping(pathchain, callback, pointInPathchains)
+  return mapping(from, callback, pointInPathchains)
 }
 
 const distanceKey = (branchIds: string[]) => branchIds.join('-')
@@ -69,13 +69,13 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
 }
 
 const mapping = <T extends NodeOnPath, U>(
-  pathchain: PathChain,
+  from: VisitFn,
   callback: CallbackFn<T, U>,
   pointInPathchains: [T, PointInPathchain][]
 ) => {
   const context = createMappingContext(callback)
 
-  pathChainWalk(pathchain.from(), (pathchain, branchIds) => {
+  pathChainWalk(from, (pathchain, branchIds) => {
     const branchId = branchIds.at(-1)
     if (branchId === undefined) return
 
