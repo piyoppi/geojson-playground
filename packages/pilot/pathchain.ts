@@ -143,20 +143,30 @@ const mergeTIntersection = (aInternal: PathInternal, aInternals: PathInternal[],
   const targetPath = intersected.found.path.deref()
   if (!targetPath) return
 
-  const splittedPaths = [
-    [...targetPath.slice(intersected.found.startIndex), point],
-    [point, ...targetPath.slice(intersected.found.startIndex + 1)]
-  ]
-
+  const mergedAInternalIndex = bInternals.length
+  // Merge aInternal to bInternal
   bInternals.push(...aInternals.map((r, index) => ({
     ...r,
     index: bInternals.length + index,
   })))
+  // Remove intersected path
   bInternals.splice(intersected.index, 1)
-  bInternals.push({
-    path: splittedPaths[0],
-    index: bInternals.length,
-    neighbors: [[aInternal.index], []],
-    ends: [point, target.ends[1]]
-  })
+  // Add splitted paths
+  bInternals.push(
+    ...[
+      [...targetPath.slice(0, intersected.found.startIndex), point],
+      [point, ...targetPath.slice(intersected.found.startIndex + 1)]
+    ].map((path, index): PathInternal => {
+      const neighbor = target.neighbors.find(indexes => indexes.find(i => bInternals[i].ends.find(e => e === (index === 0 ? path.at(0) : path.at(-1)))))
+      const end = path.at(index === 0 ? -1 : 0)
+      if (!neighbor || !end) throw new Error("Neighbor not found")
+
+      return {
+        path,
+        index: bInternals.length + index,
+        neighbors: [[mergedAInternalIndex], neighbor],
+        ends: [point, end]
+      }
+    })
+  )
 }
