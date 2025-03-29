@@ -27,7 +27,14 @@ export type PointInPathchain = {
 
 export const buildPathchain = (paths: Readonly<Path[]>): PathChain[][] => {
   const pathInternals = buildPathInternal(paths)
-  //mergeTIntersection(pathInternals)
+  mergeTIntersection(pathInternals)
+
+  const grouped = groupByIsolated(buildFromInternal(pathInternals))
+
+  return grouped
+}
+
+export const buildFromInternal = (pathInternals: PathInternal[]): PathChain[] => {
   const step = generateStep(pathInternals, index => pathchains[index])
 
   const pathchains = pathInternals.map((r, index) => ({
@@ -36,9 +43,7 @@ export const buildPathchain = (paths: Readonly<Path[]>): PathChain[][] => {
     from: () => step.generateVisit(new Set([index]), index),
   }))
 
-  const grouped = groupByIsolated(pathchains)
-
-  return grouped
+  return pathchains
 }
 
 export const ends = (pathchains: Readonly<PathChain[]>) => pathchains.filter(r => r.isEnded)

@@ -1,6 +1,7 @@
 import { describe, it, TestContext } from 'node:test'
-import { buildPathchain, mergeTIntersection, PathInternal } from './pathchain'
+import { buildFromInternal, buildPathchain, mergeTIntersection, PathInternal } from './pathchain'
 import { type Path } from './path'
+import { pathChainWalk } from './walk'
 
 describe('buildPathchain tests', () => {
   it('should return empty array when paths is empty', (t) => {
@@ -63,5 +64,16 @@ describe('mergeTIntersection', () => {
     t.assert.ok(paths.find(p => p === '0,0,5,0'))
     t.assert.ok(paths.find(p => p === '5,0,10,0'))
     t.assert.ok(paths.find(p => p === '5,0,5,5'))
+
+    console.log(pathInternals.map(p => p.neighbors))
+    const pathchains = buildFromInternal(pathInternals)
+    
+    const visitedPaths: string[] = []
+    pathChainWalk(pathchains[0].from(), p => visitedPaths.push(p.path.flat().join(',')))
+    console.log(visitedPaths)
+    t.assert.equal(visitedPaths.length, 3)
+    t.assert.ok(visitedPaths.find(p => p === '0,0,5,0'))
+    t.assert.ok(visitedPaths.find(p => p === '5,0,10,0'))
+    t.assert.ok(visitedPaths.find(p => p === '5,0,5,5'))
   })
 })
