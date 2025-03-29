@@ -1,5 +1,5 @@
 import { type Position2D, diff } from "./geometry"
-import { type Path, type PointInPath, pointInPath } from "./path"
+import { type Path, type PointInPath, pointInPath as findPointInPath } from "./path"
 import { pathChainWalk } from "./walk"
 
 export type VisitFn = () => Visited
@@ -10,7 +10,6 @@ export type PathChainState = {
 }
 export type PathChain = {
   path: Path,
-  ends: [Position2D | undefined, Position2D | undefined],
   isEnded: boolean,
   from: () => VisitFn,
 }
@@ -18,7 +17,6 @@ type PathInternal = {
   path: Path,
   index: number,
   neighbors: [number[], number[]],
-  ends: [Position2D | undefined, Position2D | undefined]
 }
 type Visited = { pathChain: PathChain, next: NextFn }
 
@@ -29,11 +27,11 @@ export type PointInPathchain = {
 
 export const buildPathchain = (paths: Readonly<Path[]>): PathChain[][] => {
   const pathInternals = buildPathInternal(paths)
+  mergeTIntersection(pathInternals)
   const step = generateStep(pathInternals, index => pathchains[index])
 
   const pathchains = pathInternals.map((r, index) => ({
     path: r.path,
-    ends: r.ends,
     isEnded: r.neighbors.some(n => n.length === 0),
     from: () => step.generateVisit(new Set([index]), index),
   }))
@@ -49,7 +47,7 @@ export const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: R
   return pathchains.reduce((acc, pathchain) => {
     if (acc) return acc
 
-    const found = pointInPath(p, pathchain.path)
+    const found = findPointInPath(p, pathchain.path)
     if (!found) return acc
 
     return {
@@ -82,8 +80,7 @@ const buildPathInternal = (paths: Readonly<Path[]>) => {
     return {
       path,
       index,
-      neighbors,
-      ends: [p1, p2]
+      neighbors
     }
   })
 }
@@ -124,49 +121,37 @@ const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
   return groups.map(g => Array.from(g))
 }
 
-const mergeTIntersection = (aInternal: PathInternal, aInternals: PathInternal[], bInternals: PathInternal[]) => {
-  const point = aInternal.ends.find(e => e !== undefined)
-  if (!point) return
+const mergeTIntersection = (pathInternals: PathInternal[]) => {
+  const endPaths = pathInternals.filter(r => r.neighbors.find(n => n.length === 0))
 
-  const intersected = bInternals.reduce((acc, pathInternal, index) => {
-    if (acc) return acc
+  for (const endPath of endPaths) {
+    const ends = endPath.neighbors.flatMap((n, index) => n.length === 0 ? [{point: endPath.path[index * -1], index}] : [])
 
-    const found = pointInPath(point, pathInternal.path)
-    if (!found) return acc
+    for (const end of ends) {
+      const intersects = pathInternals.flatMap((targetPathInternal, index) => {
+        const pointInPath = findPointInPath(end.point, targetPathInternal.path)
+        return pointInPath ? [{ pointInPath, targetPathInternal, index }] : []
+      })
 
-    return {index, found}
-  }, null as null | {index: number, found: PointInPath})
+      for (const intersect of intersects) {
+        pathInternals.splice(intersect.index, 1)
 
-  if (!intersected) return
-
-  const target = bInternals[intersected.index]
-  const targetPath = intersected.found.path.deref()
-  if (!targetPath) return
-
-  const mergedAInternalIndex = bInternals.length
-  // Merge aInternal to bInternal
-  bInternals.push(...aInternals.map((r, index) => ({
-    ...r,
-    index: bInternals.length + index,
-  })))
-  // Remove intersected path
-  bInternals.splice(intersected.index, 1)
-  // Add splitted paths
-  bInternals.push(
-    ...[
-      [...targetPath.slice(0, intersected.found.startIndex), point],
-      [point, ...targetPath.slice(intersected.found.startIndex + 1)]
-    ].map((path, index): PathInternal => {
-      const neighbor = target.neighbors.find(indexes => indexes.find(i => bInternals[i].ends.find(e => e === (index === 0 ? path.at(0) : path.at(-1)))))
-      const end = path.at(index === 0 ? -1 : 0)
-      if (!neighbor || !end) throw new Error("Neighbor not found")
-
-      return {
-        path,
-        index: bInternals.length + index,
-        neighbors: [[mergedAInternalIndex], neighbor],
-        ends: [point, end]
+        const splittedPathIndex1 = pathInternals.length
+        const splittedPathIndex2 = pathInternals.length + 1
+        pathInternals.push(
+          {
+            path: intersect.targetPathInternal.path.slice(0, intersect.pointInPath.startIndex),
+            index: splittedPathIndex1,
+            neighbors: [intersect.targetPathInternal.neighbors[0], [endPath.index, splittedPathIndex2]],
+          },
+          {
+            path: intersect.targetPathInternal.path.slice(intersect.pointInPath.startIndex, -1),
+            index: splittedPathIndex2,
+            neighbors: [[endPath.index, splittedPathIndex1], intersect.targetPathInternal.neighbors[1]],
+          }
+        )
+        endPath.neighbors[end.index].push(splittedPathIndex1, splittedPathIndex2)
       }
-    })
-  )
+    }
+  }
 }
