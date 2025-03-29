@@ -1,7 +1,7 @@
 import { describe, it, type TestContext } from 'node:test'
 import { fromPathChain } from './fromPathChain'
 import { to } from './graph'
-import { toPathchain } from '../pathchain'
+import { buildPathchain } from '../pathchain'
 import type { Position2D } from '../geojson'
 import type { Path } from '../path'
 
@@ -25,9 +25,9 @@ describe('fromPathChain', () => {
       [[2, 0], [2, 2]],
       [[2, 0], [6, 0]]
     ]
-    const pathChain = toPathchain(paths).ends()[0]
+    const pathChains = buildPathchain(paths)[0]
 
-    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)[0]
+    const node = fromPathChain(nodes, (s) => ({...s}))(pathChains, pathChains[0].from())[0]
 
     if (node === null) t.assert.fail('Graph should not be null')
 
@@ -65,9 +65,9 @@ describe('fromPathChain', () => {
       [[2, 0], [4, 0]],
       [[4, 0], [6, 0]]
     ]
-    const pathChain = toPathchain(paths).ends()[0]
+    const pathChains = buildPathchain(paths)[0]
 
-    const node = fromPathChain(nodes, (s) => ({...s}))(pathChain)[0]
+    const node = fromPathChain(nodes, (s) => ({...s}))(pathChains, pathChains[0].from())[0]
 
     if (node === null) t.assert.fail('Graph should not be null')
 

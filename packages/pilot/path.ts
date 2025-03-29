@@ -36,7 +36,7 @@ export const pointInPath = (pos: Readonly<Position2D>, path: Path): PointInPath 
 
   return {
     path: new WeakRef(path),
-    startIndex: index - 1,
+    startIndex: index,
     distance: () => pathLength(path.slice(0, index + 1)) + distance
   }
 }

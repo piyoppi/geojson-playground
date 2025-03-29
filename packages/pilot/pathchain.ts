@@ -13,7 +13,7 @@ export type PathChain = {
   isEnded: boolean,
   from: () => VisitFn,
 }
-type PathInternal = {
+export type PathInternal = {
   path: Path,
   index: number,
   neighbors: [number[], number[]],
@@ -121,7 +121,7 @@ const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
   return groups.map(g => Array.from(g))
 }
 
-const mergeTIntersection = (pathInternals: PathInternal[]) => {
+export const mergeTIntersection = (pathInternals: PathInternal[]) => {
   const endPaths = pathInternals.filter(r => r.neighbors.find(n => n.length === 0))
 
   for (const endPath of endPaths) {
@@ -148,7 +148,7 @@ const mergeTIntersection = (pathInternals: PathInternal[]) => {
             neighbors: [intersect.targetPathInternal.neighbors[0], [endPath.index, splittedPathIndex2]],
           },
           {
-            path: intersect.targetPathInternal.path.slice(intersect.pointInPath.startIndex, -1),
+            path: intersect.targetPathInternal.path.slice(intersect.pointInPath.startIndex),
             index: splittedPathIndex2,
             neighbors: [[endPath.index, splittedPathIndex1], intersect.targetPathInternal.neighbors[1]],
           }
