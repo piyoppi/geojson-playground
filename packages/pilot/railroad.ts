@@ -28,13 +28,13 @@ export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
   const stationNodes = railroads.flatMap(railroad => {
     const pathchainGroups = buildPathchain(railroad.rails)
 
-    return pathchainGroups.flatMap((pathchain) => {
-      const end = ends(pathchain)[0]
+    return pathchainGroups.flatMap((pathchains) => {
+      const end = ends(pathchains)[0]
 
       return fromPathChain(
         railroad.stations.map(s => ({...s, position: center(s.platform)})),
         station => ({...station})
-      )(end)
+      )(pathchains, end.from())
     })
   })
 

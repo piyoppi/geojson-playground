@@ -27,7 +27,7 @@ export type PointInPathchain = {
 
 export const buildPathchain = (paths: Readonly<Path[]>): PathChain[][] => {
   const pathInternals = buildPathInternal(paths)
-  mergeTIntersection(pathInternals)
+  //mergeTIntersection(pathInternals)
   const step = generateStep(pathInternals, index => pathchains[index])
 
   const pathchains = pathInternals.map((r, index) => ({
@@ -125,7 +125,10 @@ const mergeTIntersection = (pathInternals: PathInternal[]) => {
   const endPaths = pathInternals.filter(r => r.neighbors.find(n => n.length === 0))
 
   for (const endPath of endPaths) {
-    const ends = endPath.neighbors.flatMap((n, index) => n.length === 0 ? [{point: endPath.path[index * -1], index}] : [])
+    const ends = endPath.neighbors.flatMap((n, index) => {
+      const point = endPath.path.at(index * -1)
+      return n.length === 0 && point ? [{point, index}] : []
+    })
 
     for (const end of ends) {
       const intersects = pathInternals.flatMap((targetPathInternal, index) => {
