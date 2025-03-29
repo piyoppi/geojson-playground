@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test'
-import { buildPathchain, mergeTIntersection, PathInternal } from './pathchain';
+import { describe, it, TestContext } from 'node:test'
+import { buildPathchain, mergeTIntersection, PathInternal } from './pathchain'
 import { type Path } from './path'
 
 describe('buildPathchain tests', () => {
@@ -31,5 +31,37 @@ describe('buildPathchain tests', () => {
     const p2Nexts = p1Next.next()
     t.assert.equal(p2Nexts[0]().pathChain.path, p3)
     t.assert.equal(p2Nexts[1]().pathChain.path, p4)
+  })
+})
+
+describe('mergeTIntersection', () => {
+  it('Should correctly merge T intersections', (t: TestContext) => {
+    const pathInternals: PathInternal[] = [
+      {
+        path: [
+          [0, 0],
+          [10, 0],
+        ] as Path,
+        index: 0,
+        neighbors: [[], []],
+      },
+      {
+        path: [
+          [5, 0],
+          [5, 5],
+        ] as Path,
+        index: 1,
+        neighbors: [[], []],
+      }
+    ];
+
+    mergeTIntersection(pathInternals);
+
+    t.assert.equal(pathInternals.length, 3)
+
+    const paths = pathInternals.map(p => p.path.flat().join(','))
+    t.assert.ok(paths.find(p => p === '0,0,5,0'))
+    t.assert.ok(paths.find(p => p === '5,0,10,0'))
+    t.assert.ok(paths.find(p => p === '5,0,5,5'))
   })
 })
