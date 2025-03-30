@@ -1,12 +1,16 @@
 import Graph from "graphology"
 import Sigma from "sigma"
-import railroadsGeoJsonRaw from "./geojsons/railroads-sanyo.json"
-import stationsGeoJsonRaw from "./geojsons/stations-sanyo.json"
+import railroadsGeoJsonAllRaw from "./geojsons/railroads-all.json"
+import railroadsGeoJsonExtendsRaw from "./geojsons/railroads-all-extends.json"
+import stationsGeoJsonRaw from "./geojsons/stations-all.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { fromMLITGeoJson, toStationGraph } from '@piyoppi/sansaku-pilot/railroad'
 
-const railroadsGeoJson = railroadsGeoJsonRaw as RailroadsGeoJson
+const railroadsGeoJson = {
+  ...railroadsGeoJsonAllRaw,
+  features: [...railroadsGeoJsonAllRaw.features, ...railroadsGeoJsonExtendsRaw.features],
+} as RailroadsGeoJson
 const stationsGeoJson = stationsGeoJsonRaw as StationsGeoJson
 
 const railroads = fromMLITGeoJson(railroadsGeoJson, stationsGeoJson)
@@ -14,7 +18,7 @@ const stationNodes = toStationGraph(railroads)
 
 const graph = new Graph({ multi: true })
 stationNodes.forEach(node => {
-  graph.addNode(node.id, { label: node.name, size: 1, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
+  graph.addNode(node.id, { label: node.name, size: 0.7, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
 })
 
 stationNodes.forEach(node => {
