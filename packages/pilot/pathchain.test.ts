@@ -86,8 +86,8 @@ describe('mergeTIntersection', () => {
       },
       {
         path: [
-          [5, 0],
           [5, 5],
+          [5, 0],
         ] as Path,
         index: 1,
         neighbors: [[], []],
@@ -118,7 +118,7 @@ describe('mergeTIntersection', () => {
     const paths = pathInternals.map(p => p.path.flat().join(','))
     t.assert.ok(paths.find(p => p === '0,0,2,0'))
     t.assert.ok(paths.find(p => p === '2,0,5,0'))
-    t.assert.ok(paths.find(p => p === '5,0,5,5'))
+    t.assert.ok(paths.find(p => p === '5,5,5,0'))
     t.assert.ok(paths.find(p => p === '5,0,8,0'))
     t.assert.ok(paths.find(p => p === '8,0,10,0'))
 
@@ -128,7 +128,7 @@ describe('mergeTIntersection', () => {
     t.assert.equal(visitedPaths.length, 5)
     t.assert.ok(visitedPaths.find(p => p === '0,0,2,0'))
     t.assert.ok(visitedPaths.find(p => p === '2,0,5,0'))
-    t.assert.ok(visitedPaths.find(p => p === '5,0,5,5'))
+    t.assert.ok(visitedPaths.find(p => p === '5,5,5,0'))
     t.assert.ok(visitedPaths.find(p => p === '5,0,8,0'))
     t.assert.ok(visitedPaths.find(p => p === '8,0,10,0'))
   })

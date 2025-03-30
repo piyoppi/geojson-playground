@@ -145,26 +145,26 @@ export const mergeTIntersection = (pathInternals: PathInternal[]) => {
       for (const intersect of intersects) {
         const splittedPathIndex1 = intersect.index
         const splittedPathIndex2 = pathInternals.length
+
+        const path1 = intersect.targetPathInternal.path.slice(0, intersect.pointInPath.startIndex + 1)
+        if (path1.at(-1)?.at(0) !== end.point[0] || path1.at(-1)?.at(1) !== end.point[1]) path1.push([...end.point])
         pathInternals.splice(
-          intersect.index,
+          splittedPathIndex1,
           1,
           {
-            path: [
-              ...intersect.targetPathInternal.path.slice(0, intersect.pointInPath.startIndex + 1),
-              end.point
-            ],
+            path: path1,
             index: splittedPathIndex1,
-            neighbors: [intersect.targetPathInternal.neighbors[0], [endPathInternal.index, splittedPathIndex2]],
+            neighbors: [[...intersect.targetPathInternal.neighbors[0]], [endPathInternal.index, splittedPathIndex2]],
           }
         )
+
+        const path2 = intersect.targetPathInternal.path.slice(intersect.pointInPath.startIndex + 1)
+        if (path2.at(0)?.at(0) !== end.point[0] || path2.at(0)?.at(1) !== end.point[1]) path2.unshift([...end.point])
         pathInternals.push(
           {
-            path: [
-              end.point,
-              ...intersect.targetPathInternal.path.slice(intersect.pointInPath.startIndex + 1)
-            ],
+            path: path2,
             index: splittedPathIndex2,
-            neighbors: [[endPathInternal.index, splittedPathIndex1], intersect.targetPathInternal.neighbors[1]],
+            neighbors: [[endPathInternal.index, splittedPathIndex1], [...intersect.targetPathInternal.neighbors[1]]],
           }
         )
         for (const neighbor of intersect.targetPathInternal.neighbors[1]) {
