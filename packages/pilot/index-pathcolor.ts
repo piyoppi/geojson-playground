@@ -31,7 +31,7 @@ const trainLines = Array.from(lineNames).map(lineName => ({
 const results = trainLines.map(l => buildPathchain(l.railroads.map(r => r.geometry.coordinates)))
 
 const paths = []
-const end = ends(results[0])[0]
+const end = ends(results[0][0])[0]
 paths.push(path({d: toPathData(end.path), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.0005))}))
 let next = end.from()
 

@@ -143,11 +143,11 @@ export const mergeTIntersection = (pathInternals: PathInternal[]) => {
       })
 
       for (const intersect of intersects) {
-        pathInternals.splice(intersect.index, 1)
-
-        const splittedPathIndex1 = pathInternals.length
-        const splittedPathIndex2 = pathInternals.length + 1
-        pathInternals.push(
+        const splittedPathIndex1 = intersect.index
+        const splittedPathIndex2 = pathInternals.length
+        pathInternals.splice(
+          intersect.index,
+          1,
           {
             path: [
               ...intersect.targetPathInternal.path.slice(0, intersect.pointInPath.startIndex + 1),
@@ -155,7 +155,9 @@ export const mergeTIntersection = (pathInternals: PathInternal[]) => {
             ],
             index: splittedPathIndex1,
             neighbors: [intersect.targetPathInternal.neighbors[0], [endPathInternal.index, splittedPathIndex2]],
-          },
+          }
+        )
+        pathInternals.push(
           {
             path: [
               end.point,
@@ -165,6 +167,12 @@ export const mergeTIntersection = (pathInternals: PathInternal[]) => {
             neighbors: [[endPathInternal.index, splittedPathIndex1], intersect.targetPathInternal.neighbors[1]],
           }
         )
+        for (const neighbor of intersect.targetPathInternal.neighbors[1]) {
+          const neighbors = pathInternals[neighbor].neighbors[0]
+          const index = neighbors.findIndex(i => i === intersect.index)
+          if (index >= 0) neighbors[index] = splittedPathIndex2
+        }
+
         endPathInternal.neighbors[end.index].push(splittedPathIndex1, splittedPathIndex2)
       }
     }

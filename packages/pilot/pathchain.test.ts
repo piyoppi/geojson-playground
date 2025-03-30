@@ -65,15 +65,71 @@ describe('mergeTIntersection', () => {
     t.assert.ok(paths.find(p => p === '5,0,10,0'))
     t.assert.ok(paths.find(p => p === '5,0,5,5'))
 
-    console.log(pathInternals.map(p => p.neighbors))
     const pathchains = buildFromInternal(pathInternals)
-    
     const visitedPaths: string[] = []
     pathChainWalk(pathchains[0].from(), p => visitedPaths.push(p.path.flat().join(',')))
-    console.log(visitedPaths)
     t.assert.equal(visitedPaths.length, 3)
     t.assert.ok(visitedPaths.find(p => p === '0,0,5,0'))
     t.assert.ok(visitedPaths.find(p => p === '5,0,10,0'))
     t.assert.ok(visitedPaths.find(p => p === '5,0,5,5'))
+  })
+
+  it('Should correctly merge T intersections', (t: TestContext) => {
+    const pathInternals: PathInternal[] = [
+      {
+        path: [
+          [0, 0],
+          [2, 0],
+        ] as Path,
+        index: 0,
+        neighbors: [[], [2]],
+      },
+      {
+        path: [
+          [5, 0],
+          [5, 5],
+        ] as Path,
+        index: 1,
+        neighbors: [[], []],
+      },
+      {
+        path: [
+          [2, 0],
+          [8, 0],
+        ] as Path,
+        index: 0,
+        neighbors: [[0], [3]],
+      },
+      {
+        path: [
+          [8, 0],
+          [10, 0],
+        ] as Path,
+        index: 0,
+        neighbors: [[2], []],
+      },
+    ];
+
+    mergeTIntersection(pathInternals);
+    console.log(pathInternals.map(p => ({path: p.path.join('|'), neighbors: p.neighbors.join('|')})))
+
+    t.assert.equal(pathInternals.length, 5)
+
+    const paths = pathInternals.map(p => p.path.flat().join(','))
+    t.assert.ok(paths.find(p => p === '0,0,2,0'))
+    t.assert.ok(paths.find(p => p === '2,0,5,0'))
+    t.assert.ok(paths.find(p => p === '5,0,5,5'))
+    t.assert.ok(paths.find(p => p === '5,0,8,0'))
+    t.assert.ok(paths.find(p => p === '8,0,10,0'))
+
+    const pathchains = buildFromInternal(pathInternals)
+    const visitedPaths: string[] = []
+    pathChainWalk(pathchains[0].from(), p => visitedPaths.push(p.path.flat().join(',')))
+    t.assert.equal(visitedPaths.length, 5)
+    t.assert.ok(visitedPaths.find(p => p === '0,0,2,0'))
+    t.assert.ok(visitedPaths.find(p => p === '2,0,5,0'))
+    t.assert.ok(visitedPaths.find(p => p === '5,0,5,5'))
+    t.assert.ok(visitedPaths.find(p => p === '5,0,8,0'))
+    t.assert.ok(visitedPaths.find(p => p === '8,0,10,0'))
   })
 })
