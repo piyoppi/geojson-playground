@@ -2,15 +2,16 @@ import type { Position2D } from "../geometry"
 import { findPointInPathChain, VisitFn, type PathChain, type PointInPathchain } from "../pathchain"
 import { pathChainWalk } from "../walk"
 import { pathLength } from "../path"
-import { connect, generateArc, generateNode, type GraphNode } from "./graph"
+import { connect, generateArc, type GraphNode } from "./graph"
 
 type NodeOnPath = {
   position: Position2D,
 }
 
-type CallbackFn<T, U> = (node: T, found: PointInPathchain) => U
+type CallbackGenerated = {id: string}
+type CallbackFn<T, U extends CallbackGenerated> = (node: T, found: PointInPathchain) => U
 
-export const fromPathChain = <T extends NodeOnPath, U>(
+export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated>(
   nodes: T[],
   createNodeCallback: CallbackFn<T, U>
 ) => (pathChains: PathChain[], from: VisitFn): (U & GraphNode)[] => {
@@ -23,21 +24,21 @@ export const fromPathChain = <T extends NodeOnPath, U>(
 
 const distanceKey = (branchIds: string[]) => branchIds.join('-')
 
-type MappingContext<T extends NodeOnPath, U> = {
+type MappingContext<T extends NodeOnPath, U extends CallbackGenerated> = {
   nodeChainInBranch: Map<string, GraphNode[]>
   distances: Map<string, number>
   nodes: (U & GraphNode)[]
   createNodeCallback: CallbackFn<T, U>
 }
 
-const createMappingContext = <T extends NodeOnPath, U>(createNodeCallback: CallbackFn<T, U>): MappingContext<T, U> => ({
+const createMappingContext = <T extends NodeOnPath, U extends CallbackGenerated>(createNodeCallback: CallbackFn<T, U>): MappingContext<T, U> => ({
   nodeChainInBranch: new Map(),
   distances: new Map(),
   nodes: [],
   createNodeCallback
 })
 
-const buildBranchNodeChain = <T extends NodeOnPath, U>(
+const buildBranchNodeChain = <T extends NodeOnPath, U extends CallbackGenerated>(
   context: MappingContext<T, U>,
   found: [T, PointInPathchain][],
   branchId: string,
@@ -51,7 +52,7 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
   found
     .sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
     .forEach(([node, pointInPathChain]) => {
-      const newNode = {...generateNode(), ...context.createNodeCallback(node, pointInPathChain)}
+      const newNode = {arcs: [], ...context.createNodeCallback(node, pointInPathChain)}
 
       lastDistance = pointInPathChain.pointInPath.distance()
       context.nodeChainInBranch.get(branchId)?.push(newNode)
@@ -68,7 +69,7 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
   return lastDistance
 }
 
-const mapping = <T extends NodeOnPath, U>(
+const mapping = <T extends NodeOnPath, U extends CallbackGenerated>(
   from: VisitFn,
   createNodeCallback: CallbackFn<T, U>,
   pointInPathchains: [T, PointInPathchain][]

@@ -1,4 +1,5 @@
 export type GraphNode = {
+  id: string
   arcs: Arc[]
 }
 
@@ -7,10 +8,6 @@ export type Arc = {
   a: WeakRef<GraphNode>
   b: WeakRef<GraphNode>,
 }
-
-export const generateNode = (): GraphNode => ({
-  arcs: []
-})
 
 export const generateArc = (a: GraphNode, b: GraphNode, cost: number): Arc => ({
   cost: cost,
@@ -68,7 +65,7 @@ export const arcExists = (a: GraphNode, b: GraphNode): boolean => {
 }
 
 export const mergeNodes = <T extends GraphNode>(...nodes: T[]): T => {
-  const mergedNode = {...nodes[0], ...generateNode()}
+  const mergedNode = {...nodes[0], arcs: []}
   const arcMap = new Map<GraphNode, { totalCost: number, count: number }>()
   
   for (const node of nodes) {
@@ -99,4 +96,21 @@ export const mergeNodes = <T extends GraphNode>(...nodes: T[]): T => {
   }
   
   return mergedNode
+}
+
+export const removeDuplicateNode = <T extends GraphNode>(targetNodes: T[]): T[] => {
+  const duplicatedNodes = new Set()
+
+  Map.groupBy(targetNodes, n => n.id).values().forEach(nodes => {
+    if (nodes.length > 1) {
+      const mergedNode = mergeNodes(...nodes)
+      targetNodes.push(mergedNode)
+      nodes.forEach(node => {
+        removeNode(node)
+        duplicatedNodes.add(node)
+      })
+    }
+  })
+
+  return targetNodes.filter(node => !duplicatedNodes.has(node))
 }

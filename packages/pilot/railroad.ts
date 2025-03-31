@@ -1,6 +1,6 @@
 import { center, type Position2D } from "./geometry"
 import { fromPathChain } from "./graph/fromPathChain"
-import { arcExists, connect, generateArc, mergeNodes, removeNode, type GraphNode } from "./graph/graph"
+import { arcExists, connect, generateArc, mergeNodes, removeDuplicateNode, removeNode, type GraphNode } from "./graph/graph"
 import type { RailroadsGeoJson } from "./MLITGisTypes/railroad"
 import type { StationsGeoJson } from './MLITGisTypes/station'
 import type { Path } from "./path"
@@ -24,23 +24,6 @@ export type Station = {
 
 export type StationNode = Station & GraphNode
 
-const removeDuplicateNode = <T extends GraphNode>(targetNodes: T[]): T[] => {
-  const duplicatedNodes = new Set()
-
-  Map.groupBy(targetNodes, n => n.id).values().forEach(nodes => {
-    if (nodes.length > 1) {
-      const mergedNode = mergeNodes(...nodes)
-      targetNodes.push(mergedNode)
-      nodes.forEach(node => {
-        removeNode(node)
-        duplicatedNodes.add(node)
-      })
-    }
-  })
-
-  return targetNodes.filter(node => !duplicatedNodes.has(node))
-}
-
 export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
   const stationNodes = railroads.flatMap(railroad => {
     const pathchainGroups = buildPathchain(railroad.rails)
@@ -55,21 +38,9 @@ export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
     })
   })
 
-  const duplicatedNodes = new Set()
-  
-  Map.groupBy(stationNodes, n => n.id).values().forEach(nodes => {
-    if (nodes.length > 1) {
-      const mergedNode = mergeNodes(...nodes)
-      stationNodes.push(mergedNode)
-      nodes.forEach(node => {
-        removeNode(node)
-        duplicatedNodes.add(node)
-      })
-    }
-  })
-  
-  const filteredStationNodes = stationNodes.filter(node => !duplicatedNodes.has(node))
+  const filteredStationNodes = removeDuplicateNode(stationNodes)
 
+  // Connect each transit station nodes
   const nodesByGroup = Map.groupBy(filteredStationNodes, n => n.groupId)
   filteredStationNodes.forEach(node => {
     nodesByGroup.get(node.groupId)?.forEach(current => {
