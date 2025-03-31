@@ -12,13 +12,13 @@ type CallbackFn<T, U> = (node: T, found: PointInPathchain) => U
 
 export const fromPathChain = <T extends NodeOnPath, U>(
   nodes: T[],
-  callback: CallbackFn<T, U>
+  createNodeCallback: CallbackFn<T, U>
 ) => (pathChains: PathChain[], from: VisitFn): (U & GraphNode)[] => {
   const pointInPathchains: [T, PointInPathchain][] = nodes
     .map<[T, PointInPathchain | null]>(n => [n, findPointInPathChain(pathChains)(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
 
-  return mapping(from, callback, pointInPathchains)
+  return mapping(from, createNodeCallback, pointInPathchains)
 }
 
 const distanceKey = (branchIds: string[]) => branchIds.join('-')
@@ -27,14 +27,14 @@ type MappingContext<T extends NodeOnPath, U> = {
   nodeChainInBranch: Map<string, GraphNode[]>
   distances: Map<string, number>
   nodes: (U & GraphNode)[]
-  callback: CallbackFn<T, U>
+  createNodeCallback: CallbackFn<T, U>
 }
 
-const createMappingContext = <T extends NodeOnPath, U>(callback: CallbackFn<T, U>): MappingContext<T, U> => ({
+const createMappingContext = <T extends NodeOnPath, U>(createNodeCallback: CallbackFn<T, U>): MappingContext<T, U> => ({
   nodeChainInBranch: new Map(),
   distances: new Map(),
   nodes: [],
-  callback
+  createNodeCallback
 })
 
 const buildBranchNodeChain = <T extends NodeOnPath, U>(
@@ -51,7 +51,7 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
   found
     .sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
     .forEach(([node, pointInPathChain]) => {
-      const newNode = {...generateNode(), ...context.callback(node, pointInPathChain)}
+      const newNode = {...generateNode(), ...context.createNodeCallback(node, pointInPathChain)}
 
       lastDistance = pointInPathChain.pointInPath.distance()
       context.nodeChainInBranch.get(branchId)?.push(newNode)
@@ -70,10 +70,10 @@ const buildBranchNodeChain = <T extends NodeOnPath, U>(
 
 const mapping = <T extends NodeOnPath, U>(
   from: VisitFn,
-  callback: CallbackFn<T, U>,
+  createNodeCallback: CallbackFn<T, U>,
   pointInPathchains: [T, PointInPathchain][]
 ) => {
-  const context = createMappingContext(callback)
+  const context = createMappingContext(createNodeCallback)
 
   pathChainWalk(from, (pathchain, branchIds) => {
     const branchId = branchIds.at(-1)

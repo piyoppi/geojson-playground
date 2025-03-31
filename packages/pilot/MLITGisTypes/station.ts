@@ -6,6 +6,7 @@ export type StationsGeoJson = {
   features: Feature<LineString2D, Properties>[]
 }
 
+// ref: https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2023.html
 type Properties = {
   N02_001: string
   N02_002: string

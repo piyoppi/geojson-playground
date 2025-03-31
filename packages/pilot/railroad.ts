@@ -24,6 +24,23 @@ export type Station = {
 
 export type StationNode = Station & GraphNode
 
+const removeDuplicateNode = <T extends GraphNode>(targetNodes: T[]): T[] => {
+  const duplicatedNodes = new Set()
+
+  Map.groupBy(targetNodes, n => n.id).values().forEach(nodes => {
+    if (nodes.length > 1) {
+      const mergedNode = mergeNodes(...nodes)
+      targetNodes.push(mergedNode)
+      nodes.forEach(node => {
+        removeNode(node)
+        duplicatedNodes.add(node)
+      })
+    }
+  })
+
+  return targetNodes.filter(node => !duplicatedNodes.has(node))
+}
+
 export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
   const stationNodes = railroads.flatMap(railroad => {
     const pathchainGroups = buildPathchain(railroad.rails)
@@ -70,16 +87,16 @@ export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJ
   const railroadsFeature = Map.groupBy(railroadsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
   const stationsFeature = Map.groupBy(stationsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
 
-  return Array.from(railroadsFeature.keys()).flatMap(key => {
-    const railroad = railroadsFeature.get(key) || []
+  return Array.from(railroadsFeature.keys()).flatMap(id => {
+    const railroad = railroadsFeature.get(id) || []
     if (railroad.length === 0) return []
 
-    const stations =  stationsFeature.get(key) || []
+    const stations =  stationsFeature.get(id) || []
     const lineName = railroad[0].properties.N02_003
     const company = railroad[0].properties.N02_004
 
     return [{
-      id: key,
+      id: id,
       name: lineName,
       company,
       rails: railroad.map(r => r.geometry.coordinates),
@@ -87,7 +104,7 @@ export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJ
         ({
           name: s.properties.N02_005,
           id: s.properties.N02_005c,
-          railroadId: key,
+          railroadId: id,
           groupId: s.properties.N02_005g,
           platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]],
         })
