@@ -13,15 +13,6 @@ export type BusRoute = {
 
 export type BusStopNode = BusStop & GraphNode
 
-export const toBusStopGraph = (busRoute: BusRoute, busStops: BusStop[]): BusStopNode[] => {
-  const pathchainGroups = buildPathchain(busRoute.routes)
-
-  return pathchainGroups.flatMap(pathchains => {
-    const end = ends(pathchains)[0]
-    return fromPathChain(busStops, b => ({...b}))(pathchains, end.from())
-  })
-}
-
 export const fromMLITGeoJson = (busRouteGeoJson: BusRoutesGeoJson): BusRoute[] => {
   const routeFeature = Map.groupBy(busRouteGeoJson.features, f => f.properties.N07_001)
 

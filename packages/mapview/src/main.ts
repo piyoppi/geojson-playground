@@ -9,9 +9,11 @@ import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { BusStopsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busStop'
 import { BusRoutesGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busRoute'
-import { fromMLITGeoJson as toRailRoads, StationNode, toStationGraph } from '@piyoppi/sansaku-pilot/railroad'
+import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/railroad'
+import { StationNode, toStationGraph } from '@piyoppi/sansaku-pilot/stationGraph'
 import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/busstop'
 import { fromMLITGeoJson as toBusRoutes } from '@piyoppi/sansaku-pilot/busroute'
+import { toBusStopGraph } from '@piyoppi/sansaku-pilot/busStopGraph'
 
 const loadStations = () => {
   const railroadsGeoJson = {
@@ -33,7 +35,10 @@ const loadBusStops = () => {
   const busStops = toBusStops(busStopsGeoJson)
   const busRoutes = toBusRoutes(busRoutesGeoJson)
 
+  const busNodes = toBusStopGraph(busRoutes, busStops)
+
   console.log(busStops, busRoutes)
+  console.log(busNodes)
 }
 
 const displayStations = (stationNodes: StationNode[]) => {

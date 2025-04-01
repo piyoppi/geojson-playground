@@ -1,4 +1,4 @@
-import { StationNode } from "../railroad"
+import { StationNode } from "../stationGraph"
 import type { GraphNode, Arc } from "./graph"
 
 export const toDotGraph = <T extends StationNode>(nodes: T[]): string => {
