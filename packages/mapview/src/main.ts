@@ -13,7 +13,7 @@ import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/railroad'
 import { StationNode, toStationGraph } from '@piyoppi/sansaku-pilot/stationGraph'
 import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/busstop'
 import { fromMLITGeoJson as toBusRoutes } from '@piyoppi/sansaku-pilot/busroute'
-import { toBusStopGraph } from '@piyoppi/sansaku-pilot/busStopGraph'
+import { BusStopNode, toBusStopGraph } from '@piyoppi/sansaku-pilot/busStopGraph'
 
 const loadStations = () => {
   const railroadsGeoJson = {
@@ -37,24 +37,28 @@ const loadBusStops = () => {
 
   const busNodes = toBusStopGraph(busRoutes, busStops)
 
-  console.log(busStops, busRoutes)
-  console.log(busNodes)
+  return busNodes
 }
 
-const displayStations = (stationNodes: StationNode[]) => {
+const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   const graph = new Graph({ multi: true })
+
   stationNodes.forEach(node => {
     graph.addNode(node.id, { label: node.name, size: 0.7, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
   })
 
-  stationNodes.forEach(node => {
+  busNodes.forEach(node => {
+    graph.addNode(node.id, { label: node.name, size: 0.7, x: node.position[0], y: node.position[1], color: "yellow" })
+  });
+
+  [...stationNodes, ...busNodes].forEach(node => {
     node.arcs.forEach(arc => {
       const aNode = arc.a.deref()
       const bNode = arc.b.deref()
 
       if (!aNode || !bNode) return
 
-        graph.addEdge(aNode.id, bNode.id, { color: "black" })
+      graph.addEdge(aNode.id, bNode.id, { color: "black" })
     })
   })
 
@@ -67,5 +71,5 @@ const displayStations = (stationNodes: StationNode[]) => {
   })
 }
 
-//displayStations(loadStations())
-loadBusStops()
+//displayGraph(loadStations(), [])
+displayGraph([], loadBusStops())

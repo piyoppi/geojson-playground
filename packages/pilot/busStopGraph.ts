@@ -14,7 +14,7 @@ export const toBusStopGraph = (busRoutes: BusRoute[], busStops: BusStop[]): BusS
       const end = ends(pathchains)[0]
 
       return fromPathChain(
-        busStops.map(s => ({...s})),
+        busStops,
         busStop => ({...busStop})
       )(pathchains, end.from())
     })
