@@ -23,7 +23,7 @@ export type LineString2D = {
 
 export type Point = {
   type: 'Point',
-  coordinates: Position2D | Position3D
+  coordinates: Position2D
 }
 
 export type Polygon = {

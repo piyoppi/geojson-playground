@@ -3,40 +3,64 @@ import Sigma from "sigma"
 import railroadsGeoJsonAllRaw from "./geojsons/railroads-all.json"
 import railroadsGeoJsonExtendsRaw from "./geojsons/railroads-all-extends.json"
 import stationsGeoJsonRaw from "./geojsons/stations-all.json"
+import busStopsGeoJsonRaw from "./geojsons/bus-stops-s.json"
+import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
-import { fromMLITGeoJson, toStationGraph } from '@piyoppi/sansaku-pilot/railroad'
+import { BusStopsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busStop'
+import { BusRoutesGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busRoute'
+import { fromMLITGeoJson as toRailRoads, StationNode, toStationGraph } from '@piyoppi/sansaku-pilot/railroad'
+import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/busstop'
+import { fromMLITGeoJson as toBusRoutes } from '@piyoppi/sansaku-pilot/busroute'
 
-const railroadsGeoJson = {
-  ...railroadsGeoJsonAllRaw,
-  features: [...railroadsGeoJsonAllRaw.features, ...railroadsGeoJsonExtendsRaw.features],
-} as RailroadsGeoJson
-const stationsGeoJson = stationsGeoJsonRaw as StationsGeoJson
+const loadStations = () => {
+  const railroadsGeoJson = {
+    ...railroadsGeoJsonAllRaw,
+    features: [...railroadsGeoJsonAllRaw.features, ...railroadsGeoJsonExtendsRaw.features],
+  } as RailroadsGeoJson
+  const stationsGeoJson = stationsGeoJsonRaw as StationsGeoJson
 
-const railroads = fromMLITGeoJson(railroadsGeoJson, stationsGeoJson)
-const stationNodes = toStationGraph(railroads)
+  const railroads = toRailRoads(railroadsGeoJson, stationsGeoJson)
+  const stationNodes = toStationGraph(railroads)
 
-const graph = new Graph({ multi: true })
-stationNodes.forEach(node => {
-  graph.addNode(node.id, { label: node.name, size: 0.7, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
-})
+  return stationNodes
+}
 
-stationNodes.forEach(node => {
-  node.arcs.forEach(arc => {
-    const aNode = arc.a.deref()
-    const bNode = arc.b.deref()
+const loadBusStops = () => {
+  const busStopsGeoJson = busStopsGeoJsonRaw as BusStopsGeoJson
+  const busRoutesGeoJson = busRoutesGeoJsonRaw as BusRoutesGeoJson
 
-    if (!aNode || !bNode) return
+  const busStops = toBusStops(busStopsGeoJson)
+  const busRoutes = toBusRoutes(busRoutesGeoJson)
 
-    graph.addEdge(aNode.id, bNode.id, { color: "black" })
+  console.log(busStops, busRoutes)
+}
+
+const displayStations = (stationNodes: StationNode[]) => {
+  const graph = new Graph({ multi: true })
+  stationNodes.forEach(node => {
+    graph.addNode(node.id, { label: node.name, size: 0.7, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
   })
-})
 
-window.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("app")
+  stationNodes.forEach(node => {
+    node.arcs.forEach(arc => {
+      const aNode = arc.a.deref()
+      const bNode = arc.b.deref()
 
-  if (container) {
-    new Sigma(graph, container)
-  }
-})
+      if (!aNode || !bNode) return
 
+        graph.addEdge(aNode.id, bNode.id, { color: "black" })
+    })
+  })
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("app")
+
+    if (container) {
+      new Sigma(graph, container)
+    }
+  })
+}
+
+//displayStations(loadStations())
+loadBusStops()

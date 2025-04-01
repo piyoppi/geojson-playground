@@ -1,7 +1,7 @@
 import { type GraphNode } from "./graph/graph"
 import { buildPathchain, ends } from './pathchain'
 import type { Path } from "./path"
-import { BusRouteGeoJson } from "./MLITGisTypes/busRoute"
+import { BusRoutesGeoJson } from "./MLITGisTypes/busRoute"
 import { BusStop } from "./busstop"
 import { fromPathChain } from "./graph/fromPathChain"
 
@@ -22,7 +22,7 @@ export const toBusStopGraph = (busRoute: BusRoute, busStops: BusStop[]): BusStop
   })
 }
 
-export const fromMLITGeoJson = (busRouteGeoJson: BusRouteGeoJson): BusRoute[] => {
+export const fromMLITGeoJson = (busRouteGeoJson: BusRoutesGeoJson): BusRoute[] => {
   const routeFeature = Map.groupBy(busRouteGeoJson.features, f => f.properties.N07_001)
 
   return routeFeature.entries().map(([company, properties]) => ({

@@ -1,5 +1,5 @@
 import { Position2D } from "./geojson"
-import { BusStopGeoJson } from "./MLITGisTypes/busStop"
+import { BusStopsGeoJson } from "./MLITGisTypes/busStop"
 
 export type BusStop = {
   id: string,
@@ -9,7 +9,7 @@ export type BusStop = {
   position: Position2D
 }
 
-export const fromMLITGeoJson = (busStopGeoJson: BusStopGeoJson): BusStop[] => {
+export const fromMLITGeoJson = (busStopGeoJson: BusStopsGeoJson): BusStop[] => {
   return busStopGeoJson.features.map(f => {
     const name = f.properties.P11_001
     const company = f.properties.P11_002
@@ -18,7 +18,7 @@ export const fromMLITGeoJson = (busStopGeoJson: BusStopGeoJson): BusStop[] => {
       name,
       company,
       route,
-      position: f.geometry.coordinates[0]
+      position: f.geometry.coordinates
     }))
   }).flat()
 }

@@ -1,6 +1,6 @@
 import type { Feature, LineString2D } from "../geojson"
 
-export type BusRouteGeoJson = {
+export type BusRoutesGeoJson = {
   type: string
   features: Feature<LineString2D, Properties>[]
 }

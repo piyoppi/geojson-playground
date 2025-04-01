@@ -1,8 +1,8 @@
-import type { Feature, LineString2D } from "../geojson"
+import type { Feature, Point } from "../geojson"
 
-export type BusStopGeoJson = {
+export type BusStopsGeoJson = {
   type: string
-  features: Feature<LineString2D, Properties>[]
+  features: Feature<Point, Properties>[]
 }
 
 // ref: https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P11-2022.html
