@@ -98,7 +98,7 @@ export const mergeNodes = <T extends GraphNode>(...nodes: T[]): T => {
   return mergedNode
 }
 
-export const removeDuplicateNode = <T extends GraphNode>(targetNodes: T[]): T[] => {
+export const mergeDuplicateNodes = <T extends GraphNode>(targetNodes: T[]): T[] => {
   const duplicatedNodes = new Set()
 
   Map.groupBy(targetNodes, n => n.id).values().forEach(nodes => {

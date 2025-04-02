@@ -12,10 +12,10 @@ type CallbackGenerated = {id: string}
 type CallbackFn<T, U extends CallbackGenerated> = (node: T, found: PointInPathchain) => U
 
 export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated>(
-  nodes: T[],
+  point: T[],
   createNodeCallback: CallbackFn<T, U>
 ) => (pathChains: PathChain[], from: VisitFn): (U & GraphNode)[] => {
-  const pointInPathchains: [T, PointInPathchain][] = nodes
+  const pointInPathchains: [T, PointInPathchain][] = point
     .map<[T, PointInPathchain | null]>(n => [n, findPointInPathChain(pathChains)(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
 

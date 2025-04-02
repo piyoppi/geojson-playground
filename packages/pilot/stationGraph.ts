@@ -1,6 +1,6 @@
 import { center } from "./geometry"
 import { fromPathChain } from "./graph/fromPathChain"
-import { arcExists, connect, generateArc, removeDuplicateNode, type GraphNode } from "./graph/graph"
+import { arcExists, connect, generateArc, mergeDuplicateNodes, type GraphNode } from "./graph/graph"
 import { ends, buildPathchain } from './pathchain'
 import { Railroad, Station } from "./railroad"
 
@@ -20,7 +20,7 @@ export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
     })
   })
 
-  const filteredStationNodes = removeDuplicateNode(stationNodes)
+  const filteredStationNodes = mergeDuplicateNodes(stationNodes)
 
   // Connect each transit station nodes
   const nodesByGroup = Map.groupBy(filteredStationNodes, n => n.groupId)

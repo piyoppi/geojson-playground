@@ -48,7 +48,7 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   })
 
   busNodes.forEach(node => {
-    graph.addNode(node.id, { label: node.name, size: 0.7, x: node.position[0], y: node.position[1], color: "yellow" })
+    graph.addNode(node.id, { label: node.name, size: 1, x: node.position[0], y: node.position[1], color: "green" })
   });
 
   [...stationNodes, ...busNodes].forEach(node => {
