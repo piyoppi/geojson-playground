@@ -27,14 +27,14 @@ const distanceKey = (branchIds: string[]) => branchIds.join('-')
 type MappingContext<T extends NodeOnPath, U extends CallbackGenerated> = {
   nodeChainInBranch: Map<string, GraphNode[]>
   distances: Map<string, number>
-  nodes: (U & GraphNode)[]
+  nodes: Map<string, U & GraphNode>
   createNodeCallback: CallbackFn<T, U>
 }
 
 const createMappingContext = <T extends NodeOnPath, U extends CallbackGenerated>(createNodeCallback: CallbackFn<T, U>): MappingContext<T, U> => ({
   nodeChainInBranch: new Map(),
   distances: new Map(),
-  nodes: [],
+  nodes: new Map(),
   createNodeCallback
 })
 
@@ -52,18 +52,22 @@ const buildBranchNodeChain = <T extends NodeOnPath, U extends CallbackGenerated>
   found
     .sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
     .forEach(([node, pointInPathChain]) => {
-      const newNode = {arcs: [], ...context.createNodeCallback(node, pointInPathChain)}
+      const nodeAttributes = context.createNodeCallback(node, pointInPathChain)
+      const existingNode = context.nodes.get(nodeAttributes.id)
+      const currentNode = existingNode ?
+        existingNode :
+        {arcs: [], ...nodeAttributes}
 
       lastDistance = pointInPathChain.pointInPath.distance()
-      context.nodeChainInBranch.get(branchId)?.push(newNode)
+      context.nodeChainInBranch.get(branchId)?.push(currentNode)
 
       if (previousNode) {
-        const arc = generateArc(previousNode, newNode, distance + lastDistance)
-        connect(previousNode, newNode, arc)
+        const arc = generateArc(previousNode, currentNode, distance + lastDistance)
+        connect(previousNode, currentNode, arc)
       }
 
-      previousNode = newNode
-      context.nodes.push(newNode)
+      previousNode = currentNode
+      context.nodes.set(currentNode.id, currentNode)
     })
 
   return lastDistance
@@ -103,5 +107,5 @@ const mapping = <T extends NodeOnPath, U extends CallbackGenerated>(
     }
   })
 
-  return context.nodes
+  return context.nodes.values().toArray()
 }

@@ -3,8 +3,8 @@ import Sigma from "sigma"
 import railroadsGeoJsonAllRaw from "./geojsons/railroads-all.json"
 import railroadsGeoJsonExtendsRaw from "./geojsons/railroads-all-extends.json"
 import stationsGeoJsonRaw from "./geojsons/stations-all.json"
-import busStopsGeoJsonRaw from "./geojsons/bus-stops-s.json"
-import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s.json"
+import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mini.json"
+import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mini.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { BusStopsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busStop'
@@ -44,7 +44,7 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   const graph = new Graph({ multi: true })
 
   stationNodes.forEach(node => {
-    graph.addNode(node.id, { label: node.name, size: 0.7, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
+    graph.addNode(node.id, { label: node.name, size: 0.5, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
   })
 
   busNodes.forEach(node => {
