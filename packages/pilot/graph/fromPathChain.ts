@@ -11,15 +11,20 @@ type NodeOnPath = {
 type CallbackGenerated = {id: string}
 type CallbackFn<T, U extends CallbackGenerated> = (node: T, found: PointInPathchain) => U
 
+export type MappingOption = {
+  currentPathchainChanged?: (pathchain: PathChain) => Promise<void>
+}
+
 export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated>(
   point: T[],
-  createNodeCallback: CallbackFn<T, U>
-) => (pathChains: PathChain[], from: VisitFn): (U & GraphNode)[] => {
+  createNodeCallback: CallbackFn<T, U>,
+  options?: MappingOption
+) => (pathChains: PathChain[], from: VisitFn): Promise<(U & GraphNode)[]> => {
   const pointInPathchains: [T, PointInPathchain][] = point
     .map<[T, PointInPathchain | null]>(n => [n, findPointInPathChain(pathChains)(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
 
-  return mapping(from, createNodeCallback, pointInPathchains)
+  return mapping(from, createNodeCallback, pointInPathchains, options)
 }
 
 const distanceKey = (branchIds: string[]) => branchIds.join('-')
@@ -73,14 +78,15 @@ const buildBranchNodeChain = <T extends NodeOnPath, U extends CallbackGenerated>
   return lastDistance
 }
 
-const mapping = <T extends NodeOnPath, U extends CallbackGenerated>(
+const mapping = async <T extends NodeOnPath, U extends CallbackGenerated>(
   from: VisitFn,
   createNodeCallback: CallbackFn<T, U>,
-  pointInPathchains: [T, PointInPathchain][]
+  pointInPathchains: [T, PointInPathchain][],
+  options?: MappingOption
 ) => {
   const context = createMappingContext(createNodeCallback)
 
-  pathChainWalk(from, (pathchain, branchIds) => {
+  pathChainWalk(from, async (pathchain, branchIds) => {
     const branchId = branchIds.at(-1)
     if (branchId === undefined) return
 
@@ -88,6 +94,10 @@ const mapping = <T extends NodeOnPath, U extends CallbackGenerated>(
 
     if (!context.nodeChainInBranch.has(branchId)) {
       context.nodeChainInBranch.set(branchId, [])
+    }
+
+    if (options?.currentPathchainChanged) {
+      await options.currentPathchainChanged(pathchain)
     }
 
     const found = pointInPathchains.filter(([_, pointInPathChain]) => {

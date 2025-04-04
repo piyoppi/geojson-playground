@@ -6,19 +6,21 @@ import { Railroad, Station } from "./railroad"
 
 export type StationNode = Station & GraphNode
 
-export const toStationGraph = (railroads: Railroad[]): StationNode[] => {
-  const stationNodes = railroads.flatMap(railroad => {
-    const pathchainGroups = buildPathchain(railroad.rails)
+export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode[]> => {
+  const stationNodes = (await Promise.all(
+    railroads.flatMap(railroad => {
+      const pathchainGroups = buildPathchain(railroad.rails)
 
-    return pathchainGroups.flatMap((pathchains) => {
-      const end = ends(pathchains)[0]
+      return pathchainGroups.flatMap((pathchains) => {
+        const end = ends(pathchains)[0]
 
-      return fromPathChain(
-        railroad.stations.map(s => ({...s, position: center(s.platform)})),
-        station => ({...station})
-      )(pathchains, end.from())
+        return fromPathChain(
+          railroad.stations.map(s => ({...s, position: center(s.platform)})),
+          station => ({...station})
+        )(pathchains, end.from())
+      })
     })
-  })
+  )).flat()
 
   const filteredStationNodes = mergeDuplicateNodes(stationNodes)
 
