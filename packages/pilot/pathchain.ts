@@ -25,11 +25,11 @@ export type PointInPathchain = {
   pathchain: WeakRef<PathChain>
 }
 
-export const buildPathchain = (paths: Readonly<Path[]>): PathChain[][] => {
+export const buildPathchain = async (paths: Readonly<Path[]>): Promise<PathChain[][]> => {
   const pathInternals = buildPathInternal(paths)
   mergeTIntersection(pathInternals)
 
-  const grouped = groupByIsolated(buildFromInternal(pathInternals))
+  const grouped = await groupByIsolated(buildFromInternal(pathInternals))
 
   return grouped
 }
@@ -113,13 +113,13 @@ const generateStep = (pathInternals: Readonly<PathInternal[]>, pathChains: (inde
   return { generateVisit, generateNext }
 }
 
-const groupByIsolated = (pathchains: Readonly<PathChain[]>) => {
+const groupByIsolated = async (pathchains: Readonly<PathChain[]>) => {
   const groups: Set<PathChain>[] = []
   for (const end of ends(pathchains)) {
     if (groups.some(g => g.has(end))) continue
 
     const group = new Set<PathChain>()
-    pathChainWalk(end.from(), pathchain => group.add(pathchain))
+    await pathChainWalk(end.from(), pathchain => group.add(pathchain) && Promise.resolve())
     groups.push(group)
   }
 

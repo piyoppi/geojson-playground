@@ -86,7 +86,7 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated>(
 ) => {
   const context = createMappingContext(createNodeCallback)
 
-  pathChainWalk(from, async (pathchain, branchIds) => {
+  await pathChainWalk(from, async (pathchain, branchIds) => {
     const branchId = branchIds.at(-1)
     if (branchId === undefined) return
 

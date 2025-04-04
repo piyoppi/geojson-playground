@@ -33,9 +33,9 @@ export const getBoundaryViewBox = (points: [number, number][]): ViewBox => {
   ]
 }
 
-export const addPadding = ([x, y, w, h]: ViewBox, top: number, right: number, bottom?: number, left?: number): ViewBox => [
-  x - (left !== undefined ? left : right),
+export const addPadding = ([x, y, w, h]: ViewBox, top: number, right: number, bottom: number = top, left: number = right): ViewBox => [
+  x - left,
   y - top,
-  w + right,
-  h + (bottom !== undefined ? bottom : top)
+  w + right + left,
+  h + bottom + top
 ]

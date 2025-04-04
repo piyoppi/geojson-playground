@@ -14,8 +14,15 @@ import { StationNode, toStationGraph } from '@piyoppi/sansaku-pilot/stationGraph
 import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/busstop'
 import { fromMLITGeoJson as toBusRoutes } from '@piyoppi/sansaku-pilot/busroute'
 import { BusStopNode, toBusStopGraph } from '@piyoppi/sansaku-pilot/busStopGraph'
+import { tagToString } from "@piyoppi/sansaku-pilot/svg/element"
+import { path } from "@piyoppi/sansaku-pilot/svg/path"
+import { toPathData } from "@piyoppi/sansaku-pilot/svg/pathutils"
+import { rgb } from "@piyoppi/sansaku-pilot/svg/color"
+import { strokeWidth } from "@piyoppi/sansaku-pilot/svg/presentationalAttributes"
+import { px } from "@piyoppi/sansaku-pilot/svg/size"
+import { addPadding, getBoundaryViewBox } from "@piyoppi/sansaku-pilot/svg/svg"
 
-const loadStations = () => {
+const loadStations = async () => {
   const railroadsGeoJson = {
     ...railroadsGeoJsonAllRaw,
     features: [...railroadsGeoJsonAllRaw.features, ...railroadsGeoJsonExtendsRaw.features],
@@ -23,19 +30,37 @@ const loadStations = () => {
   const stationsGeoJson = stationsGeoJsonRaw as StationsGeoJson
 
   const railroads = toRailRoads(railroadsGeoJson, stationsGeoJson)
-  const stationNodes = toStationGraph(railroads)
+  const stationNodes = await toStationGraph(railroads)
 
   return stationNodes
 }
 
-const loadBusStops = () => {
+const loadBusStops = async () => {
   const busStopsGeoJson = busStopsGeoJsonRaw as BusStopsGeoJson
   const busRoutesGeoJson = busRoutesGeoJsonRaw as BusRoutesGeoJson
 
   const busStops = toBusStops(busStopsGeoJson)
   const busRoutes = toBusRoutes(busRoutesGeoJson)
 
-  const busNodes = toBusStopGraph(busRoutes, busStops)
+  const viewBox = addPadding(getBoundaryViewBox(busRoutes.map(b => b.routes).flat().flat()), 0.001, 0.001).join(" ")
+  const svg = document.getElementById("debugsvg") as SVGElement | null
+  if (!svg) return []
+  svg.setAttribute("viewBox", viewBox)
+  svg.setAttribute("width", "100%")
+  svg.setAttribute("height", "100%")
+
+  const busNodes = await toBusStopGraph(
+    busRoutes,
+    busStops,
+    {
+      async currentPathchainChanged(pathchain) {
+        svg.innerHTML += tagToString(
+          path({d: toPathData(pathchain.path), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.000005))})
+        )
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+  )
 
   return busNodes
 }
@@ -62,14 +87,15 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
     })
   })
 
-  window.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("app")
+  const container = document.getElementById("app")
 
-    if (container) {
-      new Sigma(graph, container)
-    }
-  })
+  if (container) {
+    new Sigma(graph, container)
+  }
 }
 
-//displayGraph(loadStations(), [])
-displayGraph([], loadBusStops())
+
+window.addEventListener("DOMContentLoaded", async () => {
+  //displayGraph(await loadStations(), [])
+  displayGraph([], await loadBusStops())
+})
