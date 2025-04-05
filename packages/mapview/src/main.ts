@@ -58,18 +58,18 @@ const loadBusStops = async () => {
         svg.innerHTML += tagToString(
           path({d: toPathData(pathchain.path), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.000005))})
         )
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 10))
       },
       async nodeCreated(busStop) {
         svg.innerHTML += tagToString(
           circle({cx: px(busStop.position[0]), cy: px(busStop.position[1]), r: px(0.00003), fill: 'blue', stroke: rgb(0, 0, 255), strokeWidth: strokeWidth(px(0.000002))})
         )
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 10))
       }
     }
   )
 
-  return busNodes
+  return Array.from(busNodes.values()).flat()
 }
 
 const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
@@ -103,6 +103,6 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
 
 
 window.addEventListener("DOMContentLoaded", () => {
-  loadStations().then(stations => displayGraph(stations, []))
-//  loadBusStops().then(b => displayGraph([], b))
+  //loadStations().then(stations => displayGraph(stations, []))
+  loadBusStops().then(b => displayGraph([], b))
 })

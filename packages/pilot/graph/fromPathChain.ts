@@ -7,9 +7,21 @@ import { connect, generateArc, type GraphNode } from "./graph"
 type NodeOnPath = {
   position: Position2D,
 }
+type CallbackGenerated = {
+  id: NodeId
+}
+type CallbackFn<T, U extends CallbackGenerated> = (node: T, found: PointInPathchain) => Promise<[GroupId, U]>
+type GroupId = string
+type NodeId = string
+type BranchId = string
+type DistanceKey = ReturnType<typeof distanceKey>
 
-type CallbackGenerated = {id: string}
-type CallbackFn<T, U extends CallbackGenerated> = (node: T, found: PointInPathchain) => Promise<[string, U]>
+type MappingContext<T extends NodeOnPath, U extends CallbackGenerated> = {
+  nodeChainInBranch: Map<BranchId, GraphNode[]>
+  distances: Map<DistanceKey, number>
+  nodes: Map<GroupId, Map<NodeId, U & GraphNode>>
+  createNodeCallback: CallbackFn<T, U>
+}
 
 export type MappingOption = {
   currentPathchainChanged?: (pathchain: PathChain) => Promise<void>
@@ -19,7 +31,7 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated>
   point: T[],
   createNodeCallback: CallbackFn<T, U>,
   options?: MappingOption
-) => (pathChains: PathChain[], from: VisitFn): Promise<Map<string, (U & GraphNode)[]>> => {
+) => (pathChains: PathChain[], from: VisitFn): Promise<Map<GroupId, (U & GraphNode)[]>> => {
   const pointInPathchains: [T, PointInPathchain][] = point
     .map<[T, PointInPathchain | null]>(n => [n, findPointInPathChain(pathChains)(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
@@ -27,14 +39,7 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated>
   return mapping(from, createNodeCallback, pointInPathchains, options)
 }
 
-const distanceKey = (branchIds: string[]) => branchIds.join('-')
-
-type MappingContext<T extends NodeOnPath, U extends CallbackGenerated> = {
-  nodeChainInBranch: Map<string, GraphNode[]>
-  distances: Map<string, number>
-  nodes: Map<string, Map<string, U & GraphNode>>
-  createNodeCallback: CallbackFn<T, U>
-}
+const distanceKey = (branchIds: BranchId[]) => branchIds.join('-')
 
 const createMappingContext = <T extends NodeOnPath, U extends CallbackGenerated>(createNodeCallback: CallbackFn<T, U>): MappingContext<T, U> => ({
   nodeChainInBranch: new Map(),
@@ -46,13 +51,13 @@ const createMappingContext = <T extends NodeOnPath, U extends CallbackGenerated>
 const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGenerated>(
   context: MappingContext<T, U>,
   found: [T, PointInPathchain][],
-  branchId: string,
-  previousBranchNum: string | undefined,
+  branchId: BranchId,
+  previousBranchId: BranchId | undefined,
   distance: number,
   pathDirection: PathDirection
 ) => {
   let previousNode = context.nodeChainInBranch.get(branchId)?.at(-1) || 
-    (previousBranchNum ? context.nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
+    (previousBranchId ? context.nodeChainInBranch.get(previousBranchId)?.at(-1) : null)
   let lastDistance = 0
 
   const foundOrderByPosition = found.sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
