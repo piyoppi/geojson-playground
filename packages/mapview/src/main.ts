@@ -58,7 +58,7 @@ const loadBusStops = async () => {
         svg.innerHTML += tagToString(
           path({d: toPathData(pathchain.path), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.000005))})
         )
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 1000))
       },
       async nodeCreated(busStop) {
         svg.innerHTML += tagToString(
@@ -76,7 +76,7 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   const graph = new Graph({ multi: true })
 
   stationNodes.forEach(node => {
-    graph.addNode(node.id, { label: node.name, size: 0.5, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
+    graph.addNode(node.id, { label: node.name, size: 0.6, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
   })
 
   busNodes.forEach(node => {
@@ -102,7 +102,7 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
 }
 
 
-window.addEventListener("DOMContentLoaded", async () => {
-  //displayGraph(await loadStations(), [])
-  displayGraph([], await loadBusStops())
+window.addEventListener("DOMContentLoaded", () => {
+  loadStations().then(stations => displayGraph(stations, []))
+//  loadBusStops().then(b => displayGraph([], b))
 })
