@@ -13,12 +13,15 @@ export const fromMLITGeoJson = (busStopGeoJson: BusStopsGeoJson): BusStop[] => {
   return busStopGeoJson.features.map(f => {
     const name = f.properties.P11_001
     const company = f.properties.P11_002
-    return f.properties.P11_003_01.split(',').map(route => ({
-      id: `${company}-${route}-${name}-`,
-      name,
-      company,
-      route,
-      position: f.geometry.coordinates
-    }))
+    return f.properties.P11_003_01.split(',').flatMap(route => {
+      if (!f.geometry) return []
+      return [{
+        id: `${company}-${route}-${name}-`,
+        name,
+        company,
+        route,
+        position: f.geometry.coordinates
+      }]
+    })
   }).flat()
 }

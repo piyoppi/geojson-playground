@@ -17,7 +17,7 @@ type BranchId = string
 type DistanceKey = ReturnType<typeof distanceKey>
 
 type MappingContext<T extends NodeOnPath, U extends CallbackGenerated> = {
-  nodeChainInBranch: Map<BranchId, GraphNode[]>
+  nodeChainInBranch: Map<BranchId, Map<GroupId, GraphNode[]>>
   distances: Map<DistanceKey, number>
   nodes: Map<GroupId, Map<NodeId, U & GraphNode>>
   createNodeCallback: CallbackFn<T, U>
@@ -56,8 +56,6 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
   distance: number,
   pathDirection: PathDirection
 ) => {
-  let previousNode = context.nodeChainInBranch.get(branchId)?.at(-1) || 
-    (previousBranchId ? context.nodeChainInBranch.get(previousBranchId)?.at(-1) : null)
   let lastDistance = 0
 
   const foundOrderByPosition = found.sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
@@ -65,15 +63,22 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
   if (pathDirection === 'backward') foundOrderByPosition.reverse()
 
   for (const [node, pointInPathChain] of foundOrderByPosition) {
-    const [group, nodeAttributes] = await context.createNodeCallback(node, pointInPathChain)
-    const currentGroup = context.nodes.get(group) || new Map()
+    const [groupId, nodeAttributes] = await context.createNodeCallback(node, pointInPathChain)
+    let previousNode = context.nodeChainInBranch.get(branchId)?.get(groupId)?.at(-1) || 
+      (previousBranchId ? context.nodeChainInBranch.get(previousBranchId)?.get(groupId)?.at(-1) : null)
+    const currentGroup = context.nodes.get(groupId) || new Map()
     const existingNode = currentGroup.get(nodeAttributes.id)
     const currentNode = existingNode ?
       existingNode :
       {arcs: [], ...nodeAttributes}
 
     lastDistance = pointInPathChain.pointInPath.distance()
-    context.nodeChainInBranch.get(branchId)?.push(currentNode)
+
+    if (!context.nodeChainInBranch.get(branchId)?.has(groupId)) {
+      context.nodeChainInBranch.get(branchId)?.set(groupId, [])
+    }
+
+    context.nodeChainInBranch.get(branchId)?.get(groupId)?.push(currentNode)
 
     if (previousNode) {
       const arc = generateArc(previousNode, currentNode, distance + lastDistance)
@@ -82,7 +87,7 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
 
     previousNode = currentNode
     currentGroup.set(currentNode.id, currentNode)
-    context.nodes.set(group, currentGroup)
+    context.nodes.set(groupId, currentGroup)
   }
 
   return lastDistance
@@ -100,10 +105,10 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated>(
     const branchId = branchIds.at(-1)
     if (branchId === undefined) return
 
-    const previousBranchNum = branchIds.findLast(id => context.nodeChainInBranch.get(id)?.length ?? 0 > 0)
+    const previousBranchId = branchIds.findLast(id => context.nodeChainInBranch.get(id)?.size ?? 0 > 0)
 
     if (!context.nodeChainInBranch.has(branchId)) {
-      context.nodeChainInBranch.set(branchId, [])
+      context.nodeChainInBranch.set(branchId, new Map())
     }
 
     if (options?.currentPathchainChanged) {
@@ -120,7 +125,7 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated>(
       ?? 0
 
     if (found.length > 0) {
-      const lastDistance = await buildBranchNodeChain(context, found, branchId, previousBranchNum, distance, current.pathDirection)
+      const lastDistance = await buildBranchNodeChain(context, found, branchId, previousBranchId, distance, current.pathDirection)
       context.distances.set(distanceKey(branchIds), pathLength(current.pathChain.path) - lastDistance)
     } else {
       context.distances.set(distanceKey(branchIds), distance + pathLength(current.pathChain.path))

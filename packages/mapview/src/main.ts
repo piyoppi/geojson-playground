@@ -3,8 +3,8 @@ import Sigma from "sigma"
 import railroadsGeoJsonAllRaw from "./geojsons/railroads-all.json"
 import railroadsGeoJsonExtendsRaw from "./geojsons/railroads-all-extends.json"
 import stationsGeoJsonRaw from "./geojsons/stations-all.json"
-import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mini.json"
-import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mini.json"
+import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mid.json"
+import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mid.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { BusStopsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busStop'
@@ -17,7 +17,7 @@ import { BusStopNode, toBusStopGraph } from '@piyoppi/sansaku-pilot/busStopGraph
 import { tagToString } from "@piyoppi/sansaku-pilot/svg/element"
 import { circle } from "@piyoppi/sansaku-pilot/svg/circle"
 import { path } from "@piyoppi/sansaku-pilot/svg/path"
-import { toPathData } from "@piyoppi/sansaku-pilot/svg/pathutils"
+import { toPathData, flipVertically } from "@piyoppi/sansaku-pilot/svg/pathutils"
 import { rgb } from "@piyoppi/sansaku-pilot/svg/color"
 import { strokeWidth } from "@piyoppi/sansaku-pilot/svg/presentationalAttributes"
 import { px } from "@piyoppi/sansaku-pilot/svg/size"
@@ -43,10 +43,11 @@ const loadBusStops = async () => {
   const busStops = toBusStops(busStopsGeoJson)
   const busRoutes = toBusRoutes(busRoutesGeoJson)
 
-  const viewBox = addPadding(getBoundaryViewBox(busRoutes.map(b => b.routes).flat().flat()), 0.001, 0.001).join(" ")
+  const viewBox = addPadding(getBoundaryViewBox(busRoutes.map(b => b.routes).flat().flat()), 0.001, 0.001)
+  const center = [viewBox[0] + viewBox[2] / 2, viewBox[1] + viewBox[3] / 2]
   const svg = document.getElementById("debugsvg") as SVGElement | null
   if (!svg) return []
-  svg.setAttribute("viewBox", viewBox)
+  svg.setAttribute("viewBox", viewBox.join(' '))
   svg.setAttribute("width", "100%")
   svg.setAttribute("height", "100%")
 
@@ -56,15 +57,16 @@ const loadBusStops = async () => {
     {
       async currentPathchainChanged(pathchain) {
         svg.innerHTML += tagToString(
-          path({d: toPathData(pathchain.path), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.000005))})
+          path({d: toPathData(flipVertically(pathchain.path, center[1])), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.0005))})
         )
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise(resolve => setTimeout(resolve, 1))
       },
       async nodeCreated(busStop) {
+        const flipped = flipVertically([busStop.position], center[1])[0]
         svg.innerHTML += tagToString(
-          circle({cx: px(busStop.position[0]), cy: px(busStop.position[1]), r: px(0.00003), fill: 'blue', stroke: rgb(0, 0, 255), strokeWidth: strokeWidth(px(0.000002))})
+          circle({cx: px(flipped[0]), cy: px(flipped[1]), r: px(0.00035), fill: 'blue', stroke: rgb(0, 0, 255), strokeWidth: strokeWidth(px(0.000002))})
         )
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise(resolve => setTimeout(resolve, 1))
       }
     }
   )
@@ -80,7 +82,7 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   })
 
   busNodes.forEach(node => {
-    graph.addNode(node.id, { label: node.name, size: 7, x: node.position[0], y: node.position[1], color: "green" })
+    graph.addNode(node.id, { label: node.name, size: 3, x: node.position[0], y: node.position[1], color: "green" })
   });
 
   [...stationNodes, ...busNodes].forEach(node => {
