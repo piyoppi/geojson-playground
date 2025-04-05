@@ -3,11 +3,12 @@ import { mergeDuplicateNodes, type GraphNode } from "./graph/graph"
 import { ends, buildPathchain } from './pathchain'
 import { BusStop } from "./busstop"
 import { BusRoute } from "./busroute"
-import { warn } from "console"
 
 export type BusStopNode = BusStop & GraphNode
 
-type ToBusStopGraphOptions = MappingOption
+type ToBusStopGraphOptions = MappingOption & {
+  nodeCreated?: (busStop: BusStop) => Promise<void>
+}
 
 export const toBusStopGraph = async (
   busRoutes: BusRoute[],
@@ -26,7 +27,12 @@ export const toBusStopGraph = async (
           return busStopsByRoute.values().map(stops =>
             fromPathChain(
               stops,
-              busStop => ({...busStop}),
+              async busStop => {
+                if (options?.nodeCreated) {
+                  await options.nodeCreated(busStop)
+                }
+                return {...busStop}
+              },
               options
             )(pathchains, end.from())
           ).toArray()

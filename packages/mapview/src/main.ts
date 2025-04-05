@@ -15,6 +15,7 @@ import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/busstop'
 import { fromMLITGeoJson as toBusRoutes } from '@piyoppi/sansaku-pilot/busroute'
 import { BusStopNode, toBusStopGraph } from '@piyoppi/sansaku-pilot/busStopGraph'
 import { tagToString } from "@piyoppi/sansaku-pilot/svg/element"
+import { circle } from "@piyoppi/sansaku-pilot/svg/circle"
 import { path } from "@piyoppi/sansaku-pilot/svg/path"
 import { toPathData } from "@piyoppi/sansaku-pilot/svg/pathutils"
 import { rgb } from "@piyoppi/sansaku-pilot/svg/color"
@@ -57,6 +58,12 @@ const loadBusStops = async () => {
         svg.innerHTML += tagToString(
           path({d: toPathData(pathchain.path), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.000005))})
         )
+        await new Promise(resolve => setTimeout(resolve, 500))
+      },
+      async nodeCreated(busStop) {
+        svg.innerHTML += tagToString(
+          circle({cx: px(busStop.position[0]), cy: px(busStop.position[1]), r: px(0.00003), fill: 'blue', stroke: rgb(0, 0, 255), strokeWidth: strokeWidth(px(0.000002))})
+        )
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
@@ -73,7 +80,7 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   })
 
   busNodes.forEach(node => {
-    graph.addNode(node.id, { label: node.name, size: 1, x: node.position[0], y: node.position[1], color: "green" })
+    graph.addNode(node.id, { label: node.name, size: 7, x: node.position[0], y: node.position[1], color: "green" })
   });
 
   [...stationNodes, ...busNodes].forEach(node => {
