@@ -1,5 +1,5 @@
 import type { Position2D } from "../geometry"
-import { findPointInPathChain, VisitFn, type PathChain, type PointInPathchain } from "../pathchain"
+import { findPointInPathChain, PathDirection, VisitFn, type PathChain, type PointInPathchain } from "../pathchain"
 import { pathChainWalk } from "../walk"
 import { pathLength } from "../path"
 import { connect, generateArc, type GraphNode } from "./graph"
@@ -48,13 +48,16 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
   found: [T, PointInPathchain][],
   branchId: string,
   previousBranchNum: string | undefined,
-  distance: number
+  distance: number,
+  pathDirection: PathDirection
 ) => {
   let previousNode = context.nodeChainInBranch.get(branchId)?.at(-1) || 
     (previousBranchNum ? context.nodeChainInBranch.get(previousBranchNum)?.at(-1) : null)
   let lastDistance = 0
 
   const foundOrderByPosition = found.sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
+
+  if (pathDirection === 'backward') foundOrderByPosition.reverse()
 
   for (const [node, pointInPathChain] of foundOrderByPosition) {
     const nodeAttributes = await context.createNodeCallback(node, pointInPathChain)
@@ -86,7 +89,7 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated>(
 ) => {
   const context = createMappingContext(createNodeCallback)
 
-  await pathChainWalk(from, async (pathchain, branchIds) => {
+  await pathChainWalk(from, async (current, branchIds) => {
     const branchId = branchIds.at(-1)
     if (branchId === undefined) return
 
@@ -97,12 +100,12 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated>(
     }
 
     if (options?.currentPathchainChanged) {
-      await options.currentPathchainChanged(pathchain)
+      await options.currentPathchainChanged(current.pathChain)
     }
 
     const found = pointInPathchains.filter(([_, pointInPathChain]) => {
       const currentPointPathChain = pointInPathChain.pathchain.deref()
-      return currentPointPathChain === pathchain
+      return currentPointPathChain === current.pathChain
     })
 
     const distance = context.distances.get(distanceKey(branchIds))
@@ -110,10 +113,10 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated>(
       ?? 0
 
     if (found.length > 0) {
-      const lastDistance = await buildBranchNodeChain(context, found, branchId, previousBranchNum, distance)
-      context.distances.set(distanceKey(branchIds), pathLength(pathchain.path) - lastDistance)
+      const lastDistance = await buildBranchNodeChain(context, found, branchId, previousBranchNum, distance, current.pathDirection)
+      context.distances.set(distanceKey(branchIds), pathLength(current.pathChain.path) - lastDistance)
     } else {
-      context.distances.set(distanceKey(branchIds), distance + pathLength(pathchain.path))
+      context.distances.set(distanceKey(branchIds), distance + pathLength(current.pathChain.path))
     }
   })
 

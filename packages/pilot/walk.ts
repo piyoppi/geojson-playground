@@ -1,6 +1,10 @@
-import type { PathChain, VisitFn } from "./pathchain"
+import type { PathChain, PathDirection, VisitFn } from "./pathchain"
 
-type CallbackFn = (pathchain: PathChain, branchNums: string[]) => Promise<void>
+type Current = {
+  pathChain: PathChain,
+  pathDirection: PathDirection
+}
+type CallbackFn = (current: Current, branchNums: string[]) => Promise<void>
 
 export const pathChainWalk = async (start: VisitFn, callback: CallbackFn) => {
   await _walk([start], callback, [generateBranchNum()])
@@ -13,12 +17,12 @@ const _walk = async (visits: VisitFn[], callback: CallbackFn, branchId: string[]
     if (visits.length === 0) break
 
     const res = visits[0]()
-    await callback(res.pathChain, visits.length > 1 ? [...branchId, generateBranchNum()] : branchId)
+    await callback({pathChain: res.pathChain, pathDirection: res.pathDirection}, visits.length > 1 ? [...branchId, generateBranchNum()] : branchId)
 
     for (const visit of visits.slice(1)) {
       const res = visit()
       const newBranchNum = [...branchId, generateBranchNum()]
-      await callback(res.pathChain, newBranchNum)
+      await callback({pathChain: res.pathChain, pathDirection: res.pathDirection}, newBranchNum)
 
       await _walk(res.next(), callback, newBranchNum)
     }

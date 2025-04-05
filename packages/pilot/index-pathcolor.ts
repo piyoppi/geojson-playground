@@ -12,9 +12,6 @@ import { tagToString } from "./svg/element"
 import { pathChainWalk } from "./walk"
 import { randomRgb } from "./svg/colorutils"
 
-
-
-
 const railroadsGeoJson = JSON.parse(readFileSync('./geojsons/railroads.json', 'utf-8').toString()) as RailroadsGeoJson
 const stationsGeoJson = JSON.parse(readFileSync('./geojsons/stations.json', 'utf-8').toString()) as StationsGeoJson
 
@@ -35,8 +32,8 @@ const end = ends(results[0][0])[0]
 paths.push(path({d: toPathData(end.path), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.0005))}))
 let next = end.from()
 
-pathChainWalk(next, (p) => {
-  paths.push(path({d: toPathData(p.path), fill: 'transparent', stroke: randomRgb(), strokeWidth: strokeWidth(px(0.0005))}))
+pathChainWalk(next, current => {
+  paths.push(path({d: toPathData(current.pathChain.path), fill: 'transparent', stroke: randomRgb(), strokeWidth: strokeWidth(px(0.0005))}))
   return Promise.resolve()
 })
 

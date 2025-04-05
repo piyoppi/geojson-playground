@@ -18,7 +18,8 @@ export type PathInternal = {
   index: number,
   neighbors: [number[], number[]],
 }
-type Visited = { pathChain: PathChain, next: NextFn }
+export type PathDirection = 'forward' | 'backward'
+type Visited = { pathChain: PathChain, next: NextFn, pathDirection: PathDirection }
 
 export type PointInPathchain = {
   pointInPath: PointInPath,
@@ -91,14 +92,24 @@ const buildPathInternal = (paths: Readonly<Path[]>) => {
 }
 
 const generateStep = (pathInternals: Readonly<PathInternal[]>, pathChains: (index: number) => Readonly<PathChain>) => {
-  const generateVisit = (visitedIndexes: Set<number>, current: number): VisitFn => (): Visited => {
+  const generateVisit = (visitedIndexes: Set<number>, current: number, previous?: number): VisitFn => (): Visited => {
+    const pathDirection = (() => {
+      const currentPathInternal = pathInternals[current]
+      if (previous) {
+        return currentPathInternal.neighbors[0].includes(previous) ? 'forward' : 'backward'
+      } else {
+        return currentPathInternal.neighbors[1].length > 0 ? 'forward' : 'backward'
+      }
+    })()
+
     const pathChain = pathChains(current)
     const pathInternal = pathInternals[current]
     visitedIndexes.add(current)
 
     return {
       pathChain,
-      next: generateNext(current, visitedIndexes, pathInternal.neighbors)
+      next: generateNext(current, visitedIndexes, pathInternal.neighbors),
+      pathDirection
     }
   }
 
@@ -107,7 +118,7 @@ const generateStep = (pathInternals: Readonly<PathInternal[]>, pathChains: (inde
       .filter(neighborIndexes => !neighborIndexes.find(i => i === current))
       .flat()
       .filter(i => !visitedIndexes.has(i))
-      .map(i => generateVisit(visitedIndexes, i))
+      .map(i => generateVisit(visitedIndexes, i, current))
   }
 
   return { generateVisit, generateNext }
@@ -119,7 +130,7 @@ const groupByIsolated = async (pathchains: Readonly<PathChain[]>) => {
     if (groups.some(g => g.has(end))) continue
 
     const group = new Set<PathChain>()
-    await pathChainWalk(end.from(), pathchain => group.add(pathchain) && Promise.resolve())
+    await pathChainWalk(end.from(), ({pathChain}) => group.add(pathChain) && Promise.resolve())
     groups.push(group)
   }
 
