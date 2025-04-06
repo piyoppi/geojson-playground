@@ -27,6 +27,7 @@ const BranchIdChainSerialized = (branchIdChain: BranchId[]): BranchIdChainSerial
 type MappingContext<U extends CallbackGenerated> = {
   currentNode?: Node<U>
   beforeContext?: MappingContext<U>
+  currentDistance: number
 }
 
 export type MappingOption = {
@@ -57,7 +58,9 @@ const findPreviousNode = <U extends CallbackGenerated>(ctx: MappingContext<U>): 
   }
 }
 
-const createMappingContext = <U extends CallbackGenerated>(): MappingContext<U> => ({})
+const createMappingContext = <U extends CallbackGenerated>(): MappingContext<U> => ({
+  currentDistance: 0
+})
 
 const findPreviousContext = <U extends CallbackGenerated>(
   contextByBranchIdChain: Map<BranchIdChainSerialized, MappingContext<U>>,
@@ -89,7 +92,7 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
       {arcs: [], ...nodeAttributes}
 
     if (previousNode) {
-      const arc = generateArc(previousNode, currentNode, 0)
+      const arc = generateArc(previousNode, currentNode, context.currentDistance)
       connect(previousNode, currentNode, arc)
     }
 
