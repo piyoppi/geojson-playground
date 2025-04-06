@@ -1,4 +1,4 @@
-import { type Position2D, diff } from "./geometry"
+import { type Position2D, distance } from "./geometry"
 import { type Path, type PointInPath, pointInPath as findPointInPath } from "./path"
 import { pathChainWalk } from "./walk"
 
@@ -20,19 +20,19 @@ export type PathInternal = {
 }
 export type PathDirection = 'forward' | 'backward'
 type Visited = { pathChain: PathChain, next: NextFn, pathDirection: PathDirection }
-
 export type PointInPathchain = {
   pointInPath: PointInPath,
   pathchain: WeakRef<PathChain>
 }
 
-export const buildPathchain = async (paths: Readonly<Path[]>): Promise<PathChain[][]> => {
+export type IsolatedPathChain = PathChain[] & { readonly __brand: unique symbol }
+const IsolatedPathChain = (pathChains: PathChain[]): IsolatedPathChain => pathChains as IsolatedPathChain
+
+export const buildPathchain = async (paths: Readonly<Path[]>): Promise<IsolatedPathChain[]> => {
   const pathInternals = buildPathInternal(paths)
   mergeTIntersection(pathInternals)
 
-  const grouped = await groupByIsolated(buildFromInternal(pathInternals))
-
-  return grouped
+  return (await groupByIsolated(buildFromInternal(pathInternals)))
 }
 
 export const buildFromInternal = (pathInternals: PathInternal[]): PathChain[] => {
@@ -76,8 +76,8 @@ const buildPathInternal = (paths: Readonly<Path[]>) => {
 
           if (pp1 === undefined || pp2 === undefined) return current
 
-          if (Math.min(diff(p1, pp1), diff(p1, pp2)) === 0) current[0].push(pairIndex)
-          if (Math.min(diff(p2, pp1), diff(p2, pp2)) === 0) current[1].push(pairIndex)
+          if (Math.min(distance(p1, pp1), distance(p1, pp2)) === 0) current[0].push(pairIndex)
+          if (Math.min(distance(p2, pp1), distance(p2, pp2)) === 0) current[1].push(pairIndex)
 
           return current
           }, [[], []])
@@ -134,7 +134,7 @@ const groupByIsolated = async (pathchains: Readonly<PathChain[]>) => {
     groups.push(group)
   }
 
-  return groups.map(g => Array.from(g))
+  return groups.map(g => IsolatedPathChain(Array.from(g)))
 }
 
 export const mergeTIntersection = (pathInternals: PathInternal[]) => {

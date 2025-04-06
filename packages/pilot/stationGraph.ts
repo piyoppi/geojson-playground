@@ -11,16 +11,17 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
     await Promise.all(
       railroads.map(railroad => buildPathchain(railroad.rails).then(g => [railroad, g] as const))
     ).then(results => Promise.all(
-      results.flatMap(([railroad, isolatedPathChains]) => {
-        const pathchains = isolatedPathChains.flat()
-        if (pathchains.length === 0) return []
-        const end = ends(pathchains)[0]
+      results.flatMap(([railroad, isolatedPathChains]) => 
+        isolatedPathChains.map(pathchains => {
+          const end = ends(pathchains)[0]
 
-        return fromPathChain(
-          railroad.stations.map(s => ({...s, position: center(s.platform)})),
-          station => Promise.resolve([station.railroadId, {...station}])
-        )(pathchains, end.from())
-      })
+          return fromPathChain(
+            railroad.stations.map(s => ({...s, position: center(s.platform)})),
+            station => Promise.resolve({...station}),
+            station => station.railroadId
+          )(pathchains, end.from())
+        })
+      ).flat()
     ))
   ).flat().reduce((acc, map) => {
     map.entries().forEach(([k, v]) => acc.set(k, v))

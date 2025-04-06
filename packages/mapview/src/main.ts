@@ -3,8 +3,8 @@ import Sigma from "sigma"
 import railroadsGeoJsonAllRaw from "./geojsons/railroads-all.json"
 import railroadsGeoJsonExtendsRaw from "./geojsons/railroads-all-extends.json"
 import stationsGeoJsonRaw from "./geojsons/stations-all.json"
-import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mid.json"
-import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mid.json"
+import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mid-ta43.json"
+import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mid-ta43.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { BusStopsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busStop'
@@ -57,16 +57,16 @@ const loadBusStops = async () => {
     {
       async currentPathchainChanged(pathchain) {
         svg.innerHTML += tagToString(
-          path({d: toPathData(flipVertically(pathchain.path, center[1])), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.0005))})
+          path({d: toPathData(flipVertically(pathchain.path, center[1])), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.0003))})
         )
-        await new Promise(resolve => setTimeout(resolve, 1))
+        await new Promise(resolve => setTimeout(resolve, 200))
       },
       async nodeCreated(busStop) {
         const flipped = flipVertically([busStop.position], center[1])[0]
         svg.innerHTML += tagToString(
           circle({cx: px(flipped[0]), cy: px(flipped[1]), r: px(0.00035), fill: 'blue', stroke: rgb(0, 0, 255), strokeWidth: strokeWidth(px(0.000002))})
         )
-        await new Promise(resolve => setTimeout(resolve, 1))
+        await new Promise(resolve => setTimeout(resolve, 500))
       }
     }
   )
@@ -77,8 +77,10 @@ const loadBusStops = async () => {
 const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   const graph = new Graph({ multi: true })
 
+  console.log(stationNodes)
+
   stationNodes.forEach(node => {
-    graph.addNode(node.id, { label: node.name, size: 0.6, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
+    graph.addNode(node.id, { label: node.name, size: 0.55, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
   })
 
   busNodes.forEach(node => {
@@ -105,6 +107,6 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
 
 
 window.addEventListener("DOMContentLoaded", () => {
-  //loadStations().then(stations => displayGraph(stations, []))
-  loadBusStops().then(b => displayGraph([], b))
+  loadStations().then(stations => displayGraph(stations, []))
+  //loadBusStops().then(b => displayGraph([], b))
 })
