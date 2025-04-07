@@ -48,13 +48,18 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated,
   return mapping(from, createNodeCallback, groupIdCallback, pointInPathchains, options)
 }
 
-const findPreviousNode = <U extends CallbackGenerated>(ctx: MappingContext<U>): (Node<U>) | undefined => {
+const findPreviousNode = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
   let current: MappingContext<U> | undefined = ctx
+  let distance = 0
   while (current) {
     if (current.currentNode) {
-      return current.currentNode;
+      return {
+        node: current.currentNode,
+        distance: current.currentDistance + distance
+      }
     }
     current = current.beforeContext
+    distance += current?.currentDistance ?? 0
   }
 }
 
@@ -92,8 +97,8 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
       {arcs: [], ...nodeAttributes}
 
     if (previousNode) {
-      const arc = generateArc(previousNode, currentNode, context.currentDistance)
-      connect(previousNode, currentNode, arc)
+      const arc = generateArc(previousNode.node, currentNode, previousNode.distance)
+      connect(previousNode.node, currentNode, arc)
     }
 
     context.currentNode = currentNode
@@ -110,9 +115,30 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
 ): Promise<Map<G, Node<U>[]>> => {
   const contextsByGroup = new Map<G, Map<BranchIdChainSerialized, MappingContext<U>>>()
   const nodesByGroup = new Map<G, Map<NodeId, Node<U>>>()
+  const groupIds = pointInPathchains.map(([p]) => groupIdCallback(p))
 
   await pathChainWalk(from, async (current, branchIdChain) => {
     if (options?.currentPathchainChanged) await options.currentPathchainChanged(current.pathChain)
+
+    const currentPathLength = pathLength(current.pathChain.path)
+
+    for (const groupId of groupIds) {
+      const contextByBranchIdChain = contextsByGroup.get(groupId) ?? new Map<BranchIdChainSerialized, MappingContext<U>>()
+      const currentContext: MappingContext<U> = contextByBranchIdChain.get(BranchIdChainSerialized(branchIdChain)) ?? {
+        ...createMappingContext(),
+        ...(() => {
+          const previousContext = findPreviousContext(contextByBranchIdChain, branchIdChain)
+          return previousContext ? {
+            beforeContext: previousContext
+          } : {}
+        })()
+      }
+
+      currentContext.currentDistance += currentPathLength
+
+      contextByBranchIdChain.set(BranchIdChainSerialized(branchIdChain), currentContext)
+      contextsByGroup.set(groupId, contextByBranchIdChain)
+    }
 
     await Promise.all(
       Map.groupBy(
@@ -123,22 +149,11 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
           }),
         ([p]) => groupIdCallback(p)
       ).entries().map(([groupId, found]) => {
-        const contextByBranchIdChain = contextsByGroup.get(groupId) ?? new Map<BranchIdChainSerialized, MappingContext<U>>()
-        const currentContext: MappingContext<U> = contextByBranchIdChain.get(BranchIdChainSerialized(branchIdChain)) ?? {
-          ...createMappingContext(),
-          ...(() => {
-            const previousContext = findPreviousContext(contextByBranchIdChain, branchIdChain)
-            return previousContext ? {
-              beforeContext: previousContext
-            } : {}
-          })()
-        }
-
-        contextByBranchIdChain.set(BranchIdChainSerialized(branchIdChain), currentContext)
-        contextsByGroup.set(groupId, contextByBranchIdChain)
-
         const nodes = nodesByGroup.get(groupId) ?? new Map()
-        buildBranchNodeChain(currentContext, nodes, createNodeCallback, found, current.pathDirection)
+        const currentContext = contextsByGroup.get(groupId)?.get(BranchIdChainSerialized(branchIdChain))
+        if (currentContext) {
+          buildBranchNodeChain(currentContext, nodes, createNodeCallback, found, current.pathDirection)
+        }
         nodesByGroup.set(groupId, nodes)
       })
     )

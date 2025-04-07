@@ -77,8 +77,6 @@ const loadBusStops = async () => {
 const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
   const graph = new Graph({ multi: true })
 
-  console.log(stationNodes)
-
   stationNodes.forEach(node => {
     graph.addNode(node.id, { label: node.name, size: 0.55, x: node.platform[0][0], y: node.platform[0][1], color: "blue" })
   })
