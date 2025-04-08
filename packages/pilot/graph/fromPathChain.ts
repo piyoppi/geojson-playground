@@ -120,8 +120,7 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
   found: [T, PointInPathchain][],
   pathDirection: PathDirection
 ) => {
-  const foundOrderByPosition = found.sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
-
+  const foundOrderByPosition = [...found].sort(([_na, a], [_nb, b]) => a.pointInPath.distance() - b.pointInPath.distance())
   if (pathDirection === 'backward') foundOrderByPosition.reverse()
 
   for (const [node, pointInPathChain] of foundOrderByPosition) {
