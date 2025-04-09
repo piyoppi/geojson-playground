@@ -24,7 +24,7 @@ export type BranchIdChainSerialized = string & { readonly __brand: unique symbol
 const BranchIdChainSerialized = (branchIdChain: BranchId[]): BranchIdChainSerialized => branchIdChain.join('-') as BranchIdChainSerialized
 
 type MappingContext<U extends CallbackGenerated> = {
-  beforeContext?: MappingContext<U>
+  previousContext?: MappingContext<U>
   paths: [Path, PathDirection][]
   founds: [Node<U>, PointInPathchain][]
   branchId: BranchId
@@ -78,24 +78,30 @@ const distance = <U extends CallbackGenerated>(ctx: MappingContext<U>, node: Nod
   return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
 }
 
-const lastFound = <U extends CallbackGenerated>(ctx: MappingContext<U>) => ctx.founds?.at(-1) ?? [undefined, undefined, undefined]
-
 const findPreviousContexts = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
   const previousContexts: MappingContext<U>[] = []
-  let current: MappingContext<U> | undefined = ctx
+  let current: MappingContext<U> | undefined = ctx.previousContext
   while (current) {
-    const found = lastFound(current)
-    if (found) {
+    previousContexts.push(current)
+    if (current.founds?.at(-1)) {
       return previousContexts
     }
-    previousContexts.push(current)
-    current = current.beforeContext
+    current = current.previousContext
   }
 
   return []
 }
 
-const previousFound = <U extends CallbackGenerated>(ctx: MappingContext<U>) => findPreviousContexts(ctx).at(-1)?.founds?.at(-1) ?? [undefined, undefined, undefined]
+const previousFound = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
+  let current: MappingContext<U> | undefined = ctx
+  while (current) {
+    const found = current.founds.at(-1)
+    if (found) return found
+    current = current.previousContext
+  }
+
+  return [undefined, undefined] as const
+}
 
 const createMappingContext = <U extends CallbackGenerated>(branchId: BranchId): MappingContext<U> => ({
   founds: [],
@@ -125,11 +131,11 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
 
   for (const [node, pointInPathChain] of foundOrderByPosition) {
     const nodeAttributes = await createNodeCallback(node, pointInPathChain)
-    const [previousNode] = previousFound(context)
     const existingNode = nodes.get(nodeAttributes.id)
     const currentNode = existingNode ?
       existingNode :
       {arcs: [], ...nodeAttributes}
+    const [previousNode] = previousFound(context)
 
     context.founds.push([currentNode, pointInPathChain])
 
@@ -163,9 +169,7 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
         ...createMappingContext(currentBranchId),
         ...(() => {
           const previousContext = findPreviousContextFromBranchIdChain(contextByBranchIdChain, branchIdChain)
-          return previousContext ? {
-            beforeContext: previousContext
-          } : {}
+          return previousContext ? { previousContext } : {}
         })()
       }
 
