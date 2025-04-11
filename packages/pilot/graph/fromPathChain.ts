@@ -51,10 +51,13 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated,
 const distance = <U extends CallbackGenerated>(ctx: MappingContext<U>, node: Node<unknown>) => {
   const contexts = [ctx, ...findPreviousContexts(ctx)]
 
+  console.log('contexts', contexts.map(c => c.branchId))
   const headIndex = contexts.findIndex(c => c.founds.some(([n]) => n.id === node.id))
   if (headIndex === -1) return 0
 
   const paths = contexts.slice(headIndex).map(c => c.paths).flat()
+
+  console.log('node', node.id)
 
   const headLength = (() => {
     const [headPath, headPathDirection] = paths[0]
@@ -74,6 +77,10 @@ const distance = <U extends CallbackGenerated>(ctx: MappingContext<U>, node: Nod
       pathLength(tailPath) - pointInPathChain.pointInPath.distance() :
       pointInPathChain.pointInPath.distance()
   })()
+
+  console.log('headLength', headLength)
+  console.log('tailLength', tailLength)
+  console.log('paths', paths.map(([path]) => path))
 
   return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
 }
@@ -140,6 +147,7 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
     context.founds.push([currentNode, pointInPathChain])
 
     if (previousNode) {
+      console.log('distance', distance(context, currentNode), previousNode.id, currentNode.id)
       const arc = generateArc(previousNode, currentNode, distance(context, currentNode))
       connect(previousNode, currentNode, arc)
     }
@@ -156,9 +164,10 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
 ): Promise<Map<G, Node<U>[]>> => {
   const contextsByGroup = new Map<G, Map<BranchIdChainSerialized, MappingContext<U>>>()
   const nodesByGroup = new Map<G, Map<NodeId, Node<U>>>()
-  const groupIds = pointInPathchains.map(([p]) => groupIdCallback(p))
+  const groupIds = new Set(pointInPathchains.map(([p]) => groupIdCallback(p)))
 
   await pathChainWalk(from, async (current, branchIdChain) => {
+    console.log('current', current.pathChain.path, branchIdChain)
     const currentBranchId = branchIdChain.at(-1)
     if (!currentBranchId) return
     if (options?.currentPathchainChanged) await options.currentPathchainChanged(current.pathChain)
@@ -173,6 +182,7 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
         })()
       }
 
+      console.log('currentContext', groupId,  currentContext.branchId, current.pathChain.path)
       currentContext.paths.push([current.pathChain.path, current.pathDirection])
 
       contextByBranchIdChain.set(BranchIdChainSerialized(branchIdChain), currentContext)
