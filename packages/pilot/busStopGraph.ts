@@ -27,26 +27,24 @@ export const toBusStopGraph = async (
 
         const farthestBusStop = findFarthestNeighboringBusStop(busStops)
 
-        return (
-          busRoute.map(isolatedPathChain => {
-            const end = ends(isolatedPathChain)[0]
+        return busRoute.map(isolatedPathChain => {
+          const end = ends(isolatedPathChain)[0]
 
-            return fromPathChain(
-              busStops,
-              async busStop => {
-                if (options?.nodeCreated) {
-                  await options.nodeCreated(busStop)
-                }
-                return { ...busStop }
-              },
-              busStop => busStop.route,
-              {
-                ...options,
-                maxDistance: farthestBusStop.distance * 3
+          return fromPathChain(
+            busStops,
+            async busStop => {
+              if (options?.nodeCreated) {
+                await options.nodeCreated(busStop)
               }
-            )(isolatedPathChain, end.from())
-          })
-        )
+              return { ...busStop }
+            },
+            busStop => busStop.route,
+            {
+              ...options,
+              maxDistance: farthestBusStop.distance * 3
+            }
+          )(isolatedPathChain, end.from())
+        })
       })
   )).flat().reduce((acc, map) => {
     map.entries().forEach(([k, v]) => acc.set(k, v))
