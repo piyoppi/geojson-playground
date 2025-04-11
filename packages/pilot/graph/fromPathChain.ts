@@ -83,7 +83,7 @@ const findPreviousContexts = <U extends CallbackGenerated>(ctx: MappingContext<U
   let current: MappingContext<U> | undefined = ctx.previousContext
   while (current) {
     previousContexts.push(current)
-    if (current.founds?.at(-1)) {
+    if (current.founds.length > 0) {
       return previousContexts
     }
     current = current.previousContext

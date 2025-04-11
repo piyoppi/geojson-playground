@@ -6,7 +6,7 @@ import type { Position2D } from '../geojson'
 import type { Path } from '../path'
 
 describe('fromPathChain', () => {
-  it('Should return nodes', (t: TestContext) => {
+  it('Should return nodes', async (t: TestContext) => {
     const nodes: { position: Position2D, id: string }[] = [
       { position: [1, 0], id: 'A' },
       { position: [5, 0], id: 'B' },
@@ -25,11 +25,16 @@ describe('fromPathChain', () => {
       [[2, 0], [2, 2]],
       [[2, 0], [6, 0]]
     ]
-    const pathChains = buildPathchain(paths)[0]
+    const pathChains = (await buildPathchain(paths))[0]
 
-    const node = fromPathChain(nodes, (s) => ({...s}))(pathChains, pathChains[0].from())[0]
+    const nodeMap = (await fromPathChain(
+      nodes,
+      s => Promise.resolve({...s}),
+      _ => 'group'
+    )(pathChains, pathChains[0].from()))
+    const node = nodeMap.get('group')?.at(0)
 
-    if (node === null) t.assert.fail('Graph should not be null')
+    if (!node) t.assert.fail('Graph should not be null')
 
     t.assert.strictEqual(node.arcs.length, 2)
 
@@ -50,7 +55,7 @@ describe('fromPathChain', () => {
     t.assert.ok(to(next2, next2?.arcs[0])?.id === 'A')
   })
 
-  it('Should calculated costs', (t: TestContext) => {
+  it('Should calculated costs', async (t: TestContext) => {
     const nodes: { position: Position2D, id: string }[] = [
       { position: [0, 0], id: 'AA' },
       { position: [3, 0], id: 'BB' },
@@ -65,11 +70,16 @@ describe('fromPathChain', () => {
       [[2, 0], [4, 0]],
       [[4, 0], [6, 0]]
     ]
-    const pathChains = buildPathchain(paths)[0]
+    const pathChains = (await buildPathchain(paths))[0]
 
-    const node = fromPathChain(nodes, (s) => ({...s}))(pathChains, pathChains[0].from())[0]
+    const nodeMap = (await fromPathChain(
+      nodes,
+      (s) => Promise.resolve({...s}),
+      (s) => s.id
+    )(pathChains, pathChains[0].from()))[0]
+    const node = nodeMap.get('group')?.at(0)
 
-    if (node === null) t.assert.fail('Graph should not be null')
+    if (!node) t.assert.fail('Graph should not be null')
 
     t.assert.strictEqual(node.arcs.length, 1)
 
