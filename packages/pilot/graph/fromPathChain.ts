@@ -188,12 +188,11 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
           }),
         ([p]) => groupIdCallback(p)
       ).entries().map(([groupId, found]) => {
-        const nodes = nodesByGroup.get(groupId) ?? new Map()
+        const nodes = nodesByGroup.get(groupId) ?? nodesByGroup.set(groupId, new Map()).get(groupId)!
         const currentContext = contextsByGroup.get(groupId)?.get(BranchIdChainSerialized(branchIdChain))
         if (currentContext) {
-          buildBranchNodeChain(currentContext, nodes, createNodeCallback, found, current.pathDirection)
+          return buildBranchNodeChain(currentContext, nodes, createNodeCallback, found, current.pathDirection)
         }
-        nodesByGroup.set(groupId, nodes)
       })
     )
   })
