@@ -48,43 +48,48 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated,
   return mapping(from, createNodeCallback, groupIdCallback, pointInPathchains, options)
 }
 
-const distance = (paths: [Path, PathDirection][], fromPointInPathchain: PointInPathchain, toPointInPathchain: PointInPathchain) => {
-  const tailLength = (() => {
-    const [headPath, headPathDirection] = paths.at(0) ?? [undefined, undefined]
-    return headPathDirection === 'forward' ?
-      pathLength(headPath) - toPointInPathchain.pointInPath.distance() :
+const distance = (allPaths: [Path, PathDirection][], fromPointInPathchain: PointInPathchain, toPointInPathchain?: PointInPathchain) => {
+  const paths = allPaths.slice(
+    ...[
+      ...(() => toPointInPathchain ? [allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p)] : [])(),
+      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
+    ].sort()
+  )
+  const tailLength = toPointInPathchain ? (() => {
+    const [path, direction] = paths.at(0) ?? [undefined, undefined]
+    return direction === 'forward' ?
+      pathLength(path) - toPointInPathchain.pointInPath.distance() :
       toPointInPathchain.pointInPath.distance()
-  })()
+  })() : pathLength(paths[0][0] ?? [])
 
   const headLength = (() => {
-    const [tailPath, tailPathDirection] = paths.at(-1) ?? [undefined, undefined]
-    return tailPathDirection === 'forward' ?
-      pathLength(tailPath) - fromPointInPathchain.pointInPath.distance() :
+    const [path, direction] = paths.at(-1) ?? [undefined, undefined]
+    return direction === 'forward' ?
+      pathLength(path) - fromPointInPathchain.pointInPath.distance() :
       fromPointInPathchain.pointInPath.distance()
   })()
 
-  // |<---------------------- Path ----------------------->|
+  // |<---------------------- Paths ---------------------->|
   // |                                                     |
-  // |     A (from)                                 B (to) |
+  // |      Path0       Path1   Path2          Path3       |
+  // |<--------------->|<--->|<-------->|<---------------->|
+  // |                 :     :          :                  |
+  // |     A (from)    :     :          :           B (to) |
   // *-----x-----------*-----*----------*-----------x------*
   //       |<-headLen->|<---- len ----->|<-tailLen->|
   //
   return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
 }
 
-const distanceBetweenPreviousNodes = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
+const distanceBetweenNodes = <U extends CallbackGenerated>(ctx: MappingContext<U>, [to, from] = [0, 1]) => {
   const contexts = [ctx, ...findPreviousContexts(ctx)]
-  const [[_fromNode, toPointInPathchain], [_toNode, fromPointInPathchain]] = contexts.map(c => c.founds.toReversed()).flat()
+  const founds = contexts.map(c => c.founds.toReversed()).flat()
+  const fromPointInPathchain = founds[from]?.[1]
+  const toPointInPathchain = to >= 0 ? founds[to]?.[1] : undefined
 
-  const allPaths = contexts.map(c => c.paths).flat()
-  const paths = allPaths.slice(
-    ...[
-      allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p),
-      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
-    ].sort()
-  )
+  if (!fromPointInPathchain) return 0
 
-  return distance(paths, fromPointInPathchain, toPointInPathchain)
+  return distance(contexts.map(c => c.paths).flat(), fromPointInPathchain, toPointInPathchain)
 }
 
 const findPreviousContexts = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
@@ -149,7 +154,7 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
     context.founds.push([currentNode, pointInPathChain])
 
     if (previousNode) {
-      const arc = generateArc(previousNode, currentNode, distanceBetweenPreviousNodes(context))
+      const arc = generateArc(previousNode, currentNode, distanceBetweenNodes(context))
       connect(previousNode, currentNode, arc)
     }
     nodes.set(currentNode.id, currentNode)
@@ -186,6 +191,12 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
 
       contextByBranchIdChain.set(BranchIdChainSerialized(branchIdChain), currentContext)
       contextsByGroup.set(groupId, contextByBranchIdChain)
+
+      const distance = distanceBetweenNodes(currentContext, [-1, 0])
+
+      if (options?.maxDistance && distance > options?.maxDistance) {
+        //return { stopBranch: true }
+      }
     }
 
     await Promise.all(

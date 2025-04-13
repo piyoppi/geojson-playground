@@ -3,8 +3,8 @@ import Sigma from "sigma"
 import railroadsGeoJsonAllRaw from "./geojsons/railroads-all.json"
 import railroadsGeoJsonExtendsRaw from "./geojsons/railroads-all-extends.json"
 import stationsGeoJsonRaw from "./geojsons/stations-all.json"
-//import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mid-ta43.json"
-//import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mid-ta43.json"
+import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mid-ta43.json"
+import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mid-ta43.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { BusStopsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busStop'
@@ -105,6 +105,6 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
 
 
 window.addEventListener("DOMContentLoaded", () => {
-  loadStations().then(stations => displayGraph(stations, []))
-  //loadBusStops().then(b => displayGraph([], b))
+  //loadStations().then(stations => displayGraph(stations, []))
+  loadBusStops().then(b => displayGraph([], b))
 })

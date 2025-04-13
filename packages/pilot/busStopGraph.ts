@@ -41,7 +41,7 @@ export const toBusStopGraph = async (
             busStop => busStop.route,
             {
               ...options,
-              maxDistance: farthestBusStop.distance * 3
+              maxDistance: farthestBusStop.distance * 15
             }
           )(isolatedPathChain, end.from())
         })
