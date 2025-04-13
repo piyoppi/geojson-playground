@@ -59,7 +59,12 @@ const loadBusStops = async () => {
         svg.innerHTML += tagToString(
           path({d: toPathData(flipVertically(pathchain.path, center[1])), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.0003))})
         )
-        await new Promise(resolve => setTimeout(resolve, 200))
+        let resolved = () => {};
+        const p = new Promise<void>((resolve) => resolved = resolve)
+        const btn = document.getElementById('next')
+        btn?.addEventListener('click', () => resolved())
+        return p
+        //await new Promise(resolve => setTimeout(resolve, 200))
       },
       async nodeCreated(busStop) {
         const flipped = flipVertically([busStop.position], center[1])[0]

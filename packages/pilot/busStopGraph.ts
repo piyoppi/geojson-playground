@@ -27,6 +27,8 @@ export const toBusStopGraph = async (
 
         const farthestBusStop = findFarthestNeighboringBusStop(busStops)
 
+        console.log(farthestBusStop)
+
         return busRoute.map(isolatedPathChain => {
           const end = ends(isolatedPathChain)[0]
 

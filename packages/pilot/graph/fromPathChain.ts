@@ -84,11 +84,12 @@ const distance = (allPaths: [Path, PathDirection][], fromPointInPathchain: Point
 const distanceBetweenNodes = <U extends CallbackGenerated>(ctx: MappingContext<U>, [to, from] = [0, 1]) => {
   const contexts = [ctx, ...findPreviousContexts(ctx)]
   const founds = contexts.map(c => c.founds.toReversed()).flat()
-  const fromPointInPathchain = founds[from]?.[1]
-  const toPointInPathchain = to >= 0 ? founds[to]?.[1] : undefined
+  const [_fromNode, fromPointInPathchain] = founds[from] ?? [undefined, undefined]
+  const [_toNode, toPointInPathchain] = to >= 0 ? founds[to] : [undefined, undefined]
 
   if (!fromPointInPathchain) return 0
 
+  console.log('d', _fromNode.id, _toNode?.id)
   return distance(contexts.map(c => c.paths).flat(), fromPointInPathchain, toPointInPathchain)
 }
 
@@ -195,7 +196,8 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
       const distance = distanceBetweenNodes(currentContext, [-1, 0])
 
       if (options?.maxDistance && distance > options?.maxDistance) {
-        //return { stopBranch: true }
+        console.log('xxxxx')
+        return { stopBranch: true }
       }
     }
 
