@@ -50,29 +50,33 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated,
 
 const distance = <U extends CallbackGenerated>(ctx: MappingContext<U>, node: Node<unknown>) => {
   const contexts = [ctx, ...findPreviousContexts(ctx)]
+  const [[_fromNode, fromPointInPathchain], [_toNode, toPointInPathchain]] = contexts.map(c => c.founds).flat()
 
-  console.log('contexts', contexts.map(c => c.branchId))
   const headIndex = contexts.findIndex(c => c.founds.some(([n]) => n.id === node.id))
   if (headIndex === -1) return 0
 
-  const paths = contexts.slice(headIndex).map(c => c.paths).flat()
+  const allPaths = contexts.slice(headIndex).map(c => c.paths).flat()
+  const startPath = allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p)
+  const endPath = allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p)
+  const paths = allPaths.slice(startPath, endPath)
 
   console.log('node', node.id)
 
   const headLength = (() => {
     const [headPath, headPathDirection] = paths[0]
-    const [_, pointInPathChain] = ctx.founds.find(([n]) => n.id === node.id) ?? [undefined, undefined]
+    const [_, pointInPathChain] = contexts.at(0)?.founds.find(([n]) => n.id === node.id) ?? [undefined, undefined]
     if (!pointInPathChain) return 0
     return headPathDirection === 'forward' ?
-      pointInPathChain.pointInPath.distance() :
-      pathLength(headPath) - pointInPathChain.pointInPath.distance()
+      pathLength(headPath) - pointInPathChain.pointInPath.distance() :
+      pointInPathChain.pointInPath.distance()
   })()
 
   const tailLength = (() => {
     const [tailPath, tailPathDirection] = paths.at(-1) ?? [undefined, undefined]
     if (!tailPath) return 0
-    const [_, pointInPathChain] = ctx.founds.at(-1) ?? [undefined, undefined]
+    const [_node, pointInPathChain] = contexts.at(-1)?.founds.findLast(([n]) => n.id !== node.id) ?? [undefined, undefined]
     if (!pointInPathChain) return 0
+    console.log('tailPath', _node.id, tailPath, pointInPathChain.pointInPath.startIndex, pointInPathChain.pointInPath.distance(), pathLength(tailPath), tailPathDirection)
     return tailPathDirection === 'forward' ?
       pathLength(tailPath) - pointInPathChain.pointInPath.distance() :
       pointInPathChain.pointInPath.distance()
@@ -80,6 +84,7 @@ const distance = <U extends CallbackGenerated>(ctx: MappingContext<U>, node: Nod
 
   console.log('headLength', headLength)
   console.log('tailLength', tailLength)
+  console.log('remain', paths.slice(1, -1).map(([path]) => path))
   console.log('paths', paths.map(([path]) => path))
 
   return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength

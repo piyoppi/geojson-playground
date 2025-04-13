@@ -6,6 +6,7 @@ describe('pointInPath', () => {
     { point: [3, 4], expectedIndex: 1, expectedDistance: Math.sqrt(3**2 + 4**2) },
     { point: [0, 0], expectedIndex: 0, expectedDistance: 0 },
     { point: [6, 8], expectedIndex: 1, expectedDistance: Math.sqrt(3**2 + 4**2) + Math.sqrt((6-3)**2 + (8-4)**2) },
+    { point: [7, 8], expectedIndex: 2, expectedDistance: Math.sqrt(3**2 + 4**2) + Math.sqrt((6-3)**2 + (8-4)**2) + 1 },
     { point: [1, 1], expectedIndex: null, expectedDistance: null }
   ] as const
   
@@ -14,7 +15,8 @@ describe('pointInPath', () => {
       const path: Path = [
         [0, 0],
         [3, 4],
-        [6, 8]
+        [6, 8],
+        [8, 8]
       ]
   
       const result = pointInPath(point, path)
