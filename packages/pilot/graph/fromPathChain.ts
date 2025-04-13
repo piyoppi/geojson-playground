@@ -48,36 +48,43 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated,
   return mapping(from, createNodeCallback, groupIdCallback, pointInPathchains, options)
 }
 
-const distance = <U extends CallbackGenerated>(ctx: MappingContext<U>, node: Node<unknown>) => {
-  const contexts = [ctx, ...findPreviousContexts(ctx)]
-  const [[_fromNode, fromPointInPathchain], [_toNode, toPointInPathchain]] = contexts.map(c => c.founds.toReversed()).flat()
-
-  const headIndex = contexts.findIndex(c => c.founds.some(([n]) => n.id === node.id))
-  if (headIndex === -1) return 0
-
-  const allPaths = contexts.slice(headIndex).map(c => c.paths).flat()
-  const paths = allPaths.slice(
-    ...[
-      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
-      allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p),
-    ].sort()
-  )
-
-  const headLength = (() => {
+const distance = (paths: [Path, PathDirection][], fromPointInPathchain: PointInPathchain, toPointInPathchain: PointInPathchain) => {
+  const tailLength = (() => {
     const [headPath, headPathDirection] = paths.at(0) ?? [undefined, undefined]
     return headPathDirection === 'forward' ?
-      pathLength(headPath) - fromPointInPathchain.pointInPath.distance() :
-      fromPointInPathchain.pointInPath.distance()
-  })()
-
-  const tailLength = (() => {
-    const [tailPath, tailPathDirection] = paths.at(-1) ?? [undefined, undefined]
-    return tailPathDirection === 'forward' ?
-      pathLength(tailPath) - toPointInPathchain.pointInPath.distance() :
+      pathLength(headPath) - toPointInPathchain.pointInPath.distance() :
       toPointInPathchain.pointInPath.distance()
   })()
 
+  const headLength = (() => {
+    const [tailPath, tailPathDirection] = paths.at(-1) ?? [undefined, undefined]
+    return tailPathDirection === 'forward' ?
+      pathLength(tailPath) - fromPointInPathchain.pointInPath.distance() :
+      fromPointInPathchain.pointInPath.distance()
+  })()
+
+  // |<---------------------- Path ----------------------->|
+  // |                                                     |
+  // |     A (from)                                 B (to) |
+  // *-----x-----------*-----*----------*-----------x------*
+  //       |<-headLen->|<---- len ----->|<-tailLen->|
+  //
   return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
+}
+
+const distanceBetweenPreviousNodes = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
+  const contexts = [ctx, ...findPreviousContexts(ctx)]
+  const [[_fromNode, toPointInPathchain], [_toNode, fromPointInPathchain]] = contexts.map(c => c.founds.toReversed()).flat()
+
+  const allPaths = contexts.map(c => c.paths).flat()
+  const paths = allPaths.slice(
+    ...[
+      allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p),
+      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
+    ].sort()
+  )
+
+  return distance(paths, fromPointInPathchain, toPointInPathchain)
 }
 
 const findPreviousContexts = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
@@ -142,7 +149,7 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
     context.founds.push([currentNode, pointInPathChain])
 
     if (previousNode) {
-      const arc = generateArc(previousNode, currentNode, distance(context, currentNode))
+      const arc = generateArc(previousNode, currentNode, distanceBetweenPreviousNodes(context))
       connect(previousNode, currentNode, arc)
     }
     nodes.set(currentNode.id, currentNode)
