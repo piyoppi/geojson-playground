@@ -86,8 +86,6 @@ describe('fromPathChain', () => {
     const next1 = to(node, node.arcs[0])
     if (next1 === null) t.assert.fail('Next should not be null')
 
-      console.log('next1', next1.id, next1.arcs[0].a.deref())
-      console.log('next1', next1.id, next1.arcs[1].a.deref())
     t.assert.strictEqual(next1.arcs[0].cost, 3)
 
     const next2 = to(next1, next1.arcs[1])

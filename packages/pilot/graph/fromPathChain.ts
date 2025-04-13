@@ -50,42 +50,32 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated,
 
 const distance = <U extends CallbackGenerated>(ctx: MappingContext<U>, node: Node<unknown>) => {
   const contexts = [ctx, ...findPreviousContexts(ctx)]
-  const [[_fromNode, fromPointInPathchain], [_toNode, toPointInPathchain]] = contexts.map(c => c.founds).flat()
+  const [[_fromNode, fromPointInPathchain], [_toNode, toPointInPathchain]] = contexts.map(c => c.founds.toReversed()).flat()
 
   const headIndex = contexts.findIndex(c => c.founds.some(([n]) => n.id === node.id))
   if (headIndex === -1) return 0
 
   const allPaths = contexts.slice(headIndex).map(c => c.paths).flat()
-  const startPath = allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p)
-  const endPath = allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p)
-  const paths = allPaths.slice(startPath, endPath)
-
-  console.log('node', node.id)
+  const paths = allPaths.slice(
+    ...[
+      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
+      allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p),
+    ].sort()
+  )
 
   const headLength = (() => {
-    const [headPath, headPathDirection] = paths[0]
-    const [_, pointInPathChain] = contexts.at(0)?.founds.find(([n]) => n.id === node.id) ?? [undefined, undefined]
-    if (!pointInPathChain) return 0
+    const [headPath, headPathDirection] = paths.at(0) ?? [undefined, undefined]
     return headPathDirection === 'forward' ?
-      pathLength(headPath) - pointInPathChain.pointInPath.distance() :
-      pointInPathChain.pointInPath.distance()
+      pathLength(headPath) - fromPointInPathchain.pointInPath.distance() :
+      fromPointInPathchain.pointInPath.distance()
   })()
 
   const tailLength = (() => {
     const [tailPath, tailPathDirection] = paths.at(-1) ?? [undefined, undefined]
-    if (!tailPath) return 0
-    const [_node, pointInPathChain] = contexts.at(-1)?.founds.findLast(([n]) => n.id !== node.id) ?? [undefined, undefined]
-    if (!pointInPathChain) return 0
-    console.log('tailPath', _node.id, tailPath, pointInPathChain.pointInPath.startIndex, pointInPathChain.pointInPath.distance(), pathLength(tailPath), tailPathDirection)
     return tailPathDirection === 'forward' ?
-      pathLength(tailPath) - pointInPathChain.pointInPath.distance() :
-      pointInPathChain.pointInPath.distance()
+      pathLength(tailPath) - toPointInPathchain.pointInPath.distance() :
+      toPointInPathchain.pointInPath.distance()
   })()
-
-  console.log('headLength', headLength)
-  console.log('tailLength', tailLength)
-  console.log('remain', paths.slice(1, -1).map(([path]) => path))
-  console.log('paths', paths.map(([path]) => path))
 
   return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
 }
@@ -152,7 +142,6 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
     context.founds.push([currentNode, pointInPathChain])
 
     if (previousNode) {
-      console.log('distance', distance(context, currentNode), previousNode.id, currentNode.id)
       const arc = generateArc(previousNode, currentNode, distance(context, currentNode))
       connect(previousNode, currentNode, arc)
     }
@@ -172,7 +161,6 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
   const groupIds = new Set(pointInPathchains.map(([p]) => groupIdCallback(p)))
 
   await pathChainWalk(from, async (current, branchIdChain) => {
-    console.log('current', current.pathChain.path, branchIdChain)
     const currentBranchId = branchIdChain.at(-1)
     if (!currentBranchId) return
     if (options?.currentPathchainChanged) await options.currentPathchainChanged(current.pathChain)
@@ -187,7 +175,6 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
         })()
       }
 
-      console.log('currentContext', groupId,  currentContext.branchId, current.pathChain.path)
       currentContext.paths.push([current.pathChain.path, current.pathDirection])
 
       contextByBranchIdChain.set(BranchIdChainSerialized(branchIdChain), currentContext)
