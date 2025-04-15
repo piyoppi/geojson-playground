@@ -18,7 +18,7 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
               railroad.stations.map(s => ({...s, position: center(s.platform)})),
               station => Promise.resolve({...station}),
               station => station.railroadId
-            )(pathchains, end.from())
+            )(pathchains, end.from)
           })
         )
       ))

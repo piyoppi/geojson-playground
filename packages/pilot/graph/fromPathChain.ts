@@ -1,5 +1,5 @@
 import type { Position2D } from "../geometry"
-import { findPointInPathChain, IsolatedPathChain, PathDirection, VisitFn, type PathChain, type PointInPathchain } from "../pathchain"
+import { findPointInPathChain, IsolatedPathChain, PathDirection, VisitFn, VisitFnGenerator, type PathChain, type PointInPathchain } from "../pathchain"
 import { BranchId, pathChainWalk } from "../walk"
 import { Path, pathLength } from "../path"
 import { connect, generateArc, type GraphNode } from "./graph"
@@ -40,12 +40,16 @@ export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated,
   createNodeCallback: CallbackFn<T, U>,
   groupIdCallback: GroupIdCallbackFn<T, G>,
   options?: MappingOption
-) => (pathChains: IsolatedPathChain, from: VisitFn): Promise<Map<G, (Node<U>)[]>> => {
+) => async (pathChains: IsolatedPathChain, from: VisitFnGenerator): Promise<Map<G, (Node<U>)[]>> => {
   const pointInPathchains: [T, PointInPathchain][] = point
     .map<[T, PointInPathchain | null]>(n => [n, findPointInPathChain(pathChains)(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
 
-  return mapping(from, createNodeCallback, groupIdCallback, pointInPathchains, options)
+  const start = await findFirstPath(from(), pointInPathchains.map(([_, p]) => p))
+
+  if (!start) return new Map()
+
+  return mapping(start(), createNodeCallback, groupIdCallback, pointInPathchains, options)
 }
 
 const distance = (allPaths: [Path, PathDirection][], fromPointInPathchain: PointInPathchain, toPointInPathchain?: PointInPathchain) => {
@@ -160,6 +164,25 @@ const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGene
     }
     nodes.set(currentNode.id, currentNode)
   }
+}
+
+const findFirstPath = async (
+  from: VisitFn,
+  pointInPathchains: PointInPathchain[],
+) => {
+  const result = await pathChainWalk(from, async (current) => {
+    const result = pointInPathchains
+      .filter((pointInPathChain) => {
+        const currentPointPathChain = pointInPathChain.pathchain.deref()
+        return currentPointPathChain === current.pathChain
+      }).at(0)
+
+    if (result) {
+      return { stopBranch: true, returned: current.pathChain.from }
+    }
+  })
+
+  return result.at(0) ?? null
 }
 
 const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(

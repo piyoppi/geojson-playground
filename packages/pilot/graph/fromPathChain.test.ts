@@ -31,7 +31,7 @@ describe('fromPathChain', () => {
       nodes,
       s => Promise.resolve({...s}),
       _ => 'group'
-    )(pathChains, pathChains[0].from()))
+    )(pathChains, pathChains[0].from))
     const node = nodeMap.get('group')?.at(0)
 
     if (!node) t.assert.fail('Graph should not be null')
@@ -76,7 +76,7 @@ describe('fromPathChain', () => {
       nodes,
       s => Promise.resolve({...s}),
       _ => 'group'
-    )(pathChains, pathChains[0].from()))
+    )(pathChains, pathChains[0].from))
     const node = nodeMap.get('group')?.at(0)
 
     if (!node) t.assert.fail('Graph should not be null')

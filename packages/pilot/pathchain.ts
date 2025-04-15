@@ -2,6 +2,7 @@ import { type Position2D, distance } from "./geometry"
 import { type Path, type PointInPath, pointInPath as findPointInPath } from "./path"
 import { pathChainWalk } from "./walk"
 
+export type VisitFnGenerator = () => VisitFn
 export type VisitFn = () => Visited
 export type NextFn = () => VisitFn[]
 export type PathChainState = {
@@ -11,7 +12,7 @@ export type PathChainState = {
 export type PathChain = {
   path: Path,
   isEnded: boolean,
-  from: () => VisitFn,
+  from: VisitFnGenerator,
 }
 export type PathInternal = {
   path: Path,
