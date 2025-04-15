@@ -1,12 +1,21 @@
 import type { PathChain, PathDirection, VisitFn } from "./pathchain"
 
+type WalkOption = {
+  firstStepFootprints: boolean
+}
+
 type Current = {
   pathChain: PathChain,
   pathDirection: PathDirection
 }
-type CallbackFn = (current: Current, branchIdChain: BranchId[]) => Promise<void | { stopBranch: boolean }>
 
-export const pathChainWalk = async (start: VisitFn, callback: CallbackFn) => {
+type CallbackResult = {
+  stopBranch?: boolean
+}
+
+type CallbackFn = (current: Current, branchIdChain: BranchId[]) => Promise<void | CallbackResult>
+
+export const pathChainWalk = async (start: VisitFn, callback: CallbackFn, option: WalkOption) => {
   await _walk([start], callback, [generateBranchId()])
 }
 
