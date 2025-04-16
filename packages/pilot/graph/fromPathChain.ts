@@ -93,7 +93,6 @@ const distanceBetweenNodes = <U extends CallbackGenerated>(ctx: MappingContext<U
 
   if (!fromPointInPathchain) return 0
 
-  console.log('d', _fromNode.id, _toNode?.id)
   return distance(contexts.map(c => c.paths).flat(), fromPointInPathchain, toPointInPathchain)
 }
 
@@ -219,7 +218,6 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
       const distance = distanceBetweenNodes(currentContext, [-1, 0])
 
       if (options?.maxDistance && distance > options?.maxDistance) {
-        console.log('xxxxx')
         return { stopBranch: true }
       }
     }

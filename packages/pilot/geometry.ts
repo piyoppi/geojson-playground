@@ -10,3 +10,16 @@ export const normalize = (v: Readonly<Position2D>): Position2D => {
   const l = length(v)
   return l === 0 ? [0, 0] : [v[0] / l, v[1] / l]
 }
+export const findNearestPoint = <T>(
+  position: Position2D,
+  items: [(() => Position2D), (() => T)][],
+  limit: number = 1
+): Array<{ item: T, distance: number }> =>
+  items
+    .map(([getPairPosition, getPairItem]) => ({
+      item: getPairItem(),
+      distance: distance(position, getPairPosition())
+    }))
+    .filter(({ item }) => item !== position)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit)
