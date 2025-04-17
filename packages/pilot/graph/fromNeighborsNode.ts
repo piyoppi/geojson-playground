@@ -1,5 +1,5 @@
 import { findNearestPoint, Position2D } from "../geometry"
-import { connect, generateArc, type GraphNode } from "./graph"
+import { arcExists, connect, generateArc, type GraphNode } from "./graph"
 
 type Node<U> = U & GraphNode
 
@@ -14,6 +14,7 @@ export const fromNeighborsPoints = <T, U extends CallbackGenerated>(
   createNodeCallback: (node: T) => U,
   getPointCallback: (node: T) => Position2D,
 ) => {
+    console.log(point)
   const items: [Node<U>, Position2D][] = 
     point
       .map<[T, Position2D]>(n => [n, getPointCallback(n)])
@@ -23,10 +24,14 @@ export const fromNeighborsPoints = <T, U extends CallbackGenerated>(
     const nearest = findNearestPoint(
       position,
       items.map(([item, p]) => [() => p, () => item]),
-    )
+      2,
+    ).filter(({item: pair}) => !arcExists(item, pair))
+    console.log(item, nearest)
+
     if (nearest.length > 0) {
-      const { item: nearestItem, distance } = nearest[0]
-      connect(item, nearestItem, generateArc(item, nearestItem, distance))
+      for (const { item: nearestItem, distance } of nearest) {
+        connect(item, nearestItem, generateArc(item, nearestItem, distance))
+      }
     }
   }
 

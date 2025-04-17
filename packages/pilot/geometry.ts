@@ -18,8 +18,9 @@ export const findNearestPoint = <T>(
   items
     .map(([getPairPosition, getPairItem]) => ({
       item: getPairItem(),
+      position: getPairPosition(),
       distance: distance(position, getPairPosition())
     }))
-    .filter(({ item }) => item !== position)
+    .filter(({ position: pair }) => pair !== position)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, limit)

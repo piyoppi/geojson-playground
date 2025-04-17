@@ -51,29 +51,8 @@ const loadBusStops = async () => {
   svg.setAttribute("width", "100%")
   svg.setAttribute("height", "100%")
 
-  const busNodes = await toBusStopGraph(
-    busRoutes,
-    busStops,
-    {
-      async currentPathchainChanged(pathchain) {
-        svg.innerHTML += tagToString(
-          path({d: toPathData(flipVertically(pathchain.path, center[1])), fill: 'transparent', stroke: rgb(255, 0, 0), strokeWidth: strokeWidth(px(0.0003))})
-        )
-        let resolved = () => {};
-        const p = new Promise<void>((resolve) => resolved = resolve)
-        const btn = document.getElementById('next')
-        btn?.addEventListener('click', () => resolved())
-        return p
-        //await new Promise(resolve => setTimeout(resolve, 200))
-      },
-      async nodeCreated(busStop) {
-        const flipped = flipVertically([busStop.position], center[1])[0]
-        svg.innerHTML += tagToString(
-          circle({cx: px(flipped[0]), cy: px(flipped[1]), r: px(0.00035), fill: 'blue', stroke: rgb(0, 0, 255), strokeWidth: strokeWidth(px(0.000002))})
-        )
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
-    }
+  const busNodes = toBusStopGraph(
+    busStops
   )
 
   return Array.from(busNodes.values()).flat()
