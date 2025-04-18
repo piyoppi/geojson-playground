@@ -17,7 +17,7 @@ export const fromMLITGeoJson = (busStopGeoJson: BusStopsGeoJson): BusStop[] => {
     return f.properties.P11_003_01.split(',').flatMap(route => {
       if (!f.geometry) return []
       return [{
-        id: `${company}-${route}-${name}-`,
+        id: `${company}-${route}-${name}-${f.geometry.coordinates[0]}-${f.geometry.coordinates[1]}`,
         name,
         company,
         route: RouteName(route),

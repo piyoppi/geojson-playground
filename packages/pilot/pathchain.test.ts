@@ -111,7 +111,6 @@ describe('mergeTIntersection', () => {
     ];
 
     mergeTIntersection(pathInternals);
-    console.log(pathInternals.map(p => ({path: p.path.join('|'), neighbors: p.neighbors.join('|')})))
 
     t.assert.equal(pathInternals.length, 5)
 

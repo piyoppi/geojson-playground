@@ -14,7 +14,6 @@ export const fromNeighborsPoints = <T, U extends CallbackGenerated>(
   createNodeCallback: (node: T) => U,
   getPointCallback: (node: T) => Position2D,
 ) => {
-    console.log(point)
   const items: [Node<U>, Position2D][] = 
     point
       .map<[T, Position2D]>(n => [n, getPointCallback(n)])
@@ -26,7 +25,6 @@ export const fromNeighborsPoints = <T, U extends CallbackGenerated>(
       items.map(([item, p]) => [() => p, () => item]),
       2,
     ).filter(({item: pair}) => !arcExists(item, pair))
-    console.log(item, nearest)
 
     if (nearest.length > 0) {
       for (const { item: nearestItem, distance } of nearest) {

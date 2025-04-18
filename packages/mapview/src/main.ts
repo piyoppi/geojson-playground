@@ -3,8 +3,8 @@ import Sigma from "sigma"
 import railroadsGeoJsonAllRaw from "./geojsons/railroads-all.json"
 import railroadsGeoJsonExtendsRaw from "./geojsons/railroads-all-extends.json"
 import stationsGeoJsonRaw from "./geojsons/stations-all.json"
-import busStopsGeoJsonRaw from "./geojsons/bus-stops-s-mid-ta43.json"
-import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s-mid-ta43.json"
+import busStopsGeoJsonRaw from "./geojsons/bus-stops-s.json"
+import busRoutesGeoJsonRaw from "./geojsons/bus-routes-s.json"
 import { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad'
 import { StationsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/station'
 import { BusStopsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/busStop'
@@ -44,12 +44,6 @@ const loadBusStops = async () => {
   const busRoutes = toBusRoutes(busRoutesGeoJson)
 
   const viewBox = addPadding(getBoundaryViewBox(busRoutes.map(b => b.routes).flat().flat()), 0.001, 0.001)
-  const center = [viewBox[0] + viewBox[2] / 2, viewBox[1] + viewBox[3] / 2]
-  const svg = document.getElementById("debugsvg") as SVGElement | null
-  if (!svg) return []
-  svg.setAttribute("viewBox", viewBox.join(' '))
-  svg.setAttribute("width", "100%")
-  svg.setAttribute("height", "100%")
 
   const busNodes = toBusStopGraph(
     busStops
