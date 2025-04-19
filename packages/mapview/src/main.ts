@@ -82,7 +82,9 @@ const displayGraph = (stationNodes: StationNode[], busNodes: BusStopNode[]) => {
 }
 
 
-window.addEventListener("DOMContentLoaded", () => {
-  //loadStations().then(stations => displayGraph(stations, []))
-  loadBusStops().then(b => displayGraph([], b))
+window.addEventListener("DOMContentLoaded", async () => {
+  const stations = await loadStations()
+  const busStops = await loadBusStops()
+
+  displayGraph(stations, busStops)
 })
