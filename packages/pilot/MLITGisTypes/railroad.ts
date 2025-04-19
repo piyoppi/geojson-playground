@@ -1,4 +1,4 @@
-import type { Feature, LineString2D } from "../geojson"
+import type { Feature, LineString2D } from "../geojson.js"
 
 export type RailroadsGeoJson = {
   type: string

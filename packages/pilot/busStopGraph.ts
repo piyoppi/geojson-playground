@@ -1,7 +1,7 @@
-import { type GraphNode } from "./graph/graph"
-import { BusStop } from "./busstop"
-import { RouteName } from "./graph"
-import { fromNeighborsPoints } from "./graph/fromNeighborsNode"
+import { type GraphNode } from "./graph/graph.js"
+import { BusStop } from "./busstop.js"
+import { RouteName } from "./graph.js"
+import { fromNeighborsPoints } from "./graph/fromNeighborsNode.js"
 
 export type BusStopNode = BusStop & GraphNode
 

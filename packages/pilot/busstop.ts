@@ -1,6 +1,6 @@
-import { Position2D } from "./geojson"
-import { BusStopsGeoJson } from "./MLITGisTypes/busStop"
-import { RouteName } from "./graph"
+import { Position2D } from "./geojson.js"
+import { BusStopsGeoJson } from "./MLITGisTypes/busStop.js"
+import { RouteName } from "./graph.js"
 
 export type BusStop = {
   id: string,

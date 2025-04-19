@@ -1,5 +1,5 @@
-import { findNearestPoint, Position2D } from "../geometry"
-import { arcExists, connect, generateArc, type GraphNode } from "./graph"
+import { findNearestPoint, Position2D } from "../geometry.js"
+import { arcExists, connect, generateArc, type GraphNode } from "./graph.js"
 
 type Node<U> = U & GraphNode
 

@@ -1,6 +1,6 @@
-import { type Position2D, distance } from "./geometry"
-import { type Path, type PointInPath, pointInPath as findPointInPath } from "./path"
-import { pathChainWalk } from "./walk"
+import { type Position2D, distance } from "./geometry.js"
+import { type Path, type PointInPath, pointInPath as findPointInPath } from "./path.js"
+import { pathChainWalk } from "./walk.js"
 
 export type VisitFnGenerator = () => VisitFn
 export type VisitFn = () => Visited

@@ -1,6 +1,7 @@
 {
   "name": "@piyoppi/sansaku",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "scripts": {
     "test": "nx run-many --target=test --all",

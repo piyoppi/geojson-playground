@@ -14,14 +14,6 @@ import { StationNode, toStationGraph } from '@piyoppi/sansaku-pilot/stationGraph
 import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/busstop'
 import { fromMLITGeoJson as toBusRoutes } from '@piyoppi/sansaku-pilot/busroute'
 import { BusStopNode, toBusStopGraph } from '@piyoppi/sansaku-pilot/busStopGraph'
-import { tagToString } from "@piyoppi/sansaku-pilot/svg/element"
-import { circle } from "@piyoppi/sansaku-pilot/svg/circle"
-import { path } from "@piyoppi/sansaku-pilot/svg/path"
-import { toPathData, flipVertically } from "@piyoppi/sansaku-pilot/svg/pathutils"
-import { rgb } from "@piyoppi/sansaku-pilot/svg/color"
-import { strokeWidth } from "@piyoppi/sansaku-pilot/svg/presentationalAttributes"
-import { px } from "@piyoppi/sansaku-pilot/svg/size"
-import { addPadding, getBoundaryViewBox } from "@piyoppi/sansaku-pilot/svg/svg"
 
 const loadStations = async () => {
   const railroadsGeoJson = {
@@ -38,16 +30,9 @@ const loadStations = async () => {
 
 const loadBusStops = async () => {
   const busStopsGeoJson = busStopsGeoJsonRaw as BusStopsGeoJson
-  const busRoutesGeoJson = busRoutesGeoJsonRaw as BusRoutesGeoJson
 
   const busStops = toBusStops(busStopsGeoJson)
-  const busRoutes = toBusRoutes(busRoutesGeoJson)
-
-  const viewBox = addPadding(getBoundaryViewBox(busRoutes.map(b => b.routes).flat().flat()), 0.001, 0.001)
-
-  const busNodes = toBusStopGraph(
-    busStops
-  )
+  const busNodes = toBusStopGraph(busStops)
 
   return Array.from(busNodes.values()).flat()
 }

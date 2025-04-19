@@ -1,7 +1,7 @@
-import { type GraphNode } from "./graph/graph"
-import type { Path } from "./path"
-import { BusRoutesGeoJson } from "./MLITGisTypes/busRoute"
-import { BusStop } from "./busstop"
+import { type GraphNode } from "./graph/graph.js"
+import type { Path } from "./path.js"
+import { BusRoutesGeoJson } from "./MLITGisTypes/busRoute.js"
+import { BusStop } from "./busstop.js"
 
 export type BusRoute = {
   id: string,

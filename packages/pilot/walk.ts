@@ -1,4 +1,4 @@
-import type { PathChain, PathDirection, VisitFn } from "./pathchain"
+import type { PathChain, PathDirection, VisitFn } from "./pathchain.js"
 
 type Current = {
   pathChain: PathChain,

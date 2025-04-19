@@ -1,5 +1,5 @@
-import { StationNode } from "../stationGraph"
-import type { GraphNode, Arc } from "./graph"
+import { StationNode } from "../stationGraph.js"
+import type { GraphNode, Arc } from "./graph.js"
 
 export const toDotGraph = <T extends StationNode>(nodes: T[]): string => {
   const graphType = 'graph'

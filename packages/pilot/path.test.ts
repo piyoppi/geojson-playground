@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test'
-import { type Path, pointInPath, pathLength } from './path'
+import { type Path, pointInPath, pathLength } from './path.js'
 
 describe('pointInPath', () => {
   const testCases = [

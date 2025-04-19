@@ -1,7 +1,7 @@
-import { type Position2D } from "./geometry"
-import type { RailroadsGeoJson } from "./MLITGisTypes/railroad"
-import type { StationsGeoJson } from './MLITGisTypes/station'
-import type { Path } from "./path"
+import { type Position2D } from "./geometry.js"
+import type { RailroadsGeoJson } from "./MLITGisTypes/railroad.js"
+import type { StationsGeoJson } from './MLITGisTypes/station.js'
+import type { Path } from "./path.js"
 
 export type Railroad = {
   id: string,
