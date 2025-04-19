@@ -1,11 +1,11 @@
-import { StationNode } from "../stationGraph.js"
-import type { GraphNode, Arc } from "./graph.js"
+import type { TrafficGraphNode } from "../trafficGraph.js"
+import type { Arc } from "../../graph/graph.js"
 
-export const toDotGraph = <T extends StationNode>(nodes: T[]): string => {
+export const toDotGraph = <T extends TrafficGraphNode>(nodes: T[]): string => {
   const graphType = 'graph'
   const connector = '--'
   
-  const nodeIds = new Map<GraphNode, number>()
+  const nodeIds = new Map<TrafficGraphNode, number>()
   nodes.forEach((node, index) => {
     nodeIds.set(node, index)
   })

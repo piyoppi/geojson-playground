@@ -1,18 +1,17 @@
 import { GraphNode, Arc, generateArc, connect } from './graph.js'
 
-type SerializedGraphNode = {
-  nodeId: string
-  [key: string]: unknown
-}
+export type SerializedGraphNode = {
+  id: string
+} & Record<string, unknown>
 
-type SerializedArc = {
+export type SerializedArc = {
   aNodeId: string,
   bNodeId: string,
   arcCost: string
 }
 
-export const serializeGraph = <G extends GraphNode>(nodes: G[]): { nodes: SerializedGraphNode[], arcs: SerializedArc[] } => {
-  const serializedNodes: SerializedGraphNode[] = []
+export const serialize = <G extends GraphNode>(nodes: G[]): { nodes: (SerializedGraphNode & Omit<G, 'arcs'>)[], arcs: SerializedArc[] } => {
+  const serializedNodes: (SerializedGraphNode & Omit<G, 'arcs'>)[] = []
   const serializedArcs: SerializedArc[] = []
   const processedArcs = new Set<Arc>()
   
@@ -36,10 +35,10 @@ export const serializeGraph = <G extends GraphNode>(nodes: G[]): { nodes: Serial
   }
 }
 
-const serializeGraphNode = (node: GraphNode): SerializedGraphNode => {
-  return {
-    nodeId: node.id,
-  }
+const serializeGraphNode = <G extends GraphNode>(node: G): SerializedGraphNode & Omit<G, 'arcs'> => {
+  const copied = { ...node, arcs: undefined }
+
+  return copied
 }
 
 const serializeArc = (arc: Arc): SerializedArc | undefined => {
@@ -57,12 +56,12 @@ const serializeArc = (arc: Arc): SerializedArc | undefined => {
   }
 }
 
-export const deserializeGraph = (serialized: { nodes: SerializedGraphNode[], arcs: SerializedArc[] }): GraphNode[] => {
-  const nodeMap = new Map<string, GraphNode>()
+export const deserialize = <N extends SerializedGraphNode>(serialized: { nodes: N[], arcs: SerializedArc[] }): (GraphNode & N)[] => {
+  const nodeMap = new Map<string, GraphNode & N>()
   
   for (const serializedNode of serialized.nodes) {
-    nodeMap.set(serializedNode.nodeId, {
-      id: serializedNode.nodeId,
+    nodeMap.set(serializedNode.id, {
+      ...serializedNode,
       arcs: []
     })
   }

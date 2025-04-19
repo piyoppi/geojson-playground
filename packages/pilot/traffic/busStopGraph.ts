@@ -1,9 +1,9 @@
-import { type GraphNode } from "./graph/graph.js"
-import { BusStop } from "./busstop.js"
-import { RouteName } from "./graph.js"
-import { fromNeighborsPoints } from "./graph/fromNeighborsNode.js"
+import { BusStop } from "../busstop.js"
+import { RouteName } from "../graph.js"
+import { fromNeighborsPoints } from "../graph/fromNeighborsNode.js"
+import { TrafficGraphNode } from "./trafficGraph.js"
 
-export type BusStopNode = BusStop & GraphNode
+export type BusStopNode = BusStop & TrafficGraphNode
 
 export const toBusStopGraph = (
   busStops: BusStop[],
