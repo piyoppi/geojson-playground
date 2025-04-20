@@ -1,5 +1,8 @@
+import { JsonFileSelector } from "~/components/filereader";
 import type { Route } from "./+types/home";
 import { MapViewer } from "~/components/mapviewer";
+import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/trafficGraph";
+import { useState } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,5 +12,14 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <MapViewer/>;
+  const [nodes, setNodes] = useState<TrafficGraphNode[]>([]);
+
+  const handleFileLoaded = (data: TrafficGraphNode[]) => {
+    setNodes(data)
+  }
+
+  return <>
+    <JsonFileSelector onFileLoaded={handleFileLoaded} />
+    <MapViewer nodes={nodes}/>
+  </>;
 }

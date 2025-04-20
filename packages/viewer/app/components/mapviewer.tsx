@@ -20,10 +20,14 @@ export function MapViewer({ nodes }: PropTypes) {
 
   useEffect(() => {
     if (!entry.current) return
-    new Sigma(graph, entry.current)
+    const sigma = new Sigma(graph, entry.current)
+
+    return () => {
+      sigma.kill()
+    }
   }, [entry])
 
   return (
-    <div ref={entry}></div>
+    <div ref={entry} className="w-screen h-screen"></div>
   )
 }

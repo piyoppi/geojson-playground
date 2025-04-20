@@ -1,5 +1,5 @@
-import { Position2D } from '../geometry'
-import { SerializedArc, SerializedGraphNode, serialize as serializedGraphNode, deserialize as deserializeGraphNode } from '../graph/serialize'
+import { Position2D } from '../geometry.js'
+import { SerializedArc, SerializedGraphNode, serialize as serializedGraphNode, deserialize as deserializeGraphNode } from '../graph/serialize.js'
 import type { TrafficGraphNode } from './trafficGraph'
 
 type SerializedTrafficGraphNode = SerializedGraphNode & {
