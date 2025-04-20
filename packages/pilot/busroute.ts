@@ -7,6 +7,7 @@ export type BusStopNode = BusStop & GraphNode
 
 export type BusRoute = {
   id: string,
+  name: string,
   company: string,
   busstops: BusStop[]
 }
@@ -38,7 +39,8 @@ export const fromMLITGeoJson = (busStopGeoJson: BusStopsGeoJson): BusRoute[] => 
 
   return Array.from(busRoutes.keys()).flatMap(id => [
     {
-      id: id,
+      id,
+      name: `${busStops[0].company}-${id}`,
       company: busStops[0].company,
       busstops: busRoutes.get(id) || []
     }

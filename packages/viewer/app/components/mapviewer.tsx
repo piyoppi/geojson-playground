@@ -43,7 +43,7 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
         return {
           ...data,
           color: 'red',
-          size: 2,
+          size: 1,
         }
       }
 

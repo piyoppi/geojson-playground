@@ -7,6 +7,7 @@ import type { Railroad } from "@piyoppi/sansaku-pilot/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/busroute"
 import { Card, CardContent } from "~/components/ui/card"
 import { RailroadList } from "~/components/railroadList"
+import { BusRouteList } from "~/components/busRouteList"
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -35,6 +36,10 @@ export default function Home() {
     setActiveRouteId(railroad.id)
   }, [])
 
+  const handleBusRouteSelected = useCallback((busRoute: BusRoute) => {
+    setActiveRouteId(busRoute.id)
+  }, [])
+
   return <>
     <TrafficFileReader
       onRailroadFileLoaded={handleRailroadFileLoaded}
@@ -49,11 +54,7 @@ export default function Home() {
         </Card>
         <Card className="h-1/3">
           <CardContent className="h-full overflow-y-scroll">
-            <ul>
-            {busRoutes.map(busroute => (
-              <li key={busroute.id}>{busroute.company}</li>
-            ))}
-            </ul>
+            <BusRouteList busRoutes={busRoutes} onBusRouteSelected={handleBusRouteSelected} />
           </CardContent>
         </Card>
       </div>

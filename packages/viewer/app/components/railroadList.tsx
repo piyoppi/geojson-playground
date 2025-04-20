@@ -1,0 +1,18 @@
+import type { Railroad } from "@piyoppi/sansaku-pilot/railroad";
+
+type PropTypes = {
+  railroads: Railroad[],
+  onRailroadSelected?: (railroad: Railroad) => void
+}
+
+export function RailroadList({ railroads, onRailroadSelected }: PropTypes) {
+  return (
+    <ul>
+      {railroads.map(railroad => (
+        <li key={railroad.id}>
+          <button type="button" onClick={() => onRailroadSelected && onRailroadSelected(railroad)}>{railroad.name}</button>
+        </li>
+      ))}
+    </ul>
+  )
+}
