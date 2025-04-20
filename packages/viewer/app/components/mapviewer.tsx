@@ -10,6 +10,7 @@ type PropTypes = {
 
 export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
+  const sigmaRef = useRef<Sigma | null>(null)
 
   const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode[][]>([])
   const graph = useMemo(() => new Graph({ multi: true }), [])
@@ -36,10 +37,8 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   }, [nodeSet])
 
   useEffect(() => {
-    if (!entry.current) return
-    const sigma = new Sigma(graph, entry.current)
-
-    sigma.setSetting('nodeReducer', (_node, data) => {
+    sigmaRef.current?.scheduleRefresh()
+    sigmaRef.current?.setSetting('nodeReducer', (_node, data) => {
       if (data.routeId === activeRouteId) {
         return {
           ...data,
@@ -47,8 +46,15 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
           size: 2,
         }
       }
+
       return data
     })
+  }, [activeRouteId])
+
+  useEffect(() => {
+    if (!entry.current) return
+    const sigma = new Sigma(graph, entry.current)
+    sigmaRef.current = sigma
 
     return () => {
       sigma.kill()
@@ -56,6 +62,6 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   }, [entry])
 
   return (
-    <div ref={entry} className="w-screen h-screen"></div>
+    <div ref={entry} className="w-full h-full"></div>
   )
 }

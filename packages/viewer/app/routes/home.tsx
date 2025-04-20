@@ -5,6 +5,8 @@ import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/trafficGra
 import { useCallback, useState } from "react"
 import type { Railroad } from "@piyoppi/sansaku-pilot/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/busroute"
+import { Card, CardContent } from "~/components/ui/card"
+import { RailroadList } from "~/components/railroadList"
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -14,14 +16,23 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const [nodes, setNodes] = useState<TrafficGraphNode[][]>([]);
+  const [nodes, setNodes] = useState<TrafficGraphNode[][]>([])
+  const [railroads, setRailroads] = useState<Railroad[]>([])
+  const [busRoutes, setBusRoutes] = useState<BusRoute[]>([])
+  const [activeRouteId, setActiveRouteId] = useState<string>("")
 
   const handleRailroadFileLoaded = useCallback((data: TrafficGraphNode[], railroads: Railroad[]) => {
     setNodes([...nodes, data])
+    setRailroads(railroads)
   }, [])
 
   const handleBusRouteFileLoaded = useCallback((data: TrafficGraphNode[], busRoutes: BusRoute[]) => {
     setNodes([...nodes, data])
+    setBusRoutes(busRoutes)
+  }, [])
+
+  const handleRailroadSelected = useCallback((railroad: Railroad) => {
+    setActiveRouteId(railroad.id)
   }, [])
 
   return <>
@@ -29,6 +40,24 @@ export default function Home() {
       onRailroadFileLoaded={handleRailroadFileLoaded}
       onBusRouteFileLoaded={handleBusRouteFileLoaded}
     />
-    <MapViewer activeRouteId="中央線-東日本旅客鉄道" nodeSet={nodes}/>
+    <div className="flex flex-row gap-4 w-screen h-screen">
+      <div className="flex flex-col gap-4 w-96 h-full">
+        <Card className="h-1/3">
+          <CardContent className="h-full overflow-y-scroll">
+            <RailroadList railroads={railroads} onRailroadSelected={handleRailroadSelected} />
+          </CardContent>
+        </Card>
+        <Card className="h-1/3">
+          <CardContent className="h-full overflow-y-scroll">
+            <ul>
+            {busRoutes.map(busroute => (
+              <li key={busroute.id}>{busroute.company}</li>
+            ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+      <MapViewer activeRouteId={activeRouteId} nodeSet={nodes}/>
+    </div>
   </>;
 }
