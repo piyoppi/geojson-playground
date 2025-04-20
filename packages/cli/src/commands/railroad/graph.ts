@@ -1,4 +1,4 @@
-import { toStationGraph } from '@piyoppi/sansaku-pilot/stationGraph.js'
+import { toStationGraph } from '@piyoppi/sansaku-pilot/traffic/stationGraph.js'
 import { serialize } from '@piyoppi/sansaku-pilot/traffic/serialize.js'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/railroad.js'
@@ -18,9 +18,14 @@ export const execute = async (inputRailroadFilename: string, inputStationFilenam
     features: [...railroadGeoJson.features, ...overrideInput.features ?? []],
   } as RailroadsGeoJson
 
-  const stationNodes = await toStationGraph(toRailRoads(railroadsGeoJson, stationsGeoJson))
-  const serialized = serialize(stationNodes)
+  const railroads = toRailRoads(railroadsGeoJson, stationsGeoJson)
+  const stationNodes = await toStationGraph(railroads)
 
-  const output = JSON.stringify(serialized)
+  const graph = serialize(stationNodes)
+
+  const output = JSON.stringify({
+    graph,
+    railroads
+  })
   writeFileSync(outputFileName, output, "utf-8")
 }

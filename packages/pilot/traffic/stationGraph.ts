@@ -18,7 +18,7 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
             return fromPathChain(
               railroad.stations.map(s => ({...s, position: center(s.platform)})),
               station => Promise.resolve({...station}),
-              station => station.railroadId
+              station => station.routeId
             )(pathchains, end.from)
           })
         )
@@ -41,7 +41,7 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
   // Connect each transit station nodes
   stationNodes.forEach(node => {
     nodesByGroup.get(node.groupId)?.forEach(current => {
-      if (node !== current && !arcExists(node, current) && node.railroadId !== current.railroadId) {
+      if (node !== current && !arcExists(node, current) && node.routeId !== current.routeId) {
         const arc = generateArc(node, current, 0)
         connect(node, current, arc)
       }

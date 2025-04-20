@@ -1,2 +1,2 @@
-export type RouteName = string & { readonly __brand: unique symbol }
-export const RouteName = (routeName: string): RouteName => routeName as RouteName 
+export type RouteId = string & { readonly __brand: unique symbol }
+export const RouteId = (routeId: string): RouteId => routeId as RouteId 

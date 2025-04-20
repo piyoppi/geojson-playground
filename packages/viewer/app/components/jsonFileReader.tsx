@@ -1,12 +1,10 @@
 import { useRef, useState } from "react"
-import { deserialize } from "@piyoppi/sansaku-pilot/traffic/serialize"
-import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/trafficGraph"
 
 type JsonFileSelectorProps = {
-  onFileLoaded: (data: TrafficGraphNode[]) => void
+  onFileLoaded: (data: any) => void
 }
 
-export function JsonFileSelector ({ onFileLoaded }: JsonFileSelectorProps) {
+export function JsonFileReader ({ onFileLoaded }: JsonFileSelectorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -19,8 +17,7 @@ export function JsonFileSelector ({ onFileLoaded }: JsonFileSelectorProps) {
       reader.onload = (event) => {
         try {
           const parsedData = JSON.parse(event.target?.result as string);
-          const nodes = deserialize(parsedData)
-          onFileLoaded(nodes);
+          onFileLoaded(parsedData);
         } catch (err) {
           setError('Invalid JSON file. Please select a valid JSON file.');
         }

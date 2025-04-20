@@ -1,22 +1,46 @@
+import { BusStopsGeoJson } from "./MLITGisTypes/busStop.js"
+import { Position2D } from "./geojson.js"
+import { RouteId } from "./graph.js"
 import { type GraphNode } from "./graph/graph.js"
-import type { Path } from "./path.js"
-import { BusRoutesGeoJson } from "./MLITGisTypes/busRoute.js"
-import { BusStop } from "./busstop.js"
+
+export type BusStopNode = BusStop & GraphNode
 
 export type BusRoute = {
   id: string,
   company: string,
-  routes: Path[]
+  busstops: BusStop[]
 }
 
-export type BusStopNode = BusStop & GraphNode
+export type BusStop = {
+  id: string,
+  name: string,
+  routeId: RouteId,
+  position: Position2D
+}
 
-export const fromMLITGeoJson = (busRouteGeoJson: BusRoutesGeoJson): BusRoute[] => {
-  const routeFeature = Map.groupBy(busRouteGeoJson.features, f => f.properties.N07_001)
+export const fromMLITGeoJson = (busStopGeoJson: BusStopsGeoJson): BusRoute[] => {
+  const busStops = busStopGeoJson.features.map(f => {
+    const name = f.properties.P11_001
+    const company = f.properties.P11_002
+    return f.properties.P11_003_01.split(',').flatMap(route => {
+      if (!f.geometry) return []
+      return [{
+        id: `${company}-${route}-${name}-${f.geometry.coordinates[0]}-${f.geometry.coordinates[1]}`,
+        name,
+        company,
+        routeId: RouteId(route),
+        position: f.geometry.coordinates
+      }]
+    })
+  }).flat()
 
-  return routeFeature.entries().map(([company, properties]) => ({
-    id: company,
-    company,
-    routes: properties.map(p => p.geometry.coordinates)
-  })).toArray()
+  const busRoutes = Map.groupBy(busStops, b => b.routeId)
+
+  return Array.from(busRoutes.keys()).flatMap(id => [
+    {
+      id: id,
+      company: busStops[0].company,
+      busstops: busRoutes.get(id) || []
+    }
+  ])
 }

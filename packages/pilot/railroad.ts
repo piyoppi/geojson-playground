@@ -14,7 +14,7 @@ export type Railroad = {
 export type Station = {
   id: string,
   name: string,
-  railroadId: string,
+  routeId: string,
   groupId: string,
   platform: [Position2D, Position2D],
 }
@@ -40,7 +40,7 @@ export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJ
         ({
           name: s.properties.N02_005,
           id: s.properties.N02_005c,
-          railroadId: id,
+          routeId: id,
           groupId: s.properties.N02_005g,
           platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]],
         })

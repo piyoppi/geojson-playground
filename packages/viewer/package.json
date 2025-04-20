@@ -11,14 +11,19 @@
   "dependencies": {
     "@react-router/node": "^7.5.1",
     "@react-router/serve": "^7.5.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "graphology": "^0.26.0",
     "isbot": "^5.1.17",
+    "lucide-react": "^0.501.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.5.1",
     "sigma": "^3.0.1",
-    "graphology": "^0.26.0"
+    "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
+    "@piyoppi/sansaku-pilot": "1.0.0",
     "@react-router/dev": "^7.5.1",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^20",
@@ -28,7 +33,6 @@
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
     "vite": "^6.2.0",
-    "vite-tsconfig-paths": "^5.1.4",
-    "@piyoppi/sansaku-pilot": "1.0.0"
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

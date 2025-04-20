@@ -5,6 +5,7 @@ import type { TrafficGraphNode } from './trafficGraph'
 type SerializedTrafficGraphNode = SerializedGraphNode & {
   position: Position2D
   name: string
+  routeId: string
 }
 
 type SerializedTrafficArc = SerializedArc

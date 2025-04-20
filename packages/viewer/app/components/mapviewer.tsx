@@ -4,10 +4,11 @@ import Graph from "graphology"
 import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/trafficGraph'
 
 type PropTypes = {
-  nodeSet: TrafficGraphNode[][]
+  nodeSet: TrafficGraphNode[][],
+  activeRouteId?: string,
 }
 
-export function MapViewer({ nodeSet }: PropTypes) {
+export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
 
   const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode[][]>([])
@@ -16,9 +17,8 @@ export function MapViewer({ nodeSet }: PropTypes) {
   useEffect(() => {
     const nodes = nodeSet.filter(rendered => !renderedNodeSet.some(nodes => rendered === nodes)).flat()
 
-    console.log("nodes", nodes)
-    nodes.forEach(node => {
-      graph.addNode(node.id, { label: node.name, size: 0.55, x: node.position[0], y: node.position[1], color: "blue" })
+    nodes.map(node => {
+      graph.addNode(node.id, { label: node.name, routeId: node.routeId, size: 0.55, x: node.position[0], y: node.position[1], color: "blue" })
     })
 
     nodes.forEach(node => {
@@ -38,6 +38,17 @@ export function MapViewer({ nodeSet }: PropTypes) {
   useEffect(() => {
     if (!entry.current) return
     const sigma = new Sigma(graph, entry.current)
+
+    sigma.setSetting('nodeReducer', (_node, data) => {
+      if (data.routeId === activeRouteId) {
+        return {
+          ...data,
+          color: 'red',
+          size: 2,
+        }
+      }
+      return data
+    })
 
     return () => {
       sigma.kill()
