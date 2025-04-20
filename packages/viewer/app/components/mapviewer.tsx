@@ -1,22 +1,39 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import Sigma from "sigma"
 import Graph from "graphology"
 import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/trafficGraph'
 
 type PropTypes = {
-  nodes: TrafficGraphNode[]
+  nodeSet: TrafficGraphNode[][]
 }
 
-export function MapViewer({ nodes }: PropTypes) {
+export function MapViewer({ nodeSet }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
 
+  const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode[][]>([])
   const graph = useMemo(() => new Graph({ multi: true }), [])
 
-  useMemo(() => {
-    graph.clear()
+  useEffect(() => {
+    const nodes = nodeSet.filter(rendered => !renderedNodeSet.some(nodes => rendered === nodes)).flat()
 
-    nodes.forEach(node => graph.addNode(node.id, { label: node.name, size: 0.55, x: node.position[0], y: node.position[1], color: "blue" }))
-  }, [nodes])
+    console.log("nodes", nodes)
+    nodes.forEach(node => {
+      graph.addNode(node.id, { label: node.name, size: 0.55, x: node.position[0], y: node.position[1], color: "blue" })
+    })
+
+    nodes.forEach(node => {
+      node.arcs.forEach(arc => {
+        const aNode = arc.a.deref()
+        const bNode = arc.b.deref()
+
+        if (!aNode || !bNode) return
+
+        graph.addEdge(aNode.id, bNode.id, { color: "darkgray" })
+      })
+    })
+
+    setRenderedNodeSet([...nodeSet])
+  }, [nodeSet])
 
   useEffect(() => {
     if (!entry.current) return

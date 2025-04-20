@@ -1,6 +1,6 @@
 import { describe, it, TestContext } from 'node:test'
 import { GraphNode, generateArc, connect } from './graph'
-import { serializeGraph, deserializeGraph } from './serialize'
+import { serialize, deserialize} from './serialize'
 
 const graphs = () => {
   const nodeA: GraphNode = { id: 'A', arcs: [] }
@@ -20,7 +20,7 @@ const graphs = () => {
 
 describe('Graph serialization and deserialization', () => {
   it('should serialize and deserialize a basic graph', (t: TestContext) => {
-    const serialized = serializeGraph(graphs())
+    const serialized = serialize(graphs())
     
     t.assert.equal(serialized.nodes.length, 3)
     t.assert.equal(serialized.arcs.length, 3)
@@ -40,7 +40,7 @@ describe('Graph serialization and deserialization', () => {
     t.assert.equal(arcBCSerialized?.arcCost, '20')
     t.assert.equal(arcCASerialized?.arcCost, '30')
 
-    const deserialized = deserializeGraph(serialized)
+    const deserialized = deserialize(serialized)
     t.assert.equal(deserialized.length, 3)
     
     const findNodeById = (id: string) => deserialized.find(n => n.id === id)
@@ -71,11 +71,11 @@ describe('Graph serialization and deserialization', () => {
   })
   
   it('should serialize and deserialize an empty graph', (t) => {
-    const serialized = serializeGraph([])
+    const serialized = serialize([])
     t.assert.equal(serialized.nodes.length, 0)
     t.assert.equal(serialized.arcs.length, 0)
     
-    const deserialized = deserializeGraph(serialized)
+    const deserialized = deserialize(serialized)
     t.assert.equal(deserialized.length, 0)
   })
   
@@ -83,11 +83,11 @@ describe('Graph serialization and deserialization', () => {
     const nodeA: GraphNode = { id: 'A', arcs: [] }
     const nodeB: GraphNode = { id: 'B', arcs: [] }
     
-    const serialized = serializeGraph([nodeA, nodeB])
+    const serialized = serialize([nodeA, nodeB])
     t.assert.equal(serialized.nodes.length, 2)
     t.assert.equal(serialized.arcs.length, 0)
     
-    const deserialized = deserializeGraph(serialized)
+    const deserialized = deserialize(serialized)
     t.assert.equal(deserialized.length, 2)
     t.assert.equal(deserialized[0].arcs.length, 0)
     t.assert.equal(deserialized[1].arcs.length, 0)

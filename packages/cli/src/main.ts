@@ -57,7 +57,7 @@ const main = defineCommand({
           args: {
             input: {
               type: "input",
-              description: "Input string to generate diagram",
+              description: "Input busstop GeoJSON file",
               required: true,
             },
             output: {
@@ -71,7 +71,7 @@ const main = defineCommand({
           }
         },
       },
-    }
+    },
   },
 });
 
