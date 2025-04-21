@@ -3,6 +3,7 @@ import { serialize } from '@piyoppi/sansaku-pilot/traffic/serialize.js'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/railroad.js'
 import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
+import { toStationFile } from '@piyoppi/sansaku-pilot/traffic/stationFile.js'
 
 type Option = {
   overrideRailroadInputFilename?: string
@@ -21,11 +22,7 @@ export const execute = async (inputRailroadFilename: string, inputStationFilenam
   const railroads = toRailRoads(railroadsGeoJson, stationsGeoJson)
   const stationNodes = await toStationGraph(railroads)
 
-  const graph = serialize(stationNodes)
+  const output = JSON.stringify(toStationFile(stationNodes, railroads))
 
-  const output = JSON.stringify({
-    graph,
-    railroads
-  })
   writeFileSync(outputFileName, output, "utf-8")
 }
