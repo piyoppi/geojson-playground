@@ -19,7 +19,16 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
     const nodes = nodeSet.filter(rendered => !renderedNodeSet.some(nodes => rendered === nodes)).flat()
 
     nodes.map(node => {
-      graph.addNode(node.id, { label: node.name, routeId: node.routeId, size: 0.55, x: node.position[0], y: node.position[1], color: "blue" })
+      graph.addNode(
+        node.id,
+        {
+          label: `${node.name}(${node.id})`,
+          routeId: node.routeId,
+          size: 0.55,
+          x: node.position[0],
+          y: node.position[1],
+          color: "blue"
+        })
     })
 
     nodes.forEach(node => {

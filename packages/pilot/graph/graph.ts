@@ -9,6 +9,11 @@ export type Arc = {
   b: WeakRef<GraphNode>,
 }
 
+export const generateNode = (id: string): GraphNode => ({
+  id: id,
+  arcs: [],
+})
+
 export const generateArc = (a: GraphNode, b: GraphNode, cost: number): Arc => ({
   cost: cost,
   a: new WeakRef(a),
@@ -113,4 +118,74 @@ export const mergeDuplicateNodes = <T extends GraphNode>(targetNodes: T[]): T[] 
   })
 
   return targetNodes.filter(node => !duplicatedNodes.has(node))
+}
+
+export const findShortestPath = <T extends GraphNode>(
+  startNode: T,
+  endNode: T
+): T[] => {
+  const visited = new Set<string>()
+
+  const distances = new Map<string, number>()
+  distances.set(startNode.id, 0)
+
+  const previous = new Map<string, T>()
+
+  const queue: [T, number][] = [[startNode, 0]]
+
+  while (queue.length > 0) {
+    queue.sort((a, b) => a[1] - b[1])
+    const [currentNode, currentCost] = queue.shift()!
+
+    if (visited.has(currentNode.id)) {
+      continue
+    }
+
+    if (currentNode.id === endNode.id) {
+      break
+    }
+
+    visited.add(currentNode.id)
+
+    for (const arc of currentNode.arcs) {
+      const nodeA = arc.a.deref()
+      const nodeB = arc.b.deref()
+
+      if (!nodeA || !nodeB) continue
+
+      const nextNode = nodeA.id === currentNode.id ? nodeB : nodeA
+
+      if (visited.has(nextNode.id)) continue
+
+      const newCost = currentCost + arc.cost
+      const existingCost = distances.get(nextNode.id) ?? Infinity
+
+      if (newCost < existingCost) {
+        distances.set(nextNode.id, newCost)
+        previous.set(nextNode.id, currentNode as T)
+        queue.push([nextNode as T, newCost])
+      }
+    }
+  }
+
+  if (!previous.has(endNode.id) && startNode.id !== endNode.id) {
+    return []
+  }
+
+  const path: T[] = [endNode]
+  let current = endNode
+
+  while (current.id !== startNode.id) {
+    const prevNode = previous.get(current.id)
+    if (!prevNode) break
+
+    path.unshift(prevNode)
+    current = prevNode
+  }
+
+  if (path[0].id !== startNode.id) {
+    return []
+  }
+
+  return path
 }

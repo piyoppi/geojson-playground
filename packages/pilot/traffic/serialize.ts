@@ -8,12 +8,17 @@ type SerializedTrafficGraphNode = SerializedGraphNode & {
   routeId: string
 }
 
+type Serialized = {
+  nodes: SerializedTrafficGraphNode[],
+  arcs: SerializedTrafficArc[]
+}
+
 type SerializedTrafficArc = SerializedArc
 
-export const serialize = (nodes: TrafficGraphNode[]): { nodes: SerializedTrafficGraphNode[], arcs: SerializedTrafficArc[] } => {
+export const serialize = (nodes: TrafficGraphNode[]): Serialized => {
   return serializedGraphNode(nodes)
 }
 
-export const deserialize = (serialized: { nodes: SerializedTrafficGraphNode[], arcs: SerializedTrafficArc[] }): TrafficGraphNode[] => {
+export const deserialize = (serialized: Serialized): TrafficGraphNode[] => {
   return deserializeGraphNode(serialized)
 }

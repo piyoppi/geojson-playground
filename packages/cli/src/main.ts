@@ -2,6 +2,7 @@
 
 import { defineCommand, runMain } from 'citty'
 import { execute as executeRailroadGraph } from './commands/railroad/graph.js'
+import { execute as executeRailroadShortest } from './commands/railroad/shortest.js'
 import { execute as executeBusGraph } from './commands/bus/graph.js'
 
 const main = defineCommand({
@@ -42,6 +43,32 @@ const main = defineCommand({
             executeRailroadGraph(args.railroads, args.stations, args.output)
           }
         },
+        shortest: {
+          meta: {
+            name: "Find shortest path between stations."
+          },
+          args: {
+            graphfile: {
+              type: "input",
+              description: "Input railroad graph json.",
+              required: true
+            },
+            from: {
+              type: "string",
+              description: "from",
+              required: true
+            },
+            to: {
+              type: "string",
+              description: "to",
+              required: true
+            }
+          },
+          run({ args }) {
+            const { graphfile, from, to } = args
+            executeRailroadShortest(graphfile, from, to)
+          }
+        }
       },
     },
     bus: {

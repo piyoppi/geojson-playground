@@ -1,5 +1,5 @@
 {
-  "name": "viewer",
+  "name": "@piyoppi/sansaku-viewer",
   "private": true,
   "type": "module",
   "scripts": {
