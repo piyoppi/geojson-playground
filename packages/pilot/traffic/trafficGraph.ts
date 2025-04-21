@@ -1,4 +1,4 @@
-import type { Arc, GraphNode } from "../graph/graph.js"
+import type { Arc, GraphNode } from "../graph/graph"
 import type { Position2D } from "../geometry"
 
 export type TrafficGraphNode = GraphNode & {

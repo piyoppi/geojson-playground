@@ -1,7 +1,7 @@
 import { it, describe } from 'node:test'
 import {
   normalize,
-  diff,
+  distance,
   center,
   innerProduction,
   add,
@@ -23,17 +23,17 @@ describe('normalize', () => {
   })
 })
 
-describe('diff', () => {
+describe('distance', () => {
   it('should return 0 for the same points', (t) => {
-    t.assert.equal(diff([0, 0], [0, 0]), 0)
+    t.assert.equal(distance([0, 0], [0, 0]), 0)
   })
 
-  it('should return the correct squared distance for different points', (t) => {
-    t.assert.equal(diff([1, 2], [4, 6]), 25)
+  it('should return the correct squared distance for distanceerent points', (t) => {
+    t.assert.equal(distance([1, 2], [4, 6]), 25)
   })
 
   it('should handle negative coordinates correctly', (t) => {
-    t.assert.equal(diff([-1, -2], [-4, -6]), 25)
+    t.assert.equal(distance([-1, -2], [-4, -6]), 25)
   })
 })
 

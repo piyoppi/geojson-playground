@@ -1,5 +1,4 @@
 import { toStationGraph } from '@piyoppi/sansaku-pilot/traffic/stationGraph.js'
-import { serialize } from '@piyoppi/sansaku-pilot/traffic/serialize.js'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/railroad.js'
 import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'

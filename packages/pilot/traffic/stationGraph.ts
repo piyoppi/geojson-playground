@@ -42,7 +42,8 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
   stationNodes.forEach(node => {
     nodesByGroup.get(node.groupId)?.forEach(current => {
       if (node !== current && !arcExists(node, current) && node.routeId !== current.routeId) {
-        const arc = generateArc(node, current, 0)
+        // TODO: configure arc cost
+        const arc = generateArc(node, current, 1)
         connect(node, current, arc)
       }
     })
