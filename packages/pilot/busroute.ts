@@ -1,4 +1,4 @@
-import { RouteId } from "./graph"
+import { RouteId } from "./graph.js"
 import type { BusStopsGeoJson } from "./MLITGisTypes/busStop"
 import type { Position2D } from "./geojson"
 import type { GraphNode } from "./graph/graph"

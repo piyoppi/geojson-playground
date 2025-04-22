@@ -40,7 +40,7 @@ const main = defineCommand({
             },
           },
           run({ args }) {
-            executeGenerate(args.railroads, args.stations, args.busstops, args.output)
+            executeGenerate(args.output, args.railroads, args.stations, args.busstops)
           }
         },
         shortest: {
