@@ -1,6 +1,6 @@
+import { RouteId } from "./graph"
 import type { BusStopsGeoJson } from "./MLITGisTypes/busStop"
 import type { Position2D } from "./geojson"
-import type { RouteId } from "./graph"
 import type { GraphNode } from "./graph/graph"
 
 export type BusStopNode = BusStop & GraphNode

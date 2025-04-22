@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
 import { defineCommand, runMain } from 'citty'
-import { execute as executeRailroadGraph } from './commands/railroad/graph.js'
-import { execute as executeRailroadShortest } from './commands/railroad/shortest.js'
-import { execute as executeBusGraph } from './commands/bus/graph.js'
+import { execute as executeGenerate } from './commands/graph/generate.js'
+import { execute as executeRailroadShortest } from './commands/graph/shortest.js'
 
 const main = defineCommand({
   meta: {
@@ -12,26 +11,27 @@ const main = defineCommand({
     description: "Sansaku CLI",
   },
   subCommands: {
-    railroad: {
+    graph: {
       meta: {
-        name: "railroad",
-        description: "Railroad command",
+        name: "Generate a traffic diagram"
       },
       subCommands: {
-        graph: {
-          meta: {
-            name: "Generate a railroad diagram"
-          },
+        generate: {
           args: {
             railroads: {
               type: "input",
               description: "Input railroad GeoJSON file",
-              required: true,
+              required: false,
             },
             stations: {
               type: "input",
               description: "Input station GeoJSON file",
-              required: true,
+              required: false,
+            },
+            busstops: {
+              type: "input",
+              description: "Input busstops GeoJSON file",
+              required: false,
             },
             output: {
               type: "input",
@@ -40,7 +40,7 @@ const main = defineCommand({
             },
           },
           run({ args }) {
-            executeRailroadGraph(args.railroads, args.stations, args.output)
+            executeGenerate(args.railroads, args.stations, args.busstops, args.output)
           }
         },
         shortest: {
@@ -69,34 +69,6 @@ const main = defineCommand({
             executeRailroadShortest(graphfile, from, to)
           }
         }
-      },
-    },
-    bus: {
-      meta: {
-        name: "bus",
-        description: "Bus command",
-      },
-      subCommands: {
-        graph: {
-          meta: {
-            name: "Generate a bus diagram"
-          },
-          args: {
-            input: {
-              type: "input",
-              description: "Input busstop GeoJSON file",
-              required: true,
-            },
-            output: {
-              type: "input",
-              description: "Output file path",
-              required: true,
-            },
-          },
-          run({ args }) {
-            executeBusGraph(args.input, args.output)
-          }
-        },
       },
     },
   },

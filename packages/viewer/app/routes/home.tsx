@@ -11,8 +11,8 @@ import { BusRouteList } from "~/components/busRouteList"
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Sansaku-Viewer" },
+    { name: "description", content: "Sansaku MapViewer" },
   ];
 }
 
@@ -22,15 +22,18 @@ export default function Home() {
   const [busRoutes, setBusRoutes] = useState<BusRoute[]>([])
   const [activeRouteId, setActiveRouteId] = useState<string>("")
 
-  const handleRailroadFileLoaded = useCallback((data: TrafficGraphNode[], railroads: Railroad[]) => {
-    setNodes([...nodes, data])
-    setRailroads(railroads)
-  }, [])
-
-  const handleBusRouteFileLoaded = useCallback((data: TrafficGraphNode[], busRoutes: BusRoute[]) => {
-    setNodes([...nodes, data])
-    setBusRoutes(busRoutes)
-  }, [])
+  const handleFileLoaded = useCallback(
+    (
+      data: TrafficGraphNode[],
+      railroads: Railroad[],
+      busRoutes: BusRoute[]
+    ) => {
+      setNodes([...nodes, data])
+      setRailroads(railroads)
+      setBusRoutes(busRoutes)
+    },
+    []
+  )
 
   const handleRailroadSelected = useCallback((railroad: Railroad) => {
     setActiveRouteId(railroad.id)
@@ -42,8 +45,7 @@ export default function Home() {
 
   return <>
     <TrafficFileReader
-      onRailroadFileLoaded={handleRailroadFileLoaded}
-      onBusRouteFileLoaded={handleBusRouteFileLoaded}
+      onFileLoaded={handleFileLoaded}
     />
     <div className="flex flex-row gap-4 w-screen h-screen">
       <div className="flex flex-col gap-4 w-96 h-full">

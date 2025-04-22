@@ -5,22 +5,14 @@ import type { Railroad } from "@piyoppi/sansaku-pilot/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/busroute"
 
 type JsonFileSelectorProps = {
-  onRailroadFileLoaded: (nodes: TrafficGraphNode[], railroads: Railroad[]) => void
-  onBusRouteFileLoaded: (nodes: TrafficGraphNode[], busRoutes: BusRoute[]) => void
+  onFileLoaded: (nodes: TrafficGraphNode[], railroads: Railroad[], busRoutes: BusRoute[]) => void
 }
 
-export function TrafficFileReader ({ onRailroadFileLoaded, onBusRouteFileLoaded }: JsonFileSelectorProps) {
+export function TrafficFileReader ({ onFileLoaded }: JsonFileSelectorProps) {
   const handleFileLoad = (data: any) => {
     const nodes = deserialize(data.graph)
 
-    if (data.railroads) {
-      onRailroadFileLoaded(nodes, data.railroads)
-      return
-    }
-    if (data.busRoutes) {
-      onBusRouteFileLoaded(nodes, data.busRoutes)
-      return
-    }
+    onFileLoaded(nodes, data.railroads, data.busRoutes)
   }
 
   return (
