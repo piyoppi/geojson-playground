@@ -1,4 +1,4 @@
-import type { Railroad } from "@piyoppi/sansaku-pilot/railroad";
+import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad";
 
 type PropTypes = {
   railroads: Railroad[],

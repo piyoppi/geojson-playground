@@ -1,4 +1,4 @@
-import type { BusRoute } from "@piyoppi/sansaku-pilot/busroute"
+import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
 
 type PropTypes = {
   busRoutes: BusRoute[],

@@ -1,8 +1,8 @@
-import { deserialize } from "@piyoppi/sansaku-pilot/traffic/serialize"
-import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/trafficGraph"
+import { deserialize } from "@piyoppi/sansaku-pilot/traffic/graph/serialize"
+import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraph"
 import { JsonFileReader } from "./jsonFileReader";
-import type { Railroad } from "@piyoppi/sansaku-pilot/railroad"
-import type { BusRoute } from "@piyoppi/sansaku-pilot/busroute"
+import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
+import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
 
 type JsonFileSelectorProps = {
   onFileLoaded: (nodes: TrafficGraphNode[], railroads: Railroad[], busRoutes: BusRoute[]) => void

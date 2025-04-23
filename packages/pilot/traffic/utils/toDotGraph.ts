@@ -1,4 +1,4 @@
-import type { TrafficGraphNode } from "../trafficGraph.js"
+import type { TrafficGraphNode } from "../graph/trafficGraph"
 import type { Arc } from "../../graph/graph.js"
 
 export const toDotGraph = <T extends TrafficGraphNode>(nodes: T[]): string => {

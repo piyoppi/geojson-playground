@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
 import Sigma from "sigma"
 import Graph from "graphology"
-import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/trafficGraph'
+import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
 
 type PropTypes = {
   nodeSet: TrafficGraphNode[][],

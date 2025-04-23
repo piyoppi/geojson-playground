@@ -1,9 +1,9 @@
-import { center } from "../geometry.js"
-import { fromPathChain } from "../graph/fromPathChain.js"
-import { arcExists, connect, generateArc, mergeDuplicateNodes } from "../graph/graph.js"
-import { ends, buildPathchain } from '../pathchain.js'
+import { center } from "../../geometry.js"
+import { fromPathChain } from "../../graph/fromPathChain.js"
+import { arcExists, connect, generateArc, mergeDuplicateNodes } from "../../graph/graph.js"
+import { ends, buildPathchain } from '../../pathchain.js'
 import { Railroad, Station } from "../railroad.js"
-import type { TrafficGraphNode } from "./trafficGraph.js"
+import type { TrafficGraphNode } from "./trafficGraph"
 
 export type StationNode = Station & TrafficGraphNode
 

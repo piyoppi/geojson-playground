@@ -1,10 +1,10 @@
 import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph'
-import { deserialize } from '@piyoppi/sansaku-pilot/traffic/serialize.js'
-import { StationFile } from '@piyoppi/sansaku-pilot/traffic/stationFile'
+import { deserialize } from '@piyoppi/sansaku-pilot/traffic/graph/serialize.js'
+import { TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile'
 import { readFileSync } from 'node:fs'
 
 export const execute = (inputGraphFilename: string, fromId: string, toId: string) => {
-  const railroadJson = JSON.parse(readFileSync(inputGraphFilename, "utf-8")) as StationFile
+  const railroadJson = JSON.parse(readFileSync(inputGraphFilename, "utf-8")) as TrafficGraphFile
 
   const railroads = railroadJson.railroads
   const graph = deserialize(railroadJson.graph)

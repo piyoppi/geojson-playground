@@ -1,5 +1,5 @@
-import type { Arc, GraphNode } from "../graph/graph"
-import type { Position2D } from "../geometry"
+import type { Arc, GraphNode } from "../../graph/graph"
+import type { Position2D } from "../../geometry"
 
 export type TrafficGraphNode = GraphNode & {
   position: Position2D

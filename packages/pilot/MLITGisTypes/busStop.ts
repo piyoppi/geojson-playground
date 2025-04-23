@@ -1,4 +1,4 @@
-import type { Feature, Point } from "../geojson.js"
+import type { Feature, Point } from "../geojson"
 
 export type BusStopsGeoJson = {
   type: string

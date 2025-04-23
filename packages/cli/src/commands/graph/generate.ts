@@ -1,9 +1,9 @@
-import { toStationGraph } from '@piyoppi/sansaku-pilot/traffic/stationGraph.js'
+import { toStationGraph } from '@piyoppi/sansaku-pilot/traffic/graph/stationGraph.js'
 import { readFileSync, writeFileSync } from 'node:fs'
-import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/busroute.js'
-import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/railroad.js'
-import { toBusStopGraph } from '@piyoppi/sansaku-pilot/traffic/busStopGraph.js'
-import { toTrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/trafficGraphFile.js'
+import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/MLITGisTypes/busRoute.js'
+import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
+import { toBusStopGraph } from '@piyoppi/sansaku-pilot/traffic/graph/busStopGraph.js'
+import { toTrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
 import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
 
 type Option = {
