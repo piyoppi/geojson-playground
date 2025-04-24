@@ -30,14 +30,20 @@ export const fromMLITGeoJson = (busStopGeoJson: BusStopsGeoJson): BusRoute[] => 
     })
   }).flat()
 
-  const busRoutes = Map.groupBy(busStops, b => b.routeId)
+  const busStopsByRoute = Map.groupBy(busStops, b => b.routeId)
 
-  return Array.from(busRoutes.keys()).flatMap(id => [
-    {
-      id,
-      name: `${busStops[0].company}-${id}`,
-      company: busStops[0].company,
-      stations: busRoutes.get(id) || []
-    }
-  ])
+  return Array.from(busStopsByRoute.keys()).flatMap(id => {
+    const busStop = busStopsByRoute.get(id)?.at(0)
+
+    if (!busStop) return []
+
+    return [
+      {
+        id,
+        name: `${busStop.company}-${id}`,
+        company: busStop.company,
+        stations: busStopsByRoute.get(id) || []
+      }
+    ]
+  })
 }

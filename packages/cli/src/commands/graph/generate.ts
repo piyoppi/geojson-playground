@@ -46,7 +46,7 @@ export const execute = async (
 
     const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"))
     const busRoutes = toBusStops(inputBusStopJson)
-    const busNodes = Array.from(toBusStopGraph(busRoutes.flatMap(b => b.busstops)).values()).flat()
+    const busNodes = Array.from(toBusStopGraph(busRoutes.flatMap(b => b.stations)).values()).flat()
 
     return { busRoutes, busNodes }
   })()
