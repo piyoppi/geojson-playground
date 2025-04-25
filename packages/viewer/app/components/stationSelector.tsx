@@ -35,6 +35,12 @@ export function StationSelector({ railroads, busRoutes, onStationSelected }: Pro
     setRoute(route)
   }
 
+  const handleStationSelected = (station: Station) => {
+    if (onStationSelected) {
+      onStationSelected(station)
+    }
+  }
+
   return (
     <>
       <Combobox
@@ -47,7 +53,13 @@ export function StationSelector({ railroads, busRoutes, onStationSelected }: Pro
         onItemSelected={handleRouteSelected}
         placeholder="路線を選択"
       />
-      { route && <StationCombobox stations={route.stations} /> }
+      { route && 
+        <Combobox
+          items={route.stations.map(station => [station.name, station.id, station])}
+          onItemSelected={handleStationSelected}
+          placeholder={`${transportationType === 'Railroad' ? '駅' : 'バス停'}を選択`}
+        />
+      }
     </>
   )
 }

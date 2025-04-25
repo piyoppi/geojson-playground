@@ -1,4 +1,5 @@
 import { useRef, useState } from "react"
+import { Button } from "./ui/button"
 
 type JsonFileSelectorProps = {
   onFileLoaded: (data: any) => void
@@ -29,7 +30,7 @@ export function JsonFileReader ({ onFileLoaded }: JsonFileSelectorProps) {
   return (
     <div>
       <input type="file" accept=".json" onChange={handleFileChange} ref={fileInputRef} style={{ display: 'none' }} />
-      <button onClick={() => fileInputRef.current?.click()}>ファイルを選択</button>
+      <Button onClick={() => fileInputRef.current?.click()}>ファイルを選択</Button>
       {error && <div style={{ color: 'red', marginTop: '8px' }}>{error}</div>}
     </div>
   )

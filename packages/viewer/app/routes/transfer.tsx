@@ -1,14 +1,15 @@
 import { useCallback, useState } from "react"
 import { TrafficFileReader } from "../components/trafficFileReader"
-import { Card, CardContent } from "~/components/ui/card"
+import { Card, CardContent, CardFooter } from "~/components/ui/card"
 import { BusRouteList } from "~/components/busRouteList"
-import { StationList } from "~/components/stationList"
 import type { Route } from "./+types/home"
 import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraph"
 import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
 import type { Station } from "@piyoppi/sansaku-pilot/traffic/transportation"
 import { StationSelector } from "~/components/stationSelector"
+import { Button } from "~/components/ui/button"
+import { findShortestPath } from "@piyoppi/sansaku-pilot/graph/graph"
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -21,7 +22,9 @@ export default function Transfer() {
   const [nodes, setNodes] = useState<TrafficGraphNode[][]>([])
   const [railroads, setRailroads] = useState<Railroad[]>([])
   const [busRoutes, setBusRoutes] = useState<BusRoute[]>([])
-  const [stations, setStations] = useState<Station[] | null>(null)
+  const [fromStation, setFromStation] = useState<Station | null>(null)
+  const [toStation, setToStation] = useState<Station | null>(null)
+  const [transferResult, setTransferResult] = useState<TrafficGraphNode[] | null>(null)
 
   const handleFileLoaded = useCallback(
     (
@@ -36,34 +39,56 @@ export default function Transfer() {
     []
   )
 
-  const handleRailroadSelected = useCallback((railroad: Railroad) => {
-    setStations(railroad.stations)
+  const handleFromStationSelected = useCallback((station: Station) => {
+    console.log("fromStation", station)
+    setFromStation(station)
   }, [])
 
-  const handleBusRouteSelected = useCallback((busRoute: BusRoute) => {
-    setStations(busRoute.stations)
+  const handleToStationSelected = useCallback((station: Station) => {
+    console.log("toStation", station)
+    setToStation(station)
   }, [])
 
-  return <>
-    <TrafficFileReader
-      onFileLoaded={handleFileLoaded}
-    />
-    <div className="flex flex-row gap-4 h-screen">
-      <div className="flex flex-col gap-4 w-96 h-full">
-        <Card className="h-1/2">
-          <StationSelector railroads={railroads} busRoutes={busRoutes} />
-        </Card>
-        <Card className="h-1/2">
-          <StationSelector railroads={railroads} busRoutes={busRoutes} />
-        </Card>
-      </div>
-      <div className="flex flex-col gap-4 w-96 h-full">
-        <Card className="h-full">
-          <CardContent className="h-full overflow-y-scroll">
-            { stations && <StationList stations={stations} /> }
-          </CardContent>
-        </Card>
+  const handleSearch = useCallback(() => {
+    console.log("fromStation", fromStation)
+    console.log("toStation", toStation)
+    if (!fromStation || !toStation) return
+
+    const startNode = nodes.flat().find(n => n.id === fromStation?.id)
+    const endNode = nodes.flat().find(n => n.id === toStation?.id)
+    console.log(`startNode: ${startNode?.name}(${startNode?.id}), endNode: ${endNode?.name}(${endNode?.id})`)
+
+    if (!startNode || !endNode) return
+
+    setTransferResult(findShortestPath(startNode, endNode))
+  }, [fromStation, toStation, nodes])
+
+  return <article className="p-4">
+    <div className="flex flex-col gap-4">
+      <TrafficFileReader
+        onFileLoaded={handleFileLoaded}
+      />
+      <div className="flex flex-row gap-4 h-screen">
+        <div className="flex flex-col w-96 h-full">
+          <Card className="h-1/2 p-4">
+            <StationSelector railroads={railroads} busRoutes={busRoutes} onStationSelected={handleFromStationSelected} />
+            <hr className="my-4" />
+            <StationSelector railroads={railroads} busRoutes={busRoutes} onStationSelected={handleToStationSelected}/>
+            <CardFooter className="p-0">
+              <Button className="w-full" onClick={handleSearch}>検索</Button>
+            </CardFooter>
+          </Card>
+        </div>
+        <div className="flex flex-col gap-4 w-96 h-full">
+          <ol>
+            {transferResult?.map((node, index) => (
+              <li key={index}>
+                {node.name} ({node.id}) | {node.routeId}
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </div>
-  </>;
+  </article>;
 }
