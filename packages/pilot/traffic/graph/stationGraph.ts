@@ -16,7 +16,7 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
             const end = ends(pathchains)[0]
 
             return fromPathChain(
-              railroad.stations.map(s => ({...s, position: center(s.platform)})),
+              railroad.stations.map(s => ({...s})),
               station => Promise.resolve({...station}),
               station => station.routeId
             )(pathchains, end.from)

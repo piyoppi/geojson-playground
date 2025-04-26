@@ -2,6 +2,7 @@ import { toRouteId, toStationId } from "../traffic/transportation.js"
 import type { Railroad } from "../traffic/railroad"
 import type { Feature, LineString2D } from "../geojson"
 import type { StationsGeoJson } from './station'
+import { center } from "../geometry.js"
 
 export type RailroadsGeoJson = {
   type: string
@@ -40,7 +41,7 @@ export const fromMLITGeoJson = async (railroadsGeoJson: RailroadsGeoJson, statio
             id: await toStationId(s.properties.N02_005c),
             routeId,
             groupId: s.properties.N02_005g,
-            platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]],
+            position: center([s.geometry.coordinates[0], s.geometry.coordinates[1]])
           })
         )
       )

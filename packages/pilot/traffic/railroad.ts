@@ -14,15 +14,17 @@ import {
 export type Railroad = Route<Station> & {
   rails: Path[]
 }
-export type SerializedRailroad = SerializedRoute<SerializedRailroadStation>
+export type SerializedRailroad = SerializedRoute<SerializedRailroadStation> & {
+  rails?: undefined
+}
 
 export type Station = TransportationStation & {
   groupId: string,
-  platform: [Position2D, Position2D],
+  position: Position2D
 }
 export type SerializedRailroadStation = SerializedStation & {
   groupId: string,
-  platform: [Position2D, Position2D]
+  position: Position2D
 }
 
 export const serializeRailroad = (railroad: Railroad): SerializedRailroad => ({
@@ -30,7 +32,8 @@ export const serializeRailroad = (railroad: Railroad): SerializedRailroad => ({
   ...serializeRoute(railroad, (s) => ({
     ...s,
     ...serializeStation(s),
-  }))
+  })),
+  rails: undefined
 })
 
 export const deserializeRailroad = (railroad: SerializedRailroad): Railroad => ({
