@@ -20,6 +20,7 @@ export function JsonFileReader ({ onFileLoaded }: JsonFileSelectorProps) {
           const parsedData = JSON.parse(event.target?.result as string);
           onFileLoaded(parsedData);
         } catch (err) {
+          console.error("Error parsing JSON file:", err);
           setError('Invalid JSON file. Please select a valid JSON file.');
         }
       }

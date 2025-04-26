@@ -1,14 +1,14 @@
-import { bytesToHexString, hexStringToBytes } from "../utils/Id.js"
+import { bytesToBase64String, base64ToString } from "../utils/Id.js"
 
 export type RouteId = Uint8Array & { readonly __brand: unique symbol }
 export const RouteId = (routeId: Uint8Array): RouteId => routeId as RouteId 
-export const routeIdToString = (id: RouteId) => bytesToHexString(id)
-export const hexStringToRouteId = (str: string) => RouteId(hexStringToBytes(str))
+export const routeIdToString = (id: RouteId) => bytesToBase64String(id)
+export const hexStringToRouteId = (str: string) => RouteId(base64ToString(str))
 
 export type StationId = Uint8Array & { readonly __brand: unique symbol }
 export const StationId = (stationId: Uint8Array): StationId => stationId as StationId 
-export const stationIdToString = (id: StationId) => bytesToHexString(id)
-export const hexStringToStationId = (str: string) => StationId(hexStringToBytes(str))
+export const stationIdToString = (id: StationId) => bytesToBase64String(id)
+export const hexStringToStationId = (str: string) => StationId(base64ToString(str))
 
 const toId = async (str: string) => {
   const encoder = new TextEncoder()

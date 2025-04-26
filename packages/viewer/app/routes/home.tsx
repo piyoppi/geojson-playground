@@ -8,6 +8,7 @@ import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
 import { Card, CardContent } from "~/components/ui/card"
 import { RailroadList } from "~/components/railroadList"
 import { BusRouteList } from "~/components/busRouteList"
+import type { RouteId } from "@piyoppi/sansaku-pilot/traffic/transportation"
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -20,7 +21,7 @@ export default function Home() {
   const [nodes, setNodes] = useState<TrafficGraphNode[][]>([])
   const [railroads, setRailroads] = useState<Railroad[]>([])
   const [busRoutes, setBusRoutes] = useState<BusRoute[]>([])
-  const [activeRouteId, setActiveRouteId] = useState<string>("")
+  const [activeRouteId, setActiveRouteId] = useState<RouteId | null>()
 
   const handleFileLoaded = useCallback(
     (
@@ -60,7 +61,7 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
-      <MapViewer activeRouteId={activeRouteId} nodeSet={nodes}/>
+      { activeRouteId && <MapViewer activeRouteId={activeRouteId} nodeSet={nodes}/> }
     </div>
   </>;
 }

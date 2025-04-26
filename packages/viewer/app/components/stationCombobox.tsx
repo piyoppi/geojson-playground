@@ -15,7 +15,7 @@ export function StationCombobox({ stations, onStationSelected }: PropTypes) {
 
   return (
     <Combobox
-      items={stations.map(station => [station.name, station.id, station])}
+      items={stations.map(station => [station.name, station.id.toString(), station])}
       onItemSelected={handleStationSelected}
     />
   )

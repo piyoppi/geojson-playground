@@ -4,7 +4,6 @@ import type { Railroad, Station as RailroadStation } from "@piyoppi/sansaku-pilo
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
 import type { BusStop } from "@piyoppi/sansaku-pilot/traffic/busroute"
 import { useState } from "react"
-import { StationCombobox } from "./stationCombobox"
 
 type PropTypes = {
   railroads: Railroad[]
@@ -49,13 +48,13 @@ export function StationSelector({ railroads, busRoutes, onStationSelected }: Pro
         placeholder="交通機関を選択"
       />
       <Combobox
-        items={routes.map(route => [route.name, route.id, route] as const)}
+        items={routes.map(route => [route.name, route.id.toString(), route] as const)}
         onItemSelected={handleRouteSelected}
         placeholder="路線を選択"
       />
       { route && 
         <Combobox
-          items={route.stations.map(station => [station.name, station.id, station])}
+          items={route.stations.map(station => [station.name, station.id.toString(), station])}
           onItemSelected={handleStationSelected}
           placeholder={`${transportationType === 'Railroad' ? '駅' : 'バス停'}を選択`}
         />

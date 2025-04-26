@@ -2,10 +2,11 @@ import { useEffect, useRef, useMemo, useState } from 'react'
 import Sigma from "sigma"
 import Graph from "graphology"
 import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
+import type { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
 
 type PropTypes = {
   nodeSet: TrafficGraphNode[][],
-  activeRouteId?: string,
+  activeRouteId?: RouteId,
 }
 
 export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
