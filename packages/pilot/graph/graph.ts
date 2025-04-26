@@ -1,6 +1,7 @@
 import { bytesToHexString, hexStringToBytes } from "../utils/Id.js"
 
 export type NodeId = Uint8Array
+export const isEqualNodeId = (a: NodeId, b: NodeId): boolean => a.length === b.length && a.every((byte, index) => byte === b[index])
 export const nodeIdToString = (id: NodeId) => bytesToHexString(id)
 export const hexStringToNodeId = (str: string) => hexStringToBytes(str)
 

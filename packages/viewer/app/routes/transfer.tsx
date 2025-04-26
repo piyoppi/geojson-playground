@@ -9,7 +9,7 @@ import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
 import type { Station } from "@piyoppi/sansaku-pilot/traffic/transportation"
 import { StationSelector } from "~/components/stationSelector"
 import { Button } from "~/components/ui/button"
-import { findShortestPath } from "@piyoppi/sansaku-pilot/graph/graph"
+import { findShortestPath, isEqualNodeId } from "@piyoppi/sansaku-pilot/graph/graph"
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -54,8 +54,8 @@ export default function Transfer() {
     console.log("toStation", toStation)
     if (!fromStation || !toStation) return
 
-    const startNode = nodes.flat().find(n => n.id === fromStation?.id)
-    const endNode = nodes.flat().find(n => n.id === toStation?.id)
+    const startNode = nodes.flat().find(n => isEqualNodeId(n.id, fromStation?.id))
+    const endNode = nodes.flat().find(n => isEqualNodeId(n.id, toStation?.id))
     console.log(`startNode: ${startNode?.name}(${startNode?.id}), endNode: ${endNode?.name}(${endNode?.id})`)
 
     if (!startNode || !endNode) return
@@ -83,7 +83,7 @@ export default function Transfer() {
           <ol>
             {transferResult?.map((node, index) => (
               <li key={index}>
-                {node.name} ({node.id}) | {node.routeId}
+                {node.name} ({node.id})
               </li>
             ))}
           </ol>
