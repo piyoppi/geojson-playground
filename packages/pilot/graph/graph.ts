@@ -1,5 +1,11 @@
+import { bytesToHexString, hexStringToBytes } from "../utils/Id.js"
+
+export type NodeId = Uint8Array
+export const nodeIdToString = (id: NodeId) => bytesToHexString(id)
+export const hexStringToNodeId = (str: string) => hexStringToBytes(str)
+
 export type GraphNode = {
-  id: string
+  id: NodeId
   arcs: Arc[]
 }
 
@@ -9,7 +15,7 @@ export type Arc = {
   b: WeakRef<GraphNode>,
 }
 
-export const generateNode = (id: string): GraphNode => ({
+export const generateNode = (id: NodeId): GraphNode => ({
   id: id,
   arcs: [],
 })
@@ -124,12 +130,12 @@ export const findShortestPath = <T extends GraphNode>(
   startNode: T,
   endNode: T
 ): T[] => {
-  const visited = new Set<string>()
+  const visited = new Set<NodeId>()
 
-  const distances = new Map<string, number>()
+  const distances = new Map<NodeId, number>()
   distances.set(startNode.id, 0)
 
-  const previous = new Map<string, T>()
+  const previous = new Map<NodeId, T>()
 
   const queue: [T, number][] = [[startNode, 0]]
 

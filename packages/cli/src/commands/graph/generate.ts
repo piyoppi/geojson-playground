@@ -33,19 +33,19 @@ export const execute = async (
       features: [...railroadGeoJson.features, ...overrideInput.features ?? []],
     } as RailroadsGeoJson
 
-    const railroads = toRailRoads(railroadsGeoJson, stationsGeoJson)
+    const railroads = await toRailRoads(railroadsGeoJson, stationsGeoJson)
     const stationNodes = await toStationGraph(railroads)
 
     return { railroads, stationNodes }
   })()
 
-  const { busRoutes, busNodes } =  (() => {
+  const { busRoutes, busNodes } =  await(async () => {
     if (!inputBusStopFilename) {
       return { busRoutes: [], busNodes: [] }
     }
 
     const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"))
-    const busRoutes = toBusStops(inputBusStopJson)
+    const busRoutes = await toBusStops(inputBusStopJson)
     const busNodes = Array.from(toBusStopGraph(busRoutes.flatMap(b => b.stations)).values()).flat()
 
     return { busRoutes, busNodes }

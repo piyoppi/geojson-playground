@@ -1,5 +1,5 @@
-import { deserialize } from "@piyoppi/sansaku-pilot/traffic/graph/serialize"
 import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraph"
+import { fromTrafficGraphFile, type TrafficGraphFile } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile"
 import { JsonFileReader } from "./jsonFileReader";
 import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
@@ -9,10 +9,10 @@ type JsonFileSelectorProps = {
 }
 
 export function TrafficFileReader ({ onFileLoaded }: JsonFileSelectorProps) {
-  const handleFileLoad = (data: any) => {
-    const nodes = deserialize(data.graph)
+  const handleFileLoad = (data: TrafficGraphFile) => {
+    const { graph, railroads, busRoutes } = fromTrafficGraphFile(data)
 
-    onFileLoaded(nodes, data.railroads, data.busRoutes)
+    onFileLoaded(graph, railroads, busRoutes)
   }
 
   return (

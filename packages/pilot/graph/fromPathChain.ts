@@ -2,7 +2,7 @@ import type { Position2D } from "../geometry.js"
 import { findPointInPathChain, IsolatedPathChain, PathDirection, VisitFn, VisitFnGenerator, type PathChain, type PointInPathchain } from "../pathchain.js"
 import { BranchId, pathChainWalk } from "../walk.js"
 import { Path, pathLength } from "../path.js"
-import { connect, generateArc, type GraphNode } from "./graph.js"
+import { connect, generateArc, NodeId, type GraphNode } from "./graph.js"
 
 type NodeOnPath = {
   position: Position2D,
@@ -17,8 +17,6 @@ type Node<U> = U & GraphNode
 type CallbackFn<T, U extends CallbackGenerated> = (node: T, found: PointInPathchain) => Promise<U>
 
 type GroupIdCallbackFn<T, G> = (node: T) => G
-
-type NodeId = string
 
 export type BranchIdChainSerialized = string & { readonly __brand: unique symbol }
 const BranchIdChainSerialized = (branchIdChain: BranchId[]): BranchIdChainSerialized => branchIdChain.join('-') as BranchIdChainSerialized

@@ -1,5 +1,5 @@
-import { Railroad } from "../traffic/railroad"
-import { RouteId } from "../traffic/transportation.js"
+import { toRouteId, toStationId } from "../traffic/transportation.js"
+import type { Railroad } from "../traffic/railroad"
 import type { Feature, LineString2D } from "../geojson"
 import type { StationsGeoJson } from './station'
 
@@ -16,32 +16,36 @@ type Properties = {
   N02_004: string       // 鉄道事業者
 }
 
-export const fromMLITGeoJson = (railroadsGeoJson: RailroadsGeoJson, stationsGeoJson: StationsGeoJson): Railroad[] => {
+export const fromMLITGeoJson = async (railroadsGeoJson: RailroadsGeoJson, stationsGeoJson: StationsGeoJson): Promise<Railroad[]> => {
   const railroadsFeature = Map.groupBy(railroadsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
   const stationsFeature = Map.groupBy(stationsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
 
-  return Array.from(railroadsFeature.keys()).flatMap(id => {
-    const railroad = railroadsFeature.get(id) || []
-    if (railroad.length === 0) return []
+  return (await Promise.all(Array.from(railroadsFeature.keys()).map(async id => {
+    const railroadGeoJson = railroadsFeature.get(id) || []
+    if (railroadGeoJson.length === 0) return []
 
     const stations =  stationsFeature.get(id) || []
-    const lineName = railroad[0].properties.N02_003
-    const company = railroad[0].properties.N02_004
-
-    return [{
-      id: RouteId(id),
+    const lineName = railroadGeoJson[0].properties.N02_003
+    const company = railroadGeoJson[0].properties.N02_004
+    const routeId = await toRouteId(id)
+    const railroad: Railroad = {
+      id: routeId,
       name: lineName,
       company,
-      rails: railroad.map(r => r.geometry.coordinates),
-      stations: stations.map(s =>
-        ({
-          name: s.properties.N02_005,
-          id: s.properties.N02_005c,
-          routeId: RouteId(id),
-          groupId: s.properties.N02_005g,
-          platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]],
-        })
+      rails: railroadGeoJson.map(r => r.geometry.coordinates),
+      stations: await Promise.all(
+        stations.map(async s =>
+          ({
+            name: s.properties.N02_005,
+            id: await toStationId(s.properties.N02_005c),
+            routeId,
+            groupId: s.properties.N02_005g,
+            platform: [s.geometry.coordinates[0], s.geometry.coordinates[1]],
+          })
+        )
       )
-    }]
-  })
+    }
+
+    return [railroad]
+  }))).flat()
 }

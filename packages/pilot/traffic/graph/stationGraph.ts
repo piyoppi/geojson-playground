@@ -1,6 +1,6 @@
 import { center } from "../../geometry.js"
 import { fromPathChain } from "../../graph/fromPathChain.js"
-import { arcExists, connect, generateArc, mergeDuplicateNodes } from "../../graph/graph.js"
+import { arcExists, connect, generateArc, mergeDuplicateNodes, NodeId } from "../../graph/graph.js"
 import { ends, buildPathchain } from '../../pathchain.js'
 import { Railroad, Station } from "../railroad.js"
 import type { TrafficGraphNode } from "./trafficGraph"
@@ -30,7 +30,7 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
         acc.set(k, [...cur, ...v])
       })
       return acc
-    }, new Map<string, StationNode[]>())
+    }, new Map<NodeId, StationNode[]>())
     .values()
     .map(v => mergeDuplicateNodes(v))         // Isolated pathchains may have same station
     .toArray()
