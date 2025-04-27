@@ -1,4 +1,4 @@
-import { type GraphNode, type Arc, generateArc, connect, nodeIdToString, hexStringToNodeId } from './graph.js'
+import { type GraphNode, type Arc, generateArc, connect, nodeIdToString, hexStringToNodeId, NodeId } from './graph.js'
 
 export type SerializedGraphNode = {
   id: string
@@ -10,16 +10,13 @@ export type SerializedArc = {
   arcCost: string
 }
 
-export const serialize = <G extends GraphNode, S extends Record<string, string | number | boolean | string[] | number[] | boolean[]>>(
-  nodes: G[],
-  serializeNode: (node: G) => GraphNode
-): { nodes: S[], arcs: SerializedArc[] } => {
-  const serializedNodes: S[] = []
+export const serialize = <G extends GraphNode>(
+  nodes: G[]
+): { arcs: SerializedArc[] } => {
   const serializedArcs: SerializedArc[] = []
   const processedArcs = new Set<Arc>()
   
   for (const node of nodes) {
-    serializedNodes.push(serializeGraphNode(serializeNode(node)))
     
     for (const arc of node.arcs) {
       if (!processedArcs.has(arc)) {
@@ -33,23 +30,20 @@ export const serialize = <G extends GraphNode, S extends Record<string, string |
   }
   
   return {
-    nodes: serializedNodes,
     arcs: serializedArcs
   }
 }
 
-export const deserialize = <N extends SerializedGraphNode, G>(
-  serialized: { nodes: N[], arcs: SerializedArc[] },
-  deserializeNode: (serializeNode: N) => G
-): (GraphNode & G)[] => {
-  const nodeMap = new Map<string, GraphNode & G>()
+export const deserialize = <InputItems extends {id: NodeId}, G extends GraphNode>(
+  items: InputItems[],
+  serialized: { arcs: SerializedArc[] },
+  graphGenerator: (node: InputItems, id: string) => G
+): G[] => {
+  const nodeMap = new Map<string, G>()
   
-  for (const serializedNode of serialized.nodes) {
-    nodeMap.set(serializedNode.id, {
-      ...deserializeNode(serializedNode),
-      id: hexStringToNodeId(serializedNode.id),
-      arcs: []
-    })
+  for (const item of items) {
+    const stringId = nodeIdToString(item.id)
+    nodeMap.set(stringId, graphGenerator(item, stringId))
   }
   
   for (const serializedArc of serialized.arcs) {
@@ -71,12 +65,6 @@ export const deserialize = <N extends SerializedGraphNode, G>(
   }
   
   return Array.from(nodeMap.values())
-}
-
-const serializeGraphNode = <G extends GraphNode, S>(node: G): S => {
-  const copied = { ...node, id: nodeIdToString(node.id), arcs: undefined }
-
-  return copied
 }
 
 const serializeArc = (arc: Arc): SerializedArc | undefined => {

@@ -10,41 +10,36 @@ type SerializedTrafficGraphNode = SerializedGraphNode & {
 }
 
 export type SerializedTrafficGraph = {
-  nodes: SerializedTrafficGraphNode[],
   arcs: SerializedTrafficArc[]
 }
 
 type SerializedTrafficArc = SerializedArc
 
 export const serialize = <T extends Station>(nodes: TrafficGraphNode<T>[]): SerializedTrafficGraph => {
-  return serializedGraphNode(
-    nodes,
-    node => {
-      const item = node.item
+  const serialized = serializedGraphNode(nodes)
 
-      if (!item) throw new Error('Item is not defined')
-
-      return {
-        id: node.id,
-        arcs: node.arcs
-      }
-    }
-  )
+  return {
+    arcs: serialized.arcs
+  }
 }
 
 export const deserialize = <T extends Station>(serialized: SerializedTrafficGraph, stations: T[]): TrafficGraphNode<T>[] => {
   const stationsMap = new Map(stations.map(station => [stationIdToString(station.id), station]))
 
   return deserializeGraphNode(
+    stations,
     serialized,
-    node => {
-      const item = stationsMap.get(node.id)
+    (node, stringId) => {
+      const item = stationsMap.get(stringId)
 
-      if (!item) throw new Error(`Station not found for routeId: ${node.routeId}`)
+      if (!item) {
+        throw new Error(`Station not found for id: ${stringId}`)
+      }
 
       return {
-        item,
-        id: item.id
+        id: node.id,
+        arcs: [],
+        item
       }
     }
   )
