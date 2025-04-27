@@ -1,4 +1,4 @@
-import { type GraphNode, type Arc, generateArc, connect, nodeIdToString, hexStringToNodeId, NodeId } from './graph.js'
+import { type GraphNode, type Arc, generateArc, connect, nodeIdToString, NodeId } from './graph.js'
 
 export type SerializedGraphNode = {
   id: string

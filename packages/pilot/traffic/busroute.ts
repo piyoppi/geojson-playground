@@ -34,8 +34,8 @@ export const serializedBusRoute = (busRoute: BusRoute): SerializedBusRoute => ({
 
 export const deserializeBusRoute = (busRoute: SerializedBusRoute): BusRoute => ({
   ...busRoute,
-  ...deserializeRoute(busRoute, (s) => ({
+  ...deserializeRoute(busRoute, (s, id) => ({
     ...s,
-    ...deserializeStation(s),
+    ...deserializeStation(s, id),
   }))
 })

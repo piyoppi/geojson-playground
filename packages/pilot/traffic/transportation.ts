@@ -44,7 +44,6 @@ export type Station = {
 export type SerializedStation = {
   id: string,
   name: string,
-  routeId: string,
   position: Position2D
 }
 
@@ -59,21 +58,24 @@ export const serializeRoute = <S extends Station, SS extends SerializedStation>(
 
 export const serializeStation = (station: Station) => ({
   ...station,
-  id: stationIdToString(station.id),
-  routeId: routeIdToString(station.routeId)
+  routeId: undefined,
+  id: stationIdToString(station.id)
 })
 
 export const deserializeRoute = <S extends SerializedStation, SS extends Station>(
   route: SerializedRoute<S>,
-  deserializeStation: (station: S) => SS
-) => ({
-  ...route,
-  id: hexStringToRouteId(route.id),
-  stations: route.stations.map(s => deserializeStation(s))
-})
+  deserializeStation: (station: S, routeId: RouteId) => SS
+) => {
+  const id = hexStringToRouteId(route.id)
+  return {
+    ...route,
+    id,
+    stations: route.stations.map(s => deserializeStation(s, id))
+  }
+}
 
-export const deserializeStation = (station: SerializedStation) => ({
+export const deserializeStation = (station: SerializedStation, routeId: RouteId) => ({
   ...station,
   id: hexStringToStationId(station.id),
-  routeId: hexStringToRouteId(station.routeId)
+  routeId
 })

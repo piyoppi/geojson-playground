@@ -35,9 +35,9 @@ export const serializeRailroad = (railroad: Railroad): SerializedRailroad => ({
 
 export const deserializeRailroad = (railroad: SerializedRailroad): Railroad => ({
   ...railroad,
-  ...deserializeRoute(railroad, (s) => ({
+  ...deserializeRoute(railroad, (s, id) => ({
     ...s,
-    ...deserializeStation(s),
+    ...deserializeStation(s, id),
   })),
   rails: [] // [TODO] Deserialize rails
 })

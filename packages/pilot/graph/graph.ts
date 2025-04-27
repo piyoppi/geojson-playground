@@ -1,9 +1,8 @@
-import { bytesToBase64String, base64ToString } from "../utils/Id.js"
+import { bytesToBase64String } from "../utils/Id.js"
 
 export type NodeId = Uint8Array
 export const isEqualNodeId = (a: NodeId, b: NodeId): boolean => a.length === b.length && a.every((byte, index) => byte === b[index])
 export const nodeIdToString = (id: NodeId) => bytesToBase64String(id)
-export const hexStringToNodeId = (str: string) => base64ToString(str)
 
 export type GraphNode = {
   id: NodeId
