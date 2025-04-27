@@ -1,3 +1,4 @@
+import { Position2D } from "../geojson.js"
 import { bytesToBase64String, base64ToString } from "../utils/Id.js"
 
 export type RouteId = Uint8Array & { readonly __brand: unique symbol }
@@ -37,12 +38,14 @@ export type Station = {
   id: StationId,
   name: string,
   routeId: RouteId,
+  position: Position2D
 }
 
 export type SerializedStation = {
   id: string,
   name: string,
-  routeId: string
+  routeId: string,
+  position: Position2D
 }
 
 export const serializeRoute = <S extends Station, SS extends SerializedStation>(

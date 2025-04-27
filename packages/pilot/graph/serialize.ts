@@ -10,27 +10,6 @@ export type SerializedArc = {
   arcCost: string
 }
 
-const serializeGraphNode = <G extends GraphNode, S>(node: G): S => {
-  const copied = { ...node, id: nodeIdToString(node.id), arcs: undefined }
-
-  return copied
-}
-
-const serializeArc = (arc: Arc): SerializedArc | undefined => {
-  const nodeA = arc.a.deref()
-  const nodeB = arc.b.deref()
-  
-  if (!nodeA || !nodeB) {
-    return undefined
-  }
-  
-  return {
-    aNodeId: nodeIdToString(nodeA.id),
-    bNodeId: nodeIdToString(nodeB.id),
-    arcCost: arc.cost.toString()
-  }
-}
-
 export const serialize = <G extends GraphNode, S extends Record<string, string | number | boolean | string[] | number[] | boolean[]>>(
   nodes: G[],
   serializeNode: (node: G) => GraphNode
@@ -92,4 +71,25 @@ export const deserialize = <N extends SerializedGraphNode, G>(
   }
   
   return Array.from(nodeMap.values())
+}
+
+const serializeGraphNode = <G extends GraphNode, S>(node: G): S => {
+  const copied = { ...node, id: nodeIdToString(node.id), arcs: undefined }
+
+  return copied
+}
+
+const serializeArc = (arc: Arc): SerializedArc | undefined => {
+  const nodeA = arc.a.deref()
+  const nodeB = arc.b.deref()
+  
+  if (!nodeA || !nodeB) {
+    return undefined
+  }
+  
+  return {
+    aNodeId: nodeIdToString(nodeA.id),
+    bNodeId: nodeIdToString(nodeB.id),
+    arcCost: arc.cost.toString()
+  }
 }

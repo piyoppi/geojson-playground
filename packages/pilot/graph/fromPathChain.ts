@@ -14,12 +14,9 @@ type CallbackGenerated = {
 
 type Node<U> = U & GraphNode
 
-type CallbackFn<T, U extends CallbackGenerated> = (node: T, found: PointInPathchain) => Promise<U>
+type CreateNodeCallbackFn<T, C extends CallbackGenerated> = (node: T, found: PointInPathchain) => Promise<C>
 
 type GroupIdCallbackFn<T, G> = (node: T) => G
-
-export type BranchIdChainSerialized = string & { readonly __brand: unique symbol }
-const BranchIdChainSerialized = (branchIdChain: BranchId[]): BranchIdChainSerialized => branchIdChain.join('-') as BranchIdChainSerialized
 
 type MappingContext<U extends CallbackGenerated> = {
   previousContext?: MappingContext<U>
@@ -28,14 +25,36 @@ type MappingContext<U extends CallbackGenerated> = {
   branchId: BranchId
 }
 
+type BranchIdChainSerialized = string & { readonly __brand: unique symbol }
+const BranchIdChainSerialized = (branchIdChain: BranchId[]): BranchIdChainSerialized => branchIdChain.join('-') as BranchIdChainSerialized
+
+/**
+ * Options for controlling the path chain mapping process.
+ * @property {(pathchain: PathChain) => Promise<void>} currentPathchainChanged - Callback when the current pathchain changes
+ * @property {number} maxDistance - Maximum distance to traverse before stopping a branch
+ */
 export type MappingOption = {
   currentPathchainChanged?: (pathchain: PathChain) => Promise<void>
   maxDistance?: number
 }
 
+/**
+ * Creates a graph from a path chain by mapping points to nodes on paths.
+ * 
+ * @template T - Type of node with position data
+ * @template U - Type of node with generated ID
+ * @template G - Type of group identifier
+ * 
+ * @param point - Array of points to map onto the path chain
+ * @param createNodeCallback - Function to create a node from a point and its position in the path chain
+ * @param groupIdCallback - Function to determine the group ID for a node
+ * @param [options] - Optional mapping configuration
+ * 
+ * @returns A function that accepts a path chain and visit generator, and returns a map of groups to nodes
+ */
 export const fromPathChain = <T extends NodeOnPath, U extends CallbackGenerated, G>(
   point: T[],
-  createNodeCallback: CallbackFn<T, U>,
+  createNodeCallback: CreateNodeCallbackFn<T, U>,
   groupIdCallback: GroupIdCallbackFn<T, G>,
   options?: MappingOption
 ) => async (pathChains: IsolatedPathChain, from: VisitFnGenerator): Promise<Map<G, (Node<U>)[]>> => {
@@ -138,7 +157,7 @@ const findPreviousContextFromBranchIdChain = <U extends CallbackGenerated>(
 const buildBranchNodeChain = async <T extends NodeOnPath, U extends CallbackGenerated>(
   context: MappingContext<U>,
   nodes: Map<NodeId, Node<U>>,
-  createNodeCallback: CallbackFn<T, U>,
+  createNodeCallback: CreateNodeCallbackFn<T, U>,
   found: [T, PointInPathchain][],
   pathDirection: PathDirection
 ) => {
@@ -184,7 +203,7 @@ const findFirstPath = async (
 
 const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
   from: VisitFn,
-  createNodeCallback: CallbackFn<T, U>,
+  createNodeCallback: CreateNodeCallbackFn<T, U>,
   groupIdCallback: GroupIdCallbackFn<T, G>,
   pointInPathchains: [T, PointInPathchain][],
   options?: MappingOption

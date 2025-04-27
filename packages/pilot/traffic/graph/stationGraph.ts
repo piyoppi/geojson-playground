@@ -5,7 +5,7 @@ import { ends, buildPathchain } from '../../pathchain.js'
 import { Railroad, Station } from "../railroad.js"
 import type { TrafficGraphNode } from "./trafficGraph"
 
-export type StationNode = Station & TrafficGraphNode
+export type StationNode = TrafficGraphNode<Station>
 
 export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode[]> => {
   const stationNodes = (await Promise.all(
@@ -17,8 +17,8 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
 
             return fromPathChain(
               railroad.stations.map(s => ({...s})),
-              station => Promise.resolve({...station}),
-              station => station.routeId
+              s => Promise.resolve({id: s.id, item: s}),
+              s => s.routeId
             )(pathchains, end.from)
           })
         )
@@ -36,12 +36,14 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
     .toArray()
     .flat()
 
-  const nodesByGroup = Map.groupBy(stationNodes, n => n.groupId)
+  const nodesByGroup = Map.groupBy(stationNodes, n => n.item.groupId ?? '')
 
   // Connect each transit station nodes
   stationNodes.forEach(node => {
-    nodesByGroup.get(node.groupId)?.forEach(current => {
-      if (node !== current && !arcExists(node, current) && node.routeId !== current.routeId) {
+    const item = node.item
+    if (!item) return
+    nodesByGroup.get(item.groupId)?.forEach(current => {
+      if (node !== current && !arcExists(node, current) && item.routeId !== current.item.routeId) {
         // TODO: configure arc cost
         const arc = generateArc(node, current, 1)
         connect(node, current, arc)

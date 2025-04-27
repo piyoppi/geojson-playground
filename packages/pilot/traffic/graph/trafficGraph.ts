@@ -1,11 +1,8 @@
 import type { Arc, GraphNode } from "../../graph/graph"
-import type { Position2D } from "../../geometry"
-import type { RouteId } from "../transportation"
+import { Station } from "../transportation"
 
-export type TrafficGraphNode = GraphNode & {
-  position: Position2D
-  name: string
-  routeId: RouteId
+export type TrafficGraphNode<T extends Station> = GraphNode & {
+  item: T
 }
 
 export type TrafficArc = Arc

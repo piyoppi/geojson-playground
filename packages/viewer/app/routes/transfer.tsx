@@ -19,16 +19,16 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Transfer() {
-  const [nodes, setNodes] = useState<TrafficGraphNode[][]>([])
+  const [nodes, setNodes] = useState<TrafficGraphNode<Station>[][]>([])
   const [railroads, setRailroads] = useState<Railroad[]>([])
   const [busRoutes, setBusRoutes] = useState<BusRoute[]>([])
   const [fromStation, setFromStation] = useState<Station | null>(null)
   const [toStation, setToStation] = useState<Station | null>(null)
-  const [transferResult, setTransferResult] = useState<TrafficGraphNode[] | null>(null)
+  const [transferResult, setTransferResult] = useState<TrafficGraphNode<Station>[] | null>(null)
 
   const handleFileLoaded = useCallback(
     (
-      data: TrafficGraphNode[],
+      data: TrafficGraphNode<Station>[],
       railroads: Railroad[],
       busRoutes: BusRoute[]
     ) => {
@@ -40,23 +40,19 @@ export default function Transfer() {
   )
 
   const handleFromStationSelected = useCallback((station: Station) => {
-    console.log("fromStation", station)
     setFromStation(station)
   }, [])
 
   const handleToStationSelected = useCallback((station: Station) => {
-    console.log("toStation", station)
     setToStation(station)
   }, [])
 
   const handleSearch = useCallback(() => {
-    console.log("fromStation", fromStation)
-    console.log("toStation", toStation)
     if (!fromStation || !toStation) return
 
     const startNode = nodes.flat().find(n => isEqualNodeId(n.id, fromStation?.id))
     const endNode = nodes.flat().find(n => isEqualNodeId(n.id, toStation?.id))
-    console.log(`startNode: ${startNode?.name}(${startNode?.id}), endNode: ${endNode?.name}(${endNode?.id})`)
+    console.log(`startNode: ${startNode?.item.name}(${startNode?.id}), endNode: ${endNode?.item.name}(${endNode?.item.id})`)
 
     if (!startNode || !endNode) return
 
@@ -83,7 +79,7 @@ export default function Transfer() {
           <ol>
             {transferResult?.map((node, index) => (
               <li key={index}>
-                {node.name} ({node.id})
+                {node.item.name} ({node.id})
               </li>
             ))}
           </ol>

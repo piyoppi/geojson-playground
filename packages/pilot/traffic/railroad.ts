@@ -1,4 +1,3 @@
-import type { Position2D } from "../geometry"
 import type { Path } from "../path"
 import {
   serializeRoute,
@@ -20,11 +19,9 @@ export type SerializedRailroad = SerializedRoute<SerializedRailroadStation> & {
 
 export type Station = TransportationStation & {
   groupId: string,
-  position: Position2D
 }
 export type SerializedRailroadStation = SerializedStation & {
   groupId: string,
-  position: Position2D
 }
 
 export const serializeRailroad = (railroad: Railroad): SerializedRailroad => ({

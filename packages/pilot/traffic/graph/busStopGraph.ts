@@ -3,7 +3,7 @@ import { TrafficGraphNode } from "./trafficGraph.js"
 import type { BusStop } from "../busroute"
 import type { RouteId } from "../transportation"
 
-export type BusStopNode = BusStop & TrafficGraphNode
+export type BusStopNode = TrafficGraphNode<BusStop>
 
 export const toBusStopGraph = (
   busStops: BusStop[],
@@ -16,7 +16,7 @@ export const toBusStopGraph = (
         routeId,
         fromNeighborsPoints(
           busStops,
-          busStop => ({ ...busStop }),
+          busStop => ({id: busStop.id,  item: busStop}),
           busStop => busStop.position
         )
       ])

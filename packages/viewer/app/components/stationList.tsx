@@ -9,7 +9,7 @@ export function StationList({ stations, onStationSelected }: PropTypes) {
   return (
     <ul>
       {stations.map(station => (
-        <li key={station.id}>
+        <li key={station.id.toString()}>
           <button type="button" onClick={() => onStationSelected && onStationSelected(station)}>{station.name}</button>
         </li>
       ))}

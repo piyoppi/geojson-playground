@@ -9,7 +9,7 @@ export function RailroadList({ railroads, onRailroadSelected }: PropTypes) {
   return (
     <ul>
       {railroads.map(railroad => (
-        <li key={railroad.id}>
+        <li key={railroad.id.toString()}>
           <button type="button" onClick={() => onRailroadSelected && onRailroadSelected(railroad)}>{railroad.name}</button>
         </li>
       ))}
