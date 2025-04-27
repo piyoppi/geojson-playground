@@ -25,16 +25,15 @@ export type SerializedRailroadStation = SerializedStation & {
 }
 
 export const serializeRailroad = (railroad: Railroad): SerializedRailroad => ({
-  ...railroad,
+  name: railroad.name,
+  company: railroad.company,
   ...serializeRoute(railroad, (s) => ({
-    ...s,
     ...serializeStation(s),
-  })),
-  rails: undefined
+    groupId: s.groupId,
+  }))
 })
 
 export const deserializeRailroad = (railroad: SerializedRailroad): Railroad => ({
-  ...railroad,
   ...deserializeRoute(railroad, (s, id) => ({
     ...s,
     ...deserializeStation(s, id),

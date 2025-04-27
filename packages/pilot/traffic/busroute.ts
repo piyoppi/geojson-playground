@@ -25,17 +25,10 @@ export type SerializedBusStop = SerializedStation & {
 export type SerializedBusRoute = SerializedRoute<SerializedBusStop>
 
 export const serializedBusRoute = (busRoute: BusRoute): SerializedBusRoute => ({
-  ...busRoute,
-  ...serializeRoute(busRoute, (s) => ({
-    ...s,
-    ...serializeStation(s),
-  }))
+  name: busRoute.name,
+  company: busRoute.company,
+  ...serializeRoute(busRoute, s => serializeStation(s))
 })
 
-export const deserializeBusRoute = (busRoute: SerializedBusRoute): BusRoute => ({
-  ...busRoute,
-  ...deserializeRoute(busRoute, (s, id) => ({
-    ...s,
-    ...deserializeStation(s, id),
-  }))
-})
+export const deserializeBusRoute = (busRoute: SerializedBusRoute): BusRoute =>
+  deserializeRoute(busRoute, (s, id) => deserializeStation(s, id))
