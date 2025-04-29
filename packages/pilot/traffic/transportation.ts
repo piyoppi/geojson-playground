@@ -1,24 +1,18 @@
 import { Position2D } from "../geojson.js"
-import { bytesToBase64String, base64ToString } from "../utils/Id.js"
+import { bytesToBase64String, base64ToString, toId } from "../utils/Id.js"
 
-export type RouteId = Uint8Array & { readonly __brand: unique symbol }
-export const RouteId = (routeId: Uint8Array): RouteId => routeId as RouteId 
+export type RouteId = ArrayBuffer & { readonly __brand: unique symbol }
+export const RouteId = (routeId: ArrayBuffer): RouteId => routeId as RouteId 
 export const routeIdToString = (id: RouteId) => bytesToBase64String(id)
 const hexStringToRouteId = (str: string) => RouteId(base64ToString(str))
 
-export type StationId = Uint8Array & { readonly __brand: unique symbol }
-export const StationId = (stationId: Uint8Array): StationId => stationId as StationId 
+export type StationId = ArrayBuffer & { readonly __brand: unique symbol }
+export const StationId = (stationId: ArrayBuffer): StationId => stationId as StationId 
 export const stationIdToString = (id: StationId) => bytesToBase64String(id)
 const hexStringToStationId = (str: string) => StationId(base64ToString(str))
 
-const toId = async (str: string) => {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(str)
-  return await crypto.subtle.digest('SHA-1', data)
-}
-
-export const toRouteId = async (str: string) => RouteId(new Uint8Array(await toId(str)))
-export const toStationId = async (str: string) => StationId(new Uint8Array(await toId(str)))
+export const toRouteId = async (str: string) => RouteId(await toId(str))
+export const toStationId = async (str: string) => StationId(await toId(str))
 
 export type Route<S extends Station> = {
   id: RouteId,

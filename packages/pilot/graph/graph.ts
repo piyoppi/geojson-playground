@@ -1,7 +1,12 @@
 import { bytesToBase64String } from "../utils/Id.js"
 
-export type NodeId = Uint8Array
-export const isEqualNodeId = (a: NodeId, b: NodeId): boolean => a.length === b.length && a.every((byte, index) => byte === b[index])
+export type NodeId = ArrayBuffer
+export const isEqualNodeId = (aNodeId: NodeId, bNodeId: NodeId): boolean => {
+  const a = new Uint8Array(aNodeId)
+  const b = new Uint8Array(bNodeId)
+
+  return a.length === b.length && a.every((byte, index) => byte === b[index])
+}
 export const nodeIdToString = (id: NodeId) => bytesToBase64String(id)
 
 export type GraphNode = {
