@@ -1,15 +1,15 @@
 import { Position2D } from "../geojson.js"
-import { bytesToBase64String, base64ToString, toId } from "../utils/Id.js"
+import { toId, idToString, stringToId, Id } from "../utils/Id.js"
 
-export type RouteId = ArrayBuffer & { readonly __brand: unique symbol }
-export const RouteId = (routeId: ArrayBuffer): RouteId => routeId as RouteId 
-export const routeIdToString = (id: RouteId) => bytesToBase64String(id)
-const hexStringToRouteId = (str: string) => RouteId(base64ToString(str))
+export type RouteId = Id & { readonly __brand: unique symbol }
+export const RouteId = (routeId: Id): RouteId => routeId as RouteId 
+export const routeIdToString = (id: RouteId) => idToString(id)
+const stringToRouteId = (str: string) => RouteId(stringToId(str))
 
-export type StationId = ArrayBuffer & { readonly __brand: unique symbol }
-export const StationId = (stationId: ArrayBuffer): StationId => stationId as StationId 
-export const stationIdToString = (id: StationId) => bytesToBase64String(id)
-const hexStringToStationId = (str: string) => StationId(base64ToString(str))
+export type StationId = Id & { readonly __brand: unique symbol }
+export const StationId = (stationId: Id): StationId => stationId as StationId 
+export const stationIdToString = (id: StationId) => idToString(id)
+const stringToStationId = (str: string) => StationId(stringToId(str))
 
 export const toRouteId = async (str: string) => RouteId(await toId(str))
 export const toStationId = async (str: string) => StationId(await toId(str))
@@ -59,7 +59,7 @@ export const deserializeRoute = <S extends SerializedStation, SS extends Station
   route: SerializedRoute<S>,
   deserializeStation: (station: S, routeId: RouteId) => SS
 ) => {
-  const id = hexStringToRouteId(route.id)
+  const id = stringToRouteId(route.id)
   return {
     ...route,
     id,
@@ -69,6 +69,6 @@ export const deserializeRoute = <S extends SerializedStation, SS extends Station
 
 export const deserializeStation = (station: SerializedStation, routeId: RouteId) => ({
   ...station,
-  id: hexStringToStationId(station.id),
+  id: stringToStationId(station.id),
   routeId
 })
