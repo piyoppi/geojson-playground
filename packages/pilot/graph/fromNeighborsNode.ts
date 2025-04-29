@@ -10,7 +10,7 @@ type CallbackGenerated = {
 
 export const graphBuilder = (
   generateArc: ArcGenerator
-) => <T, U extends CallbackGenerated>(
+) => async <T, U extends CallbackGenerated>(
   point: T[],
   createNodeCallback: (node: T) => U,
   getPointCallback: (node: T) => Position2D,
@@ -25,7 +25,7 @@ export const graphBuilder = (
       position,
       items.map(([item, p]) => [() => p, () => item]),
       2,
-    ).filter(({item: pair}) => !arcExists(item, pair))
+    ).filter(async ({item: pair}) => !(await arcExists(item, pair)))
 
     if (nearest.length > 0) {
       for (const { item: nearestItem, distance } of nearest) {

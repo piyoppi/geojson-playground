@@ -8,21 +8,23 @@ export type BusStopNode = TrafficGraphNode<BusStop>
 
 export const buildBusStopGraphGenerator = (
   generateArc: ArcGenerator
-) => (
+) => async (
   busStops: BusStop[],
-): Map<RouteId, BusStopNode[]> => {
+): Promise<Map<RouteId, BusStopNode[]>> => {
   const fromNeighborsPoints = graphBuilder(generateArc)
   return new Map(
-    Map.groupBy(busStops, b => b.routeId)
+    await Promise.all(
+     Map.groupBy(busStops, b => b.routeId)
       .entries()
-      .toArray()
-      .map<[RouteId, BusStopNode[]]>(([routeId, busStops]) => [
+      .map<Promise<[RouteId, BusStopNode[]]>>(async ([routeId, busStops]) => [
         routeId,
-        fromNeighborsPoints(
+        await fromNeighborsPoints(
           busStops,
           busStop => ({id: busStop.id,  item: busStop}),
           busStop => busStop.position
         )
       ])
+      .toArray()
+    )
   )
 }

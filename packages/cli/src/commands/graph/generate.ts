@@ -19,31 +19,33 @@ export const execute = async (
   const buildStationGraph = buildDefaultStationGrpahGenerator()
   const buildBusStopGraph = buildDefaultBusStopGraphGenerator()
 
-  if (!inputRailroadFilename || !inputStationFilename) {
-    return { railroads: [], stationNodes: [] }
+  const railroads = []
+  const stationNodes = []
+
+  if (inputRailroadFilename && inputStationFilename) {
+    const railroadGeoJson = JSON.parse(readFileSync(inputRailroadFilename, "utf-8"))
+    const stationsGeoJson = JSON.parse(readFileSync(inputStationFilename, "utf-8"))
+    const overrideInput = option?.overrideRailroadInputFilename ?
+      JSON.parse(readFileSync(option.overrideRailroadInputFilename, "utf-8")) :
+      {}
+
+    const railroadsGeoJson = {
+      ...railroadGeoJson,
+      features: [...railroadGeoJson.features, ...overrideInput.features ?? []],
+    } as RailroadsGeoJson
+
+    railroads.push(...await toRailRoads(railroadsGeoJson, stationsGeoJson))
+    stationNodes.push(...await buildStationGraph(railroads))
   }
 
-  const railroadGeoJson = JSON.parse(readFileSync(inputRailroadFilename, "utf-8"))
-  const stationsGeoJson = JSON.parse(readFileSync(inputStationFilename, "utf-8"))
-  const overrideInput = option?.overrideRailroadInputFilename ?
-    JSON.parse(readFileSync(option.overrideRailroadInputFilename, "utf-8")) :
-    {}
+  const busRoutes = []
+  const busNodes = []
 
-  const railroadsGeoJson = {
-    ...railroadGeoJson,
-    features: [...railroadGeoJson.features, ...overrideInput.features ?? []],
-  } as RailroadsGeoJson
-
-  const railroads = await toRailRoads(railroadsGeoJson, stationsGeoJson)
-  const stationNodes = await buildStationGraph(railroads)
-
-  if (!inputBusStopFilename) {
-    return { busRoutes: [], busNodes: [] }
+  if (inputBusStopFilename) {
+    const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"))
+    busRoutes.push(...await toBusStops(inputBusStopJson))
+    busNodes.push(...Array.from((await buildBusStopGraph(busRoutes.flatMap(b => b.stations))).values()).flat())
   }
-
-  const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"))
-  const busRoutes = await toBusStops(inputBusStopJson)
-  const busNodes = Array.from(buildBusStopGraph(busRoutes.flatMap(b => b.stations)).values()).flat()
 
   const output = JSON.stringify(await toTrafficGraphFile([...stationNodes, ...busNodes], railroads, busRoutes))
 

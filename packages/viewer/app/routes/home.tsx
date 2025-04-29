@@ -21,7 +21,7 @@ export default function Home() {
   const [nodes, setNodes] = useState<TrafficGraphNode<Station>[][]>([])
   const [railroads, setRailroads] = useState<Railroad[]>([])
   const [busRoutes, setBusRoutes] = useState<BusRoute[]>([])
-  const [activeRouteId, setActiveRouteId] = useState<RouteId | null>()
+  const [activeRouteId, setActiveRouteId] = useState<RouteId | undefined>()
 
   const handleFileLoaded = useCallback(
     (
@@ -61,7 +61,7 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
-      { activeRouteId && <MapViewer activeRouteId={activeRouteId} nodeSet={nodes}/> }
+      <MapViewer activeRouteId={activeRouteId} nodeSet={nodes}/>
     </div>
   </>;
 }
