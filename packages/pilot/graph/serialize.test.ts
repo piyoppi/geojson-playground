@@ -1,11 +1,18 @@
 import { describe, it, TestContext } from 'node:test'
-import { GraphNode, generateArc, connect } from './graph'
+import { GraphNode, connect } from './graph'
 import { serialize, deserialize} from './serialize'
+import { ArcGenerator } from './arcGenerator'
 
 const graphs = () => {
   const nodeA: GraphNode = { id: 'A', arcs: [] }
   const nodeB: GraphNode = { id: 'B', arcs: [] }
   const nodeC: GraphNode = { id: 'C', arcs: [] }
+
+  const generateArc: ArcGenerator = (a, b, cost) => ({
+    a: () => Promise.resolve(a),
+    b: () => Promise.resolve(b),
+    cost
+  })
   
   const arcAB = generateArc(nodeA, nodeB, 10)
   const arcBC = generateArc(nodeB, nodeC, 20)
@@ -58,9 +65,8 @@ describe('Graph serialization and deserialization', () => {
     t.assert.equal(nodeCDeserialized?.arcs.length, 2)
     
     const hasArcBetween = (a: GraphNode, b: GraphNode) => {
-      return a.arcs.some(arc => {
-        const nodeA = arc.a.deref()
-        const nodeB = arc.b.deref()
+      return a.arcs.some(async arc => {
+        const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
         return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
       })
     }

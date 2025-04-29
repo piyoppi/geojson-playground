@@ -1,4 +1,6 @@
-import { type GraphNode, type Arc, generateArc, connect, nodeIdToString, NodeId } from './graph.js'
+import type { Arc } from './arc'
+import { ArcGenerator } from './arcGenerator.js'
+import { type GraphNode, connect, nodeIdToString, NodeId } from './graph.js'
 
 export type SerializedGraphNode = {
   id: string
@@ -10,17 +12,16 @@ export type SerializedArc = {
   arcCost: string
 }
 
-export const serialize = <G extends GraphNode>(
+export const serialize = async <G extends GraphNode>(
   nodes: G[]
-): { arcs: SerializedArc[] } => {
+): Promise<{ arcs: SerializedArc[] }> => {
   const serializedArcs: SerializedArc[] = []
   const processedArcs = new Set<Arc>()
   
   for (const node of nodes) {
-    
     for (const arc of node.arcs) {
       if (!processedArcs.has(arc)) {
-        const serializedArc = serializeArc(arc)
+        const serializedArc = await serializeArc(arc)
         if (serializedArc) {
           serializedArcs.push(serializedArc)
           processedArcs.add(arc)
@@ -34,7 +35,10 @@ export const serialize = <G extends GraphNode>(
   }
 }
 
-export const deserialize = <InputItems extends {id: NodeId}, G extends GraphNode>(
+export type GraphDeserializer = ReturnType<typeof buildGraphDeserializer>
+export const buildGraphDeserializer = (
+  generateArc: ArcGenerator
+) => <InputItems extends {id: NodeId}, G extends GraphNode>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
   graphGenerator: (node: InputItems, id: string) => G
@@ -67,9 +71,8 @@ export const deserialize = <InputItems extends {id: NodeId}, G extends GraphNode
   return Array.from(nodeMap.values())
 }
 
-const serializeArc = (arc: Arc): SerializedArc | undefined => {
-  const nodeA = arc.a.deref()
-  const nodeB = arc.b.deref()
+const serializeArc = async (arc: Arc): Promise<SerializedArc | undefined> => {
+  const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
   
   if (!nodeA || !nodeB) {
     return undefined

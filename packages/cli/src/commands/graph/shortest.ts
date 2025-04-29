@@ -1,11 +1,13 @@
 import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
 import { readFileSync } from 'node:fs'
-import { fromTrafficGraphFile, type TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile'
+import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
+import type { TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile'
 
-export const execute = (inputGraphFilename: string, fromId: string, toId: string) => {
+export const execute = async (inputGraphFilename: string, fromId: string, toId: string) => {
+  const trafficGraphFromFile = buildDefaultTrafficGraphFromFile()
   const railroadJson = JSON.parse(readFileSync(inputGraphFilename, "utf-8")) as TrafficGraphFile
 
-  const { graph } = fromTrafficGraphFile(railroadJson)
+  const { graph } = trafficGraphFromFile(railroadJson)
 
   const startNode = graph.find(n => n.id === fromId)
   const endNode = graph.find(n => n.id === toId)
@@ -13,7 +15,7 @@ export const execute = (inputGraphFilename: string, fromId: string, toId: string
   console.log(`startNode: ${startNode?.name}(${startNode.id}), endNode: ${endNode?.name}(${endNode.id})`)
 
   console.log(
-    findShortestPath(startNode, endNode)
+    (await findShortestPath(startNode, endNode))
       .map(node => `${node.name}(${node.id}) \n ↓ ${node.routeId} \n`)
       .join('')
   )

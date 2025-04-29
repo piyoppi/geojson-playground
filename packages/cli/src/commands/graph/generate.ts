@@ -1,8 +1,7 @@
-import { toStationGraph } from '@piyoppi/sansaku-pilot/traffic/graph/stationGraph.js'
+import { buildDefaultStationGrpahGenerator, buildDefaultBusStopGraphGenerator } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/MLITGisTypes/busRoute.js'
 import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
-import { toBusStopGraph } from '@piyoppi/sansaku-pilot/traffic/graph/busStopGraph.js'
 import { toTrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
 import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
 
@@ -17,39 +16,34 @@ export const execute = async (
   inputBusStopFilename?: string,
   option?: Option
 ) => {
-  const { railroads, stationNodes } = await (async () => {
-    if (!inputRailroadFilename || !inputStationFilename) {
-      return { railroads: [], stationNodes: [] }
-    }
+  const buildStationGraph = buildDefaultStationGrpahGenerator()
+  const buildBusStopGraph = buildDefaultBusStopGraphGenerator()
 
-    const railroadGeoJson = JSON.parse(readFileSync(inputRailroadFilename, "utf-8"))
-    const stationsGeoJson = JSON.parse(readFileSync(inputStationFilename, "utf-8"))
-    const overrideInput = option?.overrideRailroadInputFilename ?
-      JSON.parse(readFileSync(option.overrideRailroadInputFilename, "utf-8")) :
-      {}
+  if (!inputRailroadFilename || !inputStationFilename) {
+    return { railroads: [], stationNodes: [] }
+  }
 
-    const railroadsGeoJson = {
-      ...railroadGeoJson,
-      features: [...railroadGeoJson.features, ...overrideInput.features ?? []],
-    } as RailroadsGeoJson
+  const railroadGeoJson = JSON.parse(readFileSync(inputRailroadFilename, "utf-8"))
+  const stationsGeoJson = JSON.parse(readFileSync(inputStationFilename, "utf-8"))
+  const overrideInput = option?.overrideRailroadInputFilename ?
+    JSON.parse(readFileSync(option.overrideRailroadInputFilename, "utf-8")) :
+    {}
 
-    const railroads = await toRailRoads(railroadsGeoJson, stationsGeoJson)
-    const stationNodes = await toStationGraph(railroads)
+  const railroadsGeoJson = {
+    ...railroadGeoJson,
+    features: [...railroadGeoJson.features, ...overrideInput.features ?? []],
+  } as RailroadsGeoJson
 
-    return { railroads, stationNodes }
-  })()
+  const railroads = await toRailRoads(railroadsGeoJson, stationsGeoJson)
+  const stationNodes = await buildStationGraph(railroads)
 
-  const { busRoutes, busNodes } =  await(async () => {
-    if (!inputBusStopFilename) {
-      return { busRoutes: [], busNodes: [] }
-    }
+  if (!inputBusStopFilename) {
+    return { busRoutes: [], busNodes: [] }
+  }
 
-    const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"))
-    const busRoutes = await toBusStops(inputBusStopJson)
-    const busNodes = Array.from(toBusStopGraph(busRoutes.flatMap(b => b.stations)).values()).flat()
-
-    return { busRoutes, busNodes }
-  })()
+  const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"))
+  const busRoutes = await toBusStops(inputBusStopJson)
+  const busNodes = Array.from(buildBusStopGraph(busRoutes.flatMap(b => b.stations)).values()).flat()
 
   const output = JSON.stringify(toTrafficGraphFile([...stationNodes, ...busNodes], railroads, busRoutes))
 

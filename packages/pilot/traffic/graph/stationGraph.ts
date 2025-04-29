@@ -1,27 +1,37 @@
-import { center } from "../../geometry.js"
-import { fromPathChain } from "../../graph/fromPathChain.js"
-import { arcExists, connect, generateArc, mergeDuplicateNodes, NodeId } from "../../graph/graph.js"
+import { ArcGenerator } from "../../graph/arcGenerator.js"
+import { buildGraphBuilder } from "../../graph/fromPathChain.js"
+import { arcExists, connect, DuplicateNodesMarger } from "../../graph/graph.js"
 import { ends, buildPathchain } from '../../pathchain.js'
 import { Railroad, Station } from "../railroad.js"
+import { RouteId } from "../transportation.js"
 import type { TrafficGraphNode } from "./trafficGraph"
 
 export type StationNode = TrafficGraphNode<Station>
+type TransferCostGenerator = (aNode: StationNode, bNode: StationNode) => number
 
-export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode[]> => {
+export const buildStationGraphGenerator = (
+  generateArc: ArcGenerator,
+  generateTransferCost: TransferCostGenerator,
+  nodeMerger: DuplicateNodesMarger
+) => async (
+  railroads: Railroad[]
+): Promise<StationNode[]> => {
   const stationNodes = (await Promise.all(
         railroads.map(railroad => buildPathchain(railroad.rails).then(g => [railroad, g] as const))
       ).then(results => Promise.all(
-        results.flatMap(([railroad, isolatedPathChains]) =>
-          isolatedPathChains.map(pathchains => {
+        results.flatMap(([railroad, isolatedPathChains]) => {
+          const fromPathChain = buildGraphBuilder(
+            railroad.stations.map(s => ({...s})),
+            s => Promise.resolve({id: s.id, item: s}),
+            s => s.routeId,
+            generateArc
+          )
+          return isolatedPathChains.map(pathchains => {
             const end = ends(pathchains)[0]
 
-            return fromPathChain(
-              railroad.stations.map(s => ({...s})),
-              s => Promise.resolve({id: s.id, item: s}),
-              s => s.routeId
-            )(pathchains, end.from)
+            return fromPathChain(pathchains, end.from)
           })
-        )
+        })
       ))
     )
     .reduce((acc, map) => {
@@ -30,26 +40,26 @@ export const toStationGraph = async (railroads: Railroad[]): Promise<StationNode
         acc.set(k, [...cur, ...v])
       })
       return acc
-    }, new Map<NodeId, StationNode[]>())
+    }, new Map<RouteId, StationNode[]>())
     .values()
-    .map(v => mergeDuplicateNodes(v))         // Isolated pathchains may have same station
     .toArray()
-    .flat()
 
-  const nodesByGroup = Map.groupBy(stationNodes, n => n.item.groupId ?? '')
+  // Isolated pathchains may have same station
+  const mergedStationNodes = (await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat()
+
+  const nodesByGroup = Map.groupBy(mergedStationNodes, n => n.item.groupId ?? '')
 
   // Connect each transit station nodes
-  stationNodes.forEach(node => {
+  mergedStationNodes.forEach(node => {
     const item = node.item
     if (!item) return
     nodesByGroup.get(item.groupId)?.forEach(current => {
       if (node !== current && !arcExists(node, current) && item.routeId !== current.item.routeId) {
-        // TODO: configure arc cost
-        const arc = generateArc(node, current, 1)
+        const arc = generateArc(node, current, generateTransferCost(node, current))
         connect(node, current, arc)
       }
     })
   })
 
-  return stationNodes
+  return mergedStationNodes
 }

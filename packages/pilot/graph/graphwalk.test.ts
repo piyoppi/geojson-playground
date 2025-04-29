@@ -8,8 +8,8 @@ describe('walk function', () => {
   const connect = (a: GraphNode & { id: string }, b: GraphNode & { id: string }, cost = 1): void => {
     const arcAB: Arc = {
       cost,
-      a: new WeakRef(a),
-      b: new WeakRef(b)
+      a: () => Promise.resolve(a),
+      b: () => Promise.resolve(b)
     }
     
     a.arcs.push(arcAB)

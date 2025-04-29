@@ -1,4 +1,6 @@
-import { Id, idToString } from "../utils/Id.js"
+import { type Id, idToString } from "../utils/Id.js"
+import type { Arc } from "./arc"
+import type { ArcGenerator } from "./arcGenerator"
 
 export type NodeId = Id
 export const isEqualNodeId = (aNodeId: NodeId, bNodeId: NodeId): boolean => aNodeId === bNodeId
@@ -9,21 +11,9 @@ export type GraphNode = {
   arcs: Arc[]
 }
 
-export type Arc = {
-  cost: number,
-  a: WeakRef<GraphNode>
-  b: WeakRef<GraphNode>,
-}
-
 export const generateNode = (id: NodeId): GraphNode => ({
   id: id,
   arcs: [],
-})
-
-export const generateArc = (a: GraphNode, b: GraphNode, cost: number): Arc => ({
-  cost: cost,
-  a: new WeakRef(a),
-  b: new WeakRef(b),
 })
 
 export const connect = (a: GraphNode, b: GraphNode, arc: Arc): void => {
@@ -31,10 +21,9 @@ export const connect = (a: GraphNode, b: GraphNode, arc: Arc): void => {
   b.arcs.push(arc)
 }
 
-export const disconnect = (a: GraphNode, b: GraphNode): void => {
-  const arcsToRemove = a.arcs.filter(arc => {
-    const nodeA = arc.a.deref()
-    const nodeB = arc.b.deref()
+export const disconnect = async (a: GraphNode, b: GraphNode) => {
+  const arcsToRemove = a.arcs.filter(async arc => {
+    const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
     return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
   })
 
@@ -42,12 +31,12 @@ export const disconnect = (a: GraphNode, b: GraphNode): void => {
   b.arcs = b.arcs.filter(arc => !arcsToRemove.includes(arc))
 }
 
-export const removeNode = (node: GraphNode): void => {
+export const removeNode = async (node: GraphNode) => {
   const connectedNodes: GraphNode[] = []
   
   for (const arc of node.arcs) {
-    const nodeA = arc.a.deref()
-    const nodeB = arc.b.deref()
+    const nodeA = await arc.a()
+    const nodeB = await arc.b()
     const connectedNode = nodeA === node ? nodeB : nodeA
     if (connectedNode && !connectedNodes.includes(connectedNode)) {
       connectedNodes.push(connectedNode)
@@ -57,9 +46,8 @@ export const removeNode = (node: GraphNode): void => {
   connectedNodes.forEach(connectedNode => disconnect(node, connectedNode))
 }
 
-export const to = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
-  const nodeA = arc.a?.deref()
-  const nodeB = arc.b.deref()
+export const to = async <T extends GraphNode>(fromNode: T, arc: Arc): Promise<T | null> => {
+  const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
 
   if (fromNode !== nodeA && nodeB === fromNode) return nodeA as T
   if (fromNode !== nodeB && nodeA === fromNode) return nodeB as T
@@ -67,22 +55,26 @@ export const to = <T extends GraphNode>(fromNode: T, arc: Arc): T | null => {
   return null
 }
 
-export const arcExists = (a: GraphNode, b: GraphNode): boolean => {
-  return a.arcs.some(arc => {
-    const nodeA = arc.a.deref()
-    const nodeB = arc.b.deref()
+export const arcExists = async (a: GraphNode, b: GraphNode): Promise<boolean> => {
+  return a.arcs.some(async arc => {
+    const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
+
     return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
   })
 }
 
-export const mergeNodes = <T extends GraphNode>(...nodes: T[]): T => {
+export const buildNodeMerger = (
+  generateArc: ArcGenerator
+) => async <T extends GraphNode>(
+  ...nodes: T[]
+): Promise<T> => {
   const mergedNode = {...nodes[0], arcs: []}
   const arcMap = new Map<GraphNode, { totalCost: number, count: number }>()
   
   for (const node of nodes) {
     for (const arc of node.arcs) {
-      const nodeA = arc.a.deref() as T
-      const nodeB = arc.b.deref() as T
+      const nodeA = await arc.a() as T
+      const nodeB = await arc.b() as T
       
       if (nodes.includes(nodeA) && nodes.includes(nodeB)) continue
       
@@ -109,27 +101,32 @@ export const mergeNodes = <T extends GraphNode>(...nodes: T[]): T => {
   return mergedNode
 }
 
-export const mergeDuplicateNodes = <T extends GraphNode>(targetNodes: T[]): T[] => {
+export type DuplicateNodesMarger = ReturnType<typeof buildDuplicateNodesMarger>
+export const buildDuplicateNodesMarger = (
+  mergeNodes: ReturnType<typeof buildNodeMerger>
+) => async <T extends GraphNode>(targetNodes: T[]): Promise<T[]> => {
   const duplicatedNodes = new Set()
 
-  Map.groupBy(targetNodes, n => n.id).values().forEach(nodes => {
-    if (nodes.length > 1) {
-      const mergedNode = mergeNodes(...nodes)
-      targetNodes.push(mergedNode)
-      nodes.forEach(node => {
-        removeNode(node)
-        duplicatedNodes.add(node)
-      })
-    }
-  })
+  await Promise.all(
+    Map.groupBy(targetNodes, n => n.id).values().map(async nodes => {
+      if (nodes.length > 1) {
+        const mergedNode = await mergeNodes(...nodes)
+        targetNodes.push(mergedNode)
+        nodes.forEach(node => {
+          removeNode(node)
+          duplicatedNodes.add(node)
+        })
+      }
+    })
+  )
 
   return targetNodes.filter(node => !duplicatedNodes.has(node))
 }
 
-export const findShortestPath = <T extends GraphNode>(
+export const findShortestPath = async <T extends GraphNode>(
   startNode: T,
   endNode: T
-): T[] => {
+): Promise<T[]> => {
   const visited = new Set<NodeId>()
 
   const distances = new Map<NodeId, number>()
@@ -154,8 +151,7 @@ export const findShortestPath = <T extends GraphNode>(
     visited.add(currentNode.id)
 
     for (const arc of currentNode.arcs) {
-      const nodeA = arc.a.deref()
-      const nodeB = arc.b.deref()
+      const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
 
       if (!nodeA || !nodeB) continue
 

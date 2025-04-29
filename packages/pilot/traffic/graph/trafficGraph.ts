@@ -1,5 +1,6 @@
-import type { Arc, GraphNode } from "../../graph/graph"
-import { Station } from "../transportation"
+import type { Arc } from "../../graph/arc"
+import type { GraphNode } from "../../graph/graph"
+import type { Station } from "../transportation"
 
 export type TrafficGraphNode<T extends Station> = GraphNode & {
   item: T
