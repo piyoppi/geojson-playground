@@ -1,6 +1,6 @@
 import { buildWeakRefArc } from "../../graph/arc.js"
 import { buildDuplicateNodesMarger, buildNodeMerger } from "../../graph/graph.js"
-import { buildGraphDeserializer } from "../../graph/serialize"
+import { buildGraphDeserializer } from "../../graph/serialize.js"
 import { buildBusStopGraphGenerator } from "./busStopGraph.js"
 import { buildTrafficGraphDeserializer } from "./serialize.js"
 import { buildStationGraphGenerator } from "./stationGraph.js"

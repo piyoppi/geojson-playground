@@ -45,7 +45,7 @@ export const execute = async (
   const busRoutes = await toBusStops(inputBusStopJson)
   const busNodes = Array.from(buildBusStopGraph(busRoutes.flatMap(b => b.stations)).values()).flat()
 
-  const output = JSON.stringify(toTrafficGraphFile([...stationNodes, ...busNodes], railroads, busRoutes))
+  const output = JSON.stringify(await toTrafficGraphFile([...stationNodes, ...busNodes], railroads, busRoutes))
 
   writeFileSync(outputFileName, output, "utf-8")
 }

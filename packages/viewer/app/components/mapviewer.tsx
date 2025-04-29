@@ -2,10 +2,10 @@ import { useEffect, useRef, useMemo, useState } from 'react'
 import Sigma from "sigma"
 import Graph from "graphology"
 import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
-import type { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
+import type { RouteId, Station } from '@piyoppi/sansaku-pilot/traffic/transportation'
 
 type PropTypes = {
-  nodeSet: TrafficGraphNode[][],
+  nodeSet: TrafficGraphNode<Station>[][],
   activeRouteId?: RouteId,
 }
 
@@ -13,7 +13,7 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
   const sigmaRef = useRef<Sigma | null>(null)
 
-  const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode[][]>([])
+  const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode<Station>[][]>([])
   const graph = useMemo(() => new Graph({ multi: true }), [])
 
   useEffect(() => {
@@ -23,25 +23,23 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
       graph.addNode(
         node.id,
         {
-          label: `${node.name}(${node.id})`,
-          routeId: node.routeId,
+          label: `${node.item.name}(${node.item.id})`,
+          routeId: node.item.routeId,
           size: 0.55,
-          x: node.position[0],
-          y: node.position[1],
+          x: node.item.position[0],
+          y: node.item.position[1],
           color: "blue"
         })
     })
 
-    nodes.forEach(node => {
-      node.arcs.forEach(arc => {
-        const aNode = arc.a.deref()
-        const bNode = arc.b.deref()
-
-        if (!aNode || !bNode) return
-
-        graph.addEdge(aNode.id, bNode.id, { color: "darkgray" })
-      })
-    })
+    for (const node of nodes) {
+      for (const arc of node.arcs) {
+        Promise.all([arc.a(), arc.b()]).then((([aNode, bNode]) => {
+          if (!aNode || !bNode) return
+          graph.addEdge(aNode.id, bNode.id, { color: "darkgray" })
+        }))
+      }
+    }
 
     setRenderedNodeSet([...nodeSet])
   }, [nodeSet])

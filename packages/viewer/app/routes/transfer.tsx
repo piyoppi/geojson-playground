@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react"
 import { TrafficFileReader } from "../components/trafficFileReader"
-import { Card, CardContent, CardFooter } from "~/components/ui/card"
-import { BusRouteList } from "~/components/busRouteList"
+import { Card, CardFooter } from "~/components/ui/card"
 import type { Route } from "./+types/home"
 import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraph"
 import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
@@ -47,7 +46,7 @@ export default function Transfer() {
     setToStation(station)
   }, [])
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback(async () => {
     if (!fromStation || !toStation) return
 
     const startNode = nodes.flat().find(n => isEqualNodeId(n.id, fromStation?.id))
@@ -56,7 +55,7 @@ export default function Transfer() {
 
     if (!startNode || !endNode) return
 
-    setTransferResult(findShortestPath(startNode, endNode))
+    setTransferResult(await findShortestPath(startNode, endNode))
   }, [fromStation, toStation, nodes])
 
   return <article className="p-4">
