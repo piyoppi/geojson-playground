@@ -1,9 +1,9 @@
 import { ArcGenerator } from "../../graph/arcGenerator.js"
 import { buildGraphBuilder } from "../../graph/fromPathChain.js"
-import { arcExists, connect, DuplicateNodesMarger } from "../../graph/graph.js"
+import { arcExists, connect, type DuplicateNodesMarger } from "../../graph/graph.js"
 import { ends, buildPathchain } from '../../pathchain.js'
-import { Railroad, Station } from "../railroad.js"
-import { RouteId } from "../transportation.js"
+import type { Railroad, Station } from "../railroad"
+import type { RouteId } from "../transportation"
 import type { TrafficGraphNode } from "./trafficGraph"
 
 export type StationNode = TrafficGraphNode<Station>

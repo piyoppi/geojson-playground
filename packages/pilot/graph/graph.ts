@@ -1,4 +1,4 @@
-import { type Id, idToString } from "../utils/Id.js"
+import { idToString, type Id } from "../utils/Id.js"
 import type { Arc } from "./arc"
 import type { ArcGenerator } from "./arcGenerator"
 

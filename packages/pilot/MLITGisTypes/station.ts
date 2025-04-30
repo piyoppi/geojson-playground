@@ -3,11 +3,13 @@ import type { Feature, LineString2D } from "../geojson"
 export type StationsGeoJson = {
   type: string
   name: string
-  features: Feature<LineString2D, Properties>[]
+  features: StationFeature[]
 }
 
+export type StationFeature = Feature<LineString2D, StationProperties>
+
 // ref: https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2023.html
-type Properties = {
+export type StationProperties = {
   N02_001: string
   N02_002: string
   N02_003: string       // 路線名

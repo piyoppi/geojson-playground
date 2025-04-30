@@ -11,7 +11,7 @@ export const buildDefaultStationGrpahGenerator = () => buildStationGraphGenerato
   () => 1,
   buildDuplicateNodesMarger(
     buildNodeMerger(
-      buildWeakRefArc
+      defaultArcGenerator
     )
   )
 )
@@ -33,4 +33,3 @@ const defaultGraphDeserializer = buildGraphDeserializer(
 const defaultTrafficGraphDeserializer = buildTrafficGraphDeserializer(
   defaultGraphDeserializer
 )
-

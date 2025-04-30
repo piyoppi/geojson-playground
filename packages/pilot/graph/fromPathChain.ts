@@ -1,9 +1,17 @@
-import type { Position2D } from "../geometry.js"
-import { findPointInPathChain, IsolatedPathChain, PathDirection, VisitFn, VisitFnGenerator, type PathChain, type PointInPathchain } from "../pathchain.js"
-import { BranchId, pathChainWalk } from "../walk.js"
-import { Path, pathLength } from "../path.js"
-import { connect, NodeId, type GraphNode } from "./graph.js"
-import { ArcGenerator } from "./arcGenerator.js"
+import { connect, type NodeId, type GraphNode } from "./graph.js"
+import { pathLength, type Path } from "../path.js"
+import { pathChainWalk, type BranchId } from "../walk.js"
+import {
+  findPointInPathChain,
+  type IsolatedPathChain,
+  type PathDirection,
+  type VisitFn,
+  type VisitFnGenerator,
+  type PathChain,
+  type PointInPathchain
+} from "../pathchain.js"
+import type { Position2D } from "../geometry"
+import type { ArcGenerator } from "./arcGenerator"
 
 type NodeOnPath = {
   position: Position2D,

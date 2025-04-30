@@ -1,4 +1,4 @@
-import { toRouteId, toStationId } from "../traffic/transportation.js"
+import { type Company, toCompanyId, toRouteId, toStationId } from "../traffic/transportation.js"
 import type { Feature, LineString2D } from "../geojson"
 import type { BusRoute } from "../traffic/busroute"
 import type { BusStopsGeoJson } from "./busStop"
@@ -14,22 +14,43 @@ type Properties = {
   N07_002: string       // 備考
 }
 
-export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<BusRoute[]> => {
+export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<[Company[], BusRoute[]]> => {
+  const companies = new Map<string, Company>(
+    await Promise.all(
+      new Set(busStopGeoJson.features.map(f => f.properties.P11_002))
+        .values()
+        .toArray()
+        .map(async name => [
+          name,
+          {
+            id: await toCompanyId(name),
+            name
+          }
+        ] as const)
+    )
+  )
+
   const busStops: BusRoute[] = await Promise.all(Map.groupBy(
       busStopGeoJson.features.flatMap(f => f.properties.P11_003_01.split(',').map(r => [f.properties.P11_001, f.properties.P11_002, r, f.geometry] as const)),
-      ([_, company, routeName]) => [company, routeName].join('-')
+      ([_, companyName, routeName]) => [companyName, routeName].join('-')
     )
     .entries()
     .map(async ([k, b]) => {
-      const [_name, company, routeName] = b[0]
+      const [_name, companyName, routeName] = b[0]
       const routeId = await toRouteId(k)
+
+      const company = companies.get(companyName)
+      if (!company) {
+        throw new Error(`Company is not found name: ${companyName}`)
+      }
+
       return {
         id: routeId,
         name: routeName,
-        company,
+        companyId: company.id,
         stations: await Promise.all(
           b.map(async ([name, _company, _routeName, geometry])=> ({
-            id: await toStationId(`${company}-${routeName}-${name}-${geometry.coordinates[0]}-${geometry.coordinates[1]}`),
+            id: await toStationId(`${companyName}-${routeName}-${name}-${geometry.coordinates[0]}-${geometry.coordinates[1]}`),
             name,
             routeId,
             position: geometry.coordinates
@@ -38,5 +59,5 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
       }
     }))
 
-  return busStops
+  return [companies.values().toArray(), busStops]
 }
