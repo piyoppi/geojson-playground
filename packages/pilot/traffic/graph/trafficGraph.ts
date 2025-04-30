@@ -1,4 +1,5 @@
-import type { Arc } from "../../graph/arc"
+import { buildWeakRefArc, type Arc } from "../../graph/arc"
+import { ArcGenerator } from "../../graph/arcGenerator"
 import type { GraphNode } from "../../graph/graph"
 import type { Station } from "../transportation"
 
@@ -6,4 +7,22 @@ export type TrafficGraphNode<T extends Station> = GraphNode & {
   item: T
 }
 
-export type TrafficArc = Arc
+export interface TransferOwnLineArc extends Arc {
+  type: 'TransferOwnLine'
+}
+
+export interface TransferOtherLineArc extends Arc {
+  type: 'TransferOtherLineArc'
+}
+
+export type TrafficArc = Arc | TransferOwnLineArc | TransferOtherLineArc
+
+export const generateTransferOwnLineArc: ArcGenerator<GraphNode> = (a, b, cost) => ({
+  type: 'transferOwnLine',
+  ...buildWeakRefArc(a, b, cost)
+})
+
+export const generateTransferOtherLineArc: ArcGenerator<GraphNode> = (a, b, cost) => ({
+  type: 'TransferOtherLineArc',
+  ...buildWeakRefArc(a, b, cost)
+})

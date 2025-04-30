@@ -1,24 +1,21 @@
 import { findNearestPoint, Position2D } from "../geometry.js"
-import { arcExists, connect, NodeId, type GraphNode } from "./graph.js"
+import { arcExists, connect, type GraphNode } from "./graph.js"
 import type { ArcGenerator } from "./arcGenerator"
+import { Arc } from "./arc.js"
 
-type Node<U> = U & GraphNode
+type CallbackGenerated<N> = Omit<N, 'arcs'>
 
-type CallbackGenerated = {
-  id: NodeId
-}
-
-export const graphBuilder = (
-  generateArc: ArcGenerator
-) => async <T, U extends CallbackGenerated>(
+export const graphBuilder = <N extends GraphNode>(
+  generateArc: ArcGenerator<N>
+) => async <T>(
   point: T[],
-  createNodeCallback: (node: T) => U,
+  createNodeCallback: (node: T) => CallbackGenerated<N>,
   getPointCallback: (node: T) => Position2D,
 ) => {
-  const items: [Node<U>, Position2D][] = 
+  const items: [N, Position2D][] = 
     point
       .map<[T, Position2D]>(n => [n, getPointCallback(n)])
-      .map(([n, p]) => [{arcs: [], ...createNodeCallback(n)}, p])
+      .map(([n, p]) => [{arcs: [] as Arc[], ...createNodeCallback(n)} as N, p])
 
   for (const [item, position] of items) {
     const nearest = findNearestPoint(

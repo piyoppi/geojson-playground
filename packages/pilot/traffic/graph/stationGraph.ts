@@ -10,7 +10,7 @@ export type StationNode = TrafficGraphNode<Station>
 type TransferCostGenerator = (aNode: StationNode, bNode: StationNode) => number
 
 export const buildStationGraphGenerator = (
-  generateArc: ArcGenerator,
+  generateArc: ArcGenerator<StationNode>,
   generateTransferCost: TransferCostGenerator,
   nodeMerger: DuplicateNodesMarger
 ) => async (
@@ -63,3 +63,4 @@ export const buildStationGraphGenerator = (
 
   return mergedStationNodes
 }
+

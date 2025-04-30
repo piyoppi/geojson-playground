@@ -64,7 +64,7 @@ export const arcExists = async (a: GraphNode, b: GraphNode): Promise<boolean> =>
 }
 
 export const buildNodeMerger = (
-  generateArc: ArcGenerator
+  generateArc: ArcGenerator<GraphNode>
 ) => async <T extends GraphNode>(
   ...nodes: T[]
 ): Promise<T> => {

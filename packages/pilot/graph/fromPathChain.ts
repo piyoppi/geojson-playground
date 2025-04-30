@@ -12,25 +12,22 @@ import {
 } from "../pathchain.js"
 import type { Position2D } from "../geometry"
 import type { ArcGenerator } from "./arcGenerator"
+import { Arc } from "./arc.js"
 
 type NodeOnPath = {
   position: Position2D,
 }
 
-type CallbackGenerated = {
-  id: NodeId
-}
+type CallbackGenerated<N> = Omit<N, 'arcs'>
 
-type Node<U> = U & GraphNode
-
-type CreateNodeCallbackFn<T, C extends CallbackGenerated> = (node: T, found: PointInPathchain) => Promise<C>
+type CreateNodeCallbackFn<T, N> = (item: T, found: PointInPathchain) => Promise<CallbackGenerated<N>>
 
 type GroupIdCallbackFn<T, G> = (node: T) => G
 
-type MappingContext<U extends CallbackGenerated> = {
-  previousContext?: MappingContext<U>
+type MappingContext<N> = {
+  previousContext?: MappingContext<N>
   paths: [Path, PathDirection][]
-  founds: [Node<U>, PointInPathchain][]
+  founds: [N, PointInPathchain][]
   branchId: BranchId
 }
 
@@ -61,13 +58,13 @@ export type MappingOption = {
  * 
  * @returns A function that accepts a path chain and visit generator, and returns a map of groups to nodes
  */
-export const buildGraphBuilder = <T extends NodeOnPath, U extends CallbackGenerated, G>(
+export const buildGraphBuilder = <T extends NodeOnPath, N extends GraphNode, G>(
   point: T[],
-  createNodeCallback: CreateNodeCallbackFn<T, U>,
+  createNodeCallback: CreateNodeCallbackFn<T, N>,
   groupIdCallback: GroupIdCallbackFn<T, G>,
-  arcGenerator: ArcGenerator,
+  arcGenerator: ArcGenerator<N>,
   options?: MappingOption
-) => async (pathChains: IsolatedPathChain, from: VisitFnGenerator): Promise<Map<G, (Node<U>)[]>> => {
+) => async (pathChains: IsolatedPathChain, from: VisitFnGenerator): Promise<Map<G, N[]>> => {
   const pointInPathchains: [T, PointInPathchain][] = point
     .map<[T, PointInPathchain | null]>(n => [n, findPointInPathChain(pathChains)(n.position)])
     .flatMap<[T, PointInPathchain]>(([n, p]) => n && p ? [[n, p]] : [])
@@ -112,7 +109,7 @@ const distance = (allPaths: [Path, PathDirection][], fromPointInPathchain: Point
   return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
 }
 
-const distanceBetweenNodes = <U extends CallbackGenerated>(ctx: MappingContext<U>, [to, from] = [0, 1]) => {
+const distanceBetweenNodes = <N>(ctx: MappingContext<N>, [to, from] = [0, 1]) => {
   const contexts = [ctx, ...findPreviousContexts(ctx)]
   const founds = contexts.map(c => c.founds.toReversed()).flat()
   const [_fromNode, fromPointInPathchain] = founds[from] ?? [undefined, undefined]
@@ -123,9 +120,9 @@ const distanceBetweenNodes = <U extends CallbackGenerated>(ctx: MappingContext<U
   return distance(contexts.map(c => c.paths).flat(), fromPointInPathchain, toPointInPathchain)
 }
 
-const findPreviousContexts = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
-  const previousContexts: MappingContext<U>[] = []
-  let current: MappingContext<U> | undefined = ctx.previousContext
+const findPreviousContexts = <N>(ctx: MappingContext<N>) => {
+  const previousContexts: MappingContext<N>[] = []
+  let current: MappingContext<N> | undefined = ctx.previousContext
   while (current) {
     previousContexts.push(current)
     if (current.founds.length > 0) {
@@ -137,8 +134,8 @@ const findPreviousContexts = <U extends CallbackGenerated>(ctx: MappingContext<U
   return []
 }
 
-const previousFound = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
-  let current: MappingContext<U> | undefined = ctx
+const previousFound = <N>(ctx: MappingContext<N>) => {
+  let current: MappingContext<N> | undefined = ctx
   while (current) {
     const found = current.founds.at(-1)
     if (found) return found
@@ -148,26 +145,28 @@ const previousFound = <U extends CallbackGenerated>(ctx: MappingContext<U>) => {
   return [undefined, undefined] as const
 }
 
-const createMappingContext = <U extends CallbackGenerated>(branchId: BranchId): MappingContext<U> => ({
+const createMappingContext = <N>(branchId: BranchId): MappingContext<N> => ({
   founds: [],
   paths: [],
   branchId,
 })
 
-const findPreviousContextFromBranchIdChain = <U extends CallbackGenerated>(
-  contextByBranchIdChain: Map<BranchIdChainSerialized, MappingContext<U>>,
+const findPreviousContextFromBranchIdChain = <N>(
+  contextByBranchIdChain: Map<BranchIdChainSerialized, MappingContext<N>>,
   branchIdChain: BranchId[]
-): MappingContext<U> | undefined => {
+): MappingContext<N> | undefined => {
   for (let i = branchIdChain.length - 1; i > 0; i--) {
     const prevContext = contextByBranchIdChain.get(BranchIdChainSerialized(branchIdChain.slice(0, i)))
     if (prevContext) return prevContext
   }
 }
 
-const branchNodeChainBuilder = (generateArc: ArcGenerator) => async <T extends NodeOnPath, U extends CallbackGenerated>(
-  context: MappingContext<U>,
-  nodes: Map<NodeId, Node<U>>,
-  createNodeCallback: CreateNodeCallbackFn<T, U>,
+const branchNodeChainBuilder = <N extends GraphNode>(
+  generateArc: ArcGenerator<N>
+) => async <T extends NodeOnPath>(
+  context: MappingContext<N>,
+  nodes: Map<NodeId, N>,
+  createNodeCallback: CreateNodeCallbackFn<T, N>,
   found: [T, PointInPathchain][],
   pathDirection: PathDirection
 ) => {
@@ -177,9 +176,9 @@ const branchNodeChainBuilder = (generateArc: ArcGenerator) => async <T extends N
   for (const [node, pointInPathChain] of foundOrderByPosition) {
     const nodeAttributes = await createNodeCallback(node, pointInPathChain)
     const existingNode = nodes.get(nodeAttributes.id)
-    const currentNode = existingNode ?
+    const currentNode: N = existingNode ?
       existingNode :
-      {arcs: [], ...nodeAttributes}
+      {arcs: [] as Arc[], ...nodeAttributes} as N
     const [previousNode] = previousFound(context)
 
     context.founds.push([currentNode, pointInPathChain])
@@ -211,16 +210,16 @@ const findFirstPath = async (
   return result.at(0) ?? null
 }
 
-const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
+const mapping = async <T extends NodeOnPath, N extends GraphNode, G>(
   from: VisitFn,
-  createNodeCallback: CreateNodeCallbackFn<T, U>,
+  createNodeCallback: CreateNodeCallbackFn<T, N>,
   groupIdCallback: GroupIdCallbackFn<T, G>,
   pointInPathchains: [T, PointInPathchain][],
-  arcGenerator: ArcGenerator,
+  arcGenerator: ArcGenerator<N>,
   options?: MappingOption
-): Promise<Map<G, Node<U>[]>> => {
-  const contextsByGroup = new Map<G, Map<BranchIdChainSerialized, MappingContext<U>>>()
-  const nodesByGroup = new Map<G, Map<NodeId, Node<U>>>()
+): Promise<Map<G, N[]>> => {
+  const contextsByGroup = new Map<G, Map<BranchIdChainSerialized, MappingContext<N>>>()
+  const nodesByGroup = new Map<G, Map<NodeId, N>>()
   const groupIds = new Set(pointInPathchains.map(([p]) => groupIdCallback(p)))
   const buildBranchNodeChain = branchNodeChainBuilder(arcGenerator)
 
@@ -230,8 +229,8 @@ const mapping = async <T extends NodeOnPath, U extends CallbackGenerated, G>(
     if (options?.currentPathchainChanged) await options.currentPathchainChanged(current.pathChain)
 
     for (const groupId of groupIds) {
-      const contextByBranchIdChain = contextsByGroup.get(groupId) ?? new Map<BranchIdChainSerialized, MappingContext<U>>()
-      const currentContext: MappingContext<U> = contextByBranchIdChain.get(BranchIdChainSerialized(branchIdChain)) ?? {
+      const contextByBranchIdChain = contextsByGroup.get(groupId) ?? new Map<BranchIdChainSerialized, MappingContext<N>>()
+      const currentContext: MappingContext<N> = contextByBranchIdChain.get(BranchIdChainSerialized(branchIdChain)) ?? {
         ...createMappingContext(currentBranchId),
         ...(() => {
           const previousContext = findPreviousContextFromBranchIdChain(contextByBranchIdChain, branchIdChain)

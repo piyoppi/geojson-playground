@@ -7,7 +7,7 @@ export interface Arc {
   b: () => Promise<GraphNode | undefined>
 }
 
-export const buildWeakRefArc: ArcGenerator = (a, b, cost) => {
+export const buildWeakRefArc: ArcGenerator<GraphNode> = (a, b, cost) => {
   const aRef = new WeakRef(a)
   const bRef = new WeakRef(b)
 

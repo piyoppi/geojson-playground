@@ -36,9 +36,9 @@ export const serialize = async <G extends GraphNode>(
 }
 
 export type GraphDeserializer = ReturnType<typeof buildGraphDeserializer>
-export const buildGraphDeserializer = (
-  generateArc: ArcGenerator
-) => <InputItems extends {id: NodeId}, G extends GraphNode>(
+export const buildGraphDeserializer = <N extends GraphNode>(
+  generateArc: ArcGenerator<N>
+) => <InputItems extends {id: NodeId}, G extends N>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
   graphGenerator: (node: InputItems, id: string) => G

@@ -7,7 +7,7 @@ import type { ArcGenerator } from "../../graph/arcGenerator"
 export type BusStopNode = TrafficGraphNode<BusStop>
 
 export const buildBusStopGraphGenerator = (
-  generateArc: ArcGenerator
+  generateArc: ArcGenerator<BusStopNode>
 ) => async (
   busStops: BusStop[],
 ): Promise<Map<RouteId, BusStopNode[]>> => {
