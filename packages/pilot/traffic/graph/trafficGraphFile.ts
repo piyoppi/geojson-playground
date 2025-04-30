@@ -1,7 +1,7 @@
 import { TrafficGraphDeserializer, serialize, type SerializedTrafficGraph } from "./serialize.js"
 import { deserializeRailroad, serializeRailroad, type Railroad, type SerializedRailroad } from "../railroad.js"
 import { deserializeBusRoute, serializedBusRoute, type BusRoute, type SerializedBusRoute } from "../busroute.js"
-import { deserializeCompany, serializeCompany, type Company, type SerializedCompany, type Station } from "../transportation.js"
+import { deserializeCompany, RouteId, serializeCompany, type Company, type SerializedCompany, type Station } from "../transportation.js"
 import type { StationNode } from "./stationGraph"
 import type { TrafficGraphNode } from "./trafficGraph"
 
@@ -35,10 +35,10 @@ export const buildTrafficGraphFromFile = (
 } => {
   const railroads = data.railroads.map(r => deserializeRailroad(r))
   const busRoutes = data.busRoutes.map(b => deserializeBusRoute(b))
-  const stations = [...railroads, ...busRoutes].flatMap(r => r.stations)
+  const routes = [...railroads, ...busRoutes]
 
   return {
-    graph: deserialize(data.graph, stations),
+    graph: deserialize(data.graph, routes),
     companies: data.companies.map(c => deserializeCompany(c)),
     railroads: data.railroads.map(r => deserializeRailroad(r)),
     busRoutes: data.busRoutes.map(b => deserializeBusRoute(b))

@@ -1,10 +1,11 @@
 import { buildWeakRefArc, type Arc } from "../../graph/arc"
 import { ArcGenerator } from "../../graph/arcGenerator"
 import type { GraphNode } from "../../graph/graph"
-import type { Station } from "../transportation"
+import type { CompanyId, Station } from "../transportation"
 
 export type TrafficGraphNode<T extends Station> = GraphNode & {
-  item: T
+  item: T,
+  companyId: CompanyId
 }
 
 export interface TransferOwnLineArc extends Arc {

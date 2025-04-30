@@ -22,7 +22,7 @@ export const buildStationGraphGenerator = (
         results.flatMap(([railroad, isolatedPathChains]) => {
           const fromPathChain = buildGraphBuilder(
             railroad.stations.map(s => ({...s})),
-            s => Promise.resolve({id: s.id, item: s}),
+            s => Promise.resolve({id: s.id, item: s, companyId: railroad.companyId}),
             s => s.routeId,
             generateArc
           )

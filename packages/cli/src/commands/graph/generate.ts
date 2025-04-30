@@ -49,7 +49,7 @@ export const execute = async (
   if (inputBusStopFilename) {
     const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"));
     [busCompanies, busRoutes] = await toBusStops(inputBusStopJson)
-    busNodes = (await buildBusStopGraph(busRoutes.flatMap(b => b.stations))).values().toArray().flat()
+    busNodes = (await buildBusStopGraph(busRoutes)).values().toArray().flat()
   }
 
   const output = JSON.stringify(

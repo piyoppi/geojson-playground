@@ -1,13 +1,6 @@
-import { type SerializedArc, SerializedGraphNode, serialize as serializedGraphNode, GraphDeserializer as GraphNodeDeserializer } from '../../graph/serialize.js'
-import type { Position2D } from '../../geometry'
+import { type SerializedArc, type GraphDeserializer as GraphNodeDeserializer, serialize as serializedGraphNode } from '../../graph/serialize.js'
+import { type Route, type Station, stationIdToString } from '../transportation.js'
 import type { TrafficGraphNode } from './trafficGraph'
-import { type Station, stationIdToString } from '../transportation.js'
-
-type SerializedTrafficGraphNode = SerializedGraphNode & {
-  position: Position2D
-  name: string
-  routeId: string
-}
 
 export type SerializedTrafficGraph = {
   arcs: SerializedTrafficArc[]
@@ -26,25 +19,32 @@ export const serialize = async <T extends Station>(nodes: TrafficGraphNode<T>[])
 export type TrafficGraphDeserializer = ReturnType<typeof buildTrafficGraphDeserializer>
 export const buildTrafficGraphDeserializer = (
   deserializeGraphNode: GraphNodeDeserializer
-) => <T extends Station>(
+) => <S extends Station>(
   serialized: SerializedTrafficGraph,
-  stations: T[]
-): TrafficGraphNode<T>[] => {
-  const stationsMap = new Map(stations.map(station => [stationIdToString(station.id), station]))
+  routes: Route<S>[],
+): TrafficGraphNode<S>[] => {
+  const stations = routes.flatMap(r => r.stations)
+  const stationsById = new Map(stations.map(station => [stationIdToString(station.id), station]))
+  const routeByStationId = new Map(routes.flatMap(r => r.stations.map(s => [stationIdToString(s.id), r])))
 
   return deserializeGraphNode(
     stations,
     serialized,
     (node, stringId) => {
-      const item = stationsMap.get(stringId)
-
+      const item = stationsById.get(stringId)
       if (!item) {
         throw new Error(`Station not found for id: ${stringId}`)
+      }
+
+      const route = routeByStationId.get(stringId)
+      if (!route) {
+        throw new Error(`Route for station not found for id: ${stringId}`)
       }
 
       return {
         id: node.id,
         arcs: [],
+        companyId: route.companyId,
         item
       }
     }
