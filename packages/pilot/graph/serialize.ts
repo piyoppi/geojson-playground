@@ -79,6 +79,7 @@ const serializeArc = async (arc: Arc): Promise<SerializedArc | undefined> => {
   }
   
   return {
+    ...arc,
     aNodeId: nodeIdToString(nodeA.id),
     bNodeId: nodeIdToString(nodeB.id),
     arcCost: arc.cost.toString()

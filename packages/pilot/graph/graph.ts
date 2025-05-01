@@ -56,11 +56,13 @@ export const to = async <T extends GraphNode>(fromNode: T, arc: Arc): Promise<T 
 }
 
 export const arcExists = async (a: GraphNode, b: GraphNode): Promise<boolean> => {
-  return a.arcs.some(async arc => {
-    const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
+  return Promise.all(
+    a.arcs.map(async arc => {
+      const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
 
-    return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
-  })
+      return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
+    })
+  ).then(results => results.some(result => result))
 }
 
 export const buildNodeMerger = (

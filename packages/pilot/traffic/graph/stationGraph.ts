@@ -50,16 +50,15 @@ export const buildStationGraphGenerator = (
   const nodesByGroup = Map.groupBy(mergedStationNodes, n => n.item.groupId ?? '')
 
   // Connect each transit station nodes
-  mergedStationNodes.forEach(node => {
-    const item = node.item
-    if (!item) return
-    nodesByGroup.get(item.groupId)?.forEach(current => {
-      if (node !== current && !arcExists(node, current) && item.routeId !== current.item.routeId) {
+  for (const node of mergedStationNodes) {
+    const sameGroupNodes = nodesByGroup.get(node.item.groupId) ?? []
+    for (const current of sameGroupNodes) {
+      if (node.id !== current.id && !(await arcExists(node, current)) && node.item.routeId !== current.item.routeId) {
         const arc = generateArc(node, current, generateTransferCost(node, current))
         connect(node, current, arc)
       }
-    })
-  })
+    }
+  }
 
   return mergedStationNodes
 }
