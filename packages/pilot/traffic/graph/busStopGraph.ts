@@ -1,13 +1,17 @@
 import { graphBuilder } from "../../graph/fromNeighborsNode.js"
-import type { TrafficGraphNode } from "./trafficGraph"
 import type { BusRoute, BusStop } from "../busroute"
 import type { RouteId } from "../transportation"
 import type { ArcGenerator } from "../../graph/arcGenerator"
+import { GraphNode } from "../../graph/graph.js"
+import { TrafficItem } from "./trafficGraph.js"
+import { Arc } from "../../graph/arc.js"
 
-export type BusStopNode = TrafficGraphNode<BusStop>
+export type BusStopNode = GraphNode<BusStopNodeItem>
+export type BusStopNodeItem = TrafficItem<BusStop>
+export type BusRouteArc = Arc<BusStop>
 
 export const buildBusStopGraphGenerator = (
-  generateArc: ArcGenerator<BusStopNode>
+  generateArc: ArcGenerator<BusStopNodeItem>
 ) => async (
   routes: BusRoute[],
 ): Promise<Map<RouteId, BusStopNode[]>> => {
@@ -31,7 +35,7 @@ export const buildBusStopGraphGenerator = (
           routeId,
           await fromNeighborsPoints(
             busStops,
-            busStop => ({id: busStop.id, item: busStop, companyId: route.companyId}),
+            busStop => [busStop.id, {station: busStop, companyId: route.companyId}],
             busStop => busStop.position
           )
         ]

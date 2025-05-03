@@ -6,22 +6,18 @@ export type NodeId = Id
 export const isEqualNodeId = (aNodeId: NodeId, bNodeId: NodeId): boolean => aNodeId === bNodeId
 export const nodeIdToString = (id: NodeId) => idToString(id)
 
-export type GraphNode = {
+export interface GraphNode<T> {
   id: NodeId
-  arcs: Arc[]
+  item: T
+  arcs: Arc<T>[]
 }
 
-export const generateNode = (id: NodeId): GraphNode => ({
-  id: id,
-  arcs: [],
-})
-
-export const connect = (a: GraphNode, b: GraphNode, arc: Arc): void => {
+export const connect = <T>(a: GraphNode<T>, b: GraphNode<T>, arc: Arc<T>): void => {
   a.arcs.push(arc)
   b.arcs.push(arc)
 }
 
-export const disconnect = async (a: GraphNode, b: GraphNode) => {
+export const disconnect = async <T>(a: GraphNode<T>, b: GraphNode<T>) => {
   const arcsToRemove = a.arcs.filter(async arc => {
     const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
     return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
@@ -31,8 +27,8 @@ export const disconnect = async (a: GraphNode, b: GraphNode) => {
   b.arcs = b.arcs.filter(arc => !arcsToRemove.includes(arc))
 }
 
-export const removeNode = async (node: GraphNode) => {
-  const connectedNodes: GraphNode[] = []
+export const removeNode = async (node: GraphNode<unknown>) => {
+  const connectedNodes: GraphNode<unknown>[] = []
   
   for (const arc of node.arcs) {
     const nodeA = await arc.a()
@@ -46,16 +42,16 @@ export const removeNode = async (node: GraphNode) => {
   connectedNodes.forEach(connectedNode => disconnect(node, connectedNode))
 }
 
-export const to = async <T extends GraphNode>(fromNode: T, arc: Arc): Promise<T | null> => {
+export const to = async <T>(fromNode: GraphNode<T>, arc: Arc<T>): Promise<GraphNode<T> | null> => {
   const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
 
-  if (fromNode !== nodeA && nodeB === fromNode) return nodeA as T
-  if (fromNode !== nodeB && nodeA === fromNode) return nodeB as T
+  if (nodeA && fromNode !== nodeA && nodeB === fromNode) return nodeA
+  if (nodeB && fromNode !== nodeB && nodeA === fromNode) return nodeB
 
   return null
 }
 
-export const arcExists = async (a: GraphNode, b: GraphNode): Promise<boolean> => {
+export const arcExists = async <T>(a: GraphNode<T>, b: GraphNode<T>): Promise<boolean> => {
   return Promise.all(
     a.arcs.map(async arc => {
       const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
@@ -65,19 +61,20 @@ export const arcExists = async (a: GraphNode, b: GraphNode): Promise<boolean> =>
   ).then(results => results.some(result => result))
 }
 
-export const buildNodeMerger = (
-  generateArc: ArcGenerator<GraphNode>
-) => async <T extends GraphNode>(
-  ...nodes: T[]
-): Promise<T> => {
+export const buildNodeMerger = <I>(
+  generateArc: ArcGenerator<I>
+) => async (
+  ...nodes: GraphNode<I>[]
+): Promise<GraphNode<I>> => {
   const mergedNode = {...nodes[0], arcs: []}
-  const arcMap = new Map<GraphNode, { totalCost: number, count: number }>()
+  const arcMap = new Map<GraphNode<I>, { totalCost: number, count: number }>()
   
   for (const node of nodes) {
     for (const arc of node.arcs) {
-      const nodeA = await arc.a() as T
-      const nodeB = await arc.b() as T
+      const nodeA = await arc.a()
+      const nodeB = await arc.b()
       
+      if (!nodeA || !nodeB) continue
       if (nodes.includes(nodeA) && nodes.includes(nodeB)) continue
       
       const otherNode = nodes.includes(nodeA) ? nodeB : nodeA
@@ -103,10 +100,10 @@ export const buildNodeMerger = (
   return mergedNode
 }
 
-export type DuplicateNodesMarger = ReturnType<typeof buildDuplicateNodesMarger>
-export const buildDuplicateNodesMarger = (
-  mergeNodes: ReturnType<typeof buildNodeMerger>
-) => async <T extends GraphNode>(targetNodes: T[]): Promise<T[]> => {
+export type DuplicateNodesMarger<I> = ReturnType<typeof buildDuplicateNodesMarger<I>>
+export const buildDuplicateNodesMarger = <I>(
+  mergeNodes: ReturnType<typeof buildNodeMerger<I>>
+) => async (targetNodes: GraphNode<I>[]): Promise<GraphNode<I>[]> => {
   const duplicatedNodes = new Set()
 
   await Promise.all(
@@ -125,18 +122,18 @@ export const buildDuplicateNodesMarger = (
   return targetNodes.filter(node => !duplicatedNodes.has(node))
 }
 
-export const findShortestPath = async <T extends GraphNode>(
-  startNode: T,
-  endNode: T
-): Promise<T[]> => {
+export const findShortestPath = async <T>(
+  startNode: GraphNode<T>,
+  endNode: GraphNode<T>
+): Promise<GraphNode<T>[]> => {
   const visited = new Set<NodeId>()
 
   const distances = new Map<NodeId, number>()
   distances.set(startNode.id, 0)
 
-  const previous = new Map<NodeId, T>()
+  const previous = new Map<NodeId, GraphNode<T>>()
 
-  const queue: [T, number][] = [[startNode, 0]]
+  const queue: [GraphNode<T>, number][] = [[startNode, 0]]
 
   while (queue.length > 0) {
     queue.sort((a, b) => a[1] - b[1])
@@ -166,8 +163,8 @@ export const findShortestPath = async <T extends GraphNode>(
 
       if (newCost < existingCost) {
         distances.set(nextNode.id, newCost)
-        previous.set(nextNode.id, currentNode as T)
-        queue.push([nextNode as T, newCost])
+        previous.set(nextNode.id, currentNode)
+        queue.push([nextNode, newCost])
       }
     }
   }
@@ -176,7 +173,7 @@ export const findShortestPath = async <T extends GraphNode>(
     return []
   }
 
-  const path: T[] = [endNode]
+  const path: GraphNode<T>[] = [endNode]
   let current = endNode
 
   while (current.id !== startNode.id) {

@@ -7,17 +7,18 @@ import {
   type Route,
   type SerializedRoute,
   type SerializedStation,
-  type Station as TransportationStation
+  type Station as TransportationStation,
 } from "./transportation.js"
 
-export type Railroad = Route<Station> & {
+export type Railroad = Route<RailroadStation> & {
   rails: Path[]
 }
+
 export type SerializedRailroad = SerializedRoute<SerializedRailroadStation> & {
   rails?: undefined
 }
 
-export type Station = TransportationStation & {
+export type RailroadStation = TransportationStation & {
   groupId: string,
 }
 

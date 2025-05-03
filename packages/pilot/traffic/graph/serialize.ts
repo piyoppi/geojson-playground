@@ -1,6 +1,5 @@
 import { type SerializedArc, type GraphDeserializer as GraphNodeDeserializer, serialize as serializedGraphNode } from '../../graph/serialize.js'
 import { type Route, type Station, stationIdToString } from '../transportation.js'
-import type { TrafficGraphNode } from './trafficGraph'
 
 export type SerializedTrafficGraph = {
   arcs: SerializedTrafficArc[]

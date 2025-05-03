@@ -1,5 +1,5 @@
 import { type Company, type CompanyId, type RouteId, toCompanyId, toRouteId, toStationId } from "../traffic/transportation.js"
-import type { Railroad, Station } from "../traffic/railroad"
+import type { Railroad, RailroadStation } from "../traffic/railroad"
 import type { Feature, LineString2D } from "../geojson"
 import type { StationFeature, StationsGeoJson } from './station'
 import { center } from "../geometry.js"
@@ -78,7 +78,7 @@ const createRailroad = async (railroadFeatures: RailroadFeature[], companyId: Co
   }
 }
 
-const createStations = async (stationFeatures: StationFeature[], routeId: RouteId): Promise<Station[]> => {
+const createStations = async (stationFeatures: StationFeature[], routeId: RouteId): Promise<RailroadStation[]> => {
   const stationPromises = stationFeatures.map(async s => ({
     name: s.properties.N02_005,
     id: await toStationId(s.properties.N02_005c),

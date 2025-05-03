@@ -1,35 +1,40 @@
+import { Arc } from "../../graph/arc.js"
 import { ArcGenerator } from "../../graph/arcGenerator.js"
 import { buildGraphBuilder } from "../../graph/fromPathChain.js"
-import { arcExists, connect, type DuplicateNodesMarger } from "../../graph/graph.js"
+import { arcExists, connect, GraphNode, type DuplicateNodesMarger } from "../../graph/graph.js"
 import { ends, buildPathchain } from '../../pathchain.js'
-import type { Railroad, Station } from "../railroad"
+import type { Railroad, RailroadStation } from "../railroad"
 import type { RouteId } from "../transportation"
-import type { TrafficGraphNode } from "./trafficGraph"
+import { TrafficItem } from "./trafficGraph.js"
 
-export type StationNode = TrafficGraphNode<Station>
-type TransferCostGenerator = (aNode: StationNode, bNode: StationNode) => number
+type TransferCostGenerator = (aNode: RailroadStationNode, bNode: RailroadStationNode) => number
+
+export type RailroadStationNode = GraphNode<RailroadStationNodeItem>
+export type RailroadStationNodeItem = TrafficItem<RailroadStation>
+export type RailroadArc = Arc<RailroadStation>
 
 export const buildStationGraphGenerator = (
-  generateArc: ArcGenerator<StationNode>,
+  generateArc: ArcGenerator<RailroadStationNodeItem>,
   generateTransferCost: TransferCostGenerator,
-  nodeMerger: DuplicateNodesMarger
+  nodeMerger: DuplicateNodesMarger<RailroadStationNodeItem>
 ) => async (
   railroads: Railroad[]
-): Promise<StationNode[]> => {
+): Promise<RailroadStationNode[]> => {
   const stationNodes = (await Promise.all(
         railroads.map(railroad => buildPathchain(railroad.rails).then(g => [railroad, g] as const))
       ).then(results => Promise.all(
         results.flatMap(([railroad, isolatedPathChains]) => {
-          const fromPathChain = buildGraphBuilder(
-            railroad.stations.map(s => ({...s})),
-            s => Promise.resolve({id: s.id, item: s, companyId: railroad.companyId}),
-            s => s.routeId,
-            generateArc
-          )
+          const fromPathChain = buildGraphBuilder(generateArc)
           return isolatedPathChains.map(pathchains => {
             const end = ends(pathchains)[0]
 
-            return fromPathChain(pathchains, end.from)
+            return fromPathChain(
+              railroad.stations.map(s => ({...s})),
+              pathchains,
+              end.from,
+              s => Promise.resolve([s.id, {station: s, companyId: railroad.companyId}]),
+              s => s.routeId,
+            )
           })
         })
       ))
@@ -40,20 +45,20 @@ export const buildStationGraphGenerator = (
         acc.set(k, [...cur, ...v])
       })
       return acc
-    }, new Map<RouteId, StationNode[]>())
+    }, new Map<RouteId, RailroadStationNode[]>())
     .values()
     .toArray()
 
   // Isolated pathchains may have same station
   const mergedStationNodes = (await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat()
 
-  const nodesByGroup = Map.groupBy(mergedStationNodes, n => n.item.groupId ?? '')
+  const nodesByGroup = Map.groupBy(mergedStationNodes, n => n.item.station.groupId ?? '')
 
   // Connect each transit station nodes
   for (const node of mergedStationNodes) {
-    const sameGroupNodes = nodesByGroup.get(node.item.groupId) ?? []
+    const sameGroupNodes = nodesByGroup.get(node.item.station.groupId) ?? []
     for (const current of sameGroupNodes) {
-      if (node.id !== current.id && !(await arcExists(node, current)) && node.item.routeId !== current.item.routeId) {
+      if (node.id !== current.id && !(await arcExists(node, current)) && node.item.station.routeId !== current.item.station.routeId) {
         const arc = generateArc(node, current, generateTransferCost(node, current))
         connect(node, current, arc)
       }
