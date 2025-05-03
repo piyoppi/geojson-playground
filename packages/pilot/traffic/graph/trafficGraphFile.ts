@@ -1,7 +1,7 @@
 import { TrafficGraphDeserializer, serialize, type SerializedTrafficGraph } from "./serialize.js"
 import { deserializeRailroad, serializeRailroad, type Railroad, type SerializedRailroad } from "../railroad.js"
 import { deserializeBusRoute, serializedBusRoute, type BusRoute, type SerializedBusRoute } from "../busroute.js"
-import { deserializeCompany, RouteId, serializeCompany, type Company, type SerializedCompany, type Station } from "../transportation.js"
+import { deserializeCompany, serializeCompany, type Company, type SerializedCompany, type Station } from "../transportation.js"
 import type { StationNode } from "./stationGraph"
 import type { TrafficGraphNode } from "./trafficGraph"
 

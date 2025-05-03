@@ -5,7 +5,7 @@ export const idToString = (id: Id) => id
 export const stringToId = (str: string): Id => str
 
 const bytesToBase64String = (arr: ArrayBuffer) => 
-  btoa(Array.from(new Uint8Array(arr)).map(byte => String.fromCharCode(byte)).join(''))
+  btoa(Array.from(new Uint8Array(arr)).map(byte => String.fromCharCode(byte)).join('')).replace(/\+/g, '-').replace(/\//g, '_')
 
 export const toId = async (str: string): Promise<Id> => {
   const encoder = new TextEncoder()

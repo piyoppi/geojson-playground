@@ -19,7 +19,7 @@ export interface TransferOtherLineArc extends Arc {
 export type TrafficArc = Arc | TransferOwnLineArc | TransferOtherLineArc
 
 export const generateTransferOwnLineArc: ArcGenerator<GraphNode> = (a, b, cost) => ({
-  type: 'transferOwnLine',
+  type: 'TransferOwnLine',
   ...buildWeakRefArc(a, b, cost)
 })
 
