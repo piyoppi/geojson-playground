@@ -61,8 +61,8 @@ export const arcExists = async <T>(a: GraphNode<T>, b: GraphNode<T>): Promise<bo
   ).then(results => results.some(result => result))
 }
 
-export const buildNodeMerger = <I>(
-  generateArc: ArcGenerator<I>
+export const buildNodeMerger = <IG, I extends IG>(
+  generateArc: ArcGenerator<IG>
 ) => async (
   ...nodes: GraphNode<I>[]
 ): Promise<GraphNode<I>> => {
@@ -100,9 +100,9 @@ export const buildNodeMerger = <I>(
   return mergedNode
 }
 
-export type DuplicateNodesMarger<I> = ReturnType<typeof buildDuplicateNodesMarger<I>>
-export const buildDuplicateNodesMarger = <I>(
-  mergeNodes: ReturnType<typeof buildNodeMerger<I>>
+export type DuplicateNodesMarger<IG, I extends IG> = ReturnType<typeof buildDuplicateNodesMarger<IG, I>>
+export const buildDuplicateNodesMarger = <IG, I extends IG>(
+  mergeNodes: ReturnType<typeof buildNodeMerger<IG, I>>
 ) => async (targetNodes: GraphNode<I>[]): Promise<GraphNode<I>[]> => {
   const duplicatedNodes = new Set()
 

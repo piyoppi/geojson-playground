@@ -55,10 +55,10 @@ export type MappingOption = {
  * 
  * @returns A function that accepts a path chain and visit generator, and returns a map of groups to nodes
  */
-export const buildGraphBuilder = <I>(
-  arcGenerator: ArcGenerator<I>,
+export const buildGraphBuilder = <IG>(
+  arcGenerator: ArcGenerator<IG>,
   options?: MappingOption
-) => async <T extends NodeOnPath, G>(
+) => async <T extends NodeOnPath, G, I extends IG>(
   point: T[],
   pathChains: IsolatedPathChain,
   from: VisitFnGenerator,
@@ -210,12 +210,12 @@ const findFirstPath = async (
   return result.at(0) ?? null
 }
 
-const mapping = async <T extends NodeOnPath, I, G>(
+const mapping = async <T extends NodeOnPath, IG, I extends IG, G>(
   from: VisitFn,
   createNodeCallback: CreateNodeCallbackFn<T, I>,
   groupIdCallback: GroupIdCallbackFn<T, G>,
   pointInPathchains: [T, PointInPathchain][],
-  arcGenerator: ArcGenerator<I>,
+  arcGenerator: ArcGenerator<IG>,
   options?: MappingOption
 ): Promise<Map<G, GraphNode<I>[]>> => {
   const contextsByGroup = new Map<G, Map<BranchIdChainSerialized, MappingContext<I>>>()

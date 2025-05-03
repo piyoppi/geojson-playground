@@ -3,7 +3,7 @@ import type { ArcGenerator } from "../../graph/arcGenerator"
 import type { GraphNode } from "../../graph/graph"
 import type { CompanyId, Station } from "../transportation"
 
-export type TrafficGraphNode<I extends TrafficItem = TrafficItem<Station>> = GraphNode<I>
+export type TrafficGraphNode<S extends Station> = GraphNode<TrafficItem<S>>
 
 export type TrafficItem<T extends Station = Station> = {
   station: T,
@@ -23,7 +23,7 @@ export type TrafficArc<S extends Station> =
   | TransferOwnLineArc<S>
   | TransferOtherLineArc<S>
 
-export const generateTransferOwnLineArc: ArcGenerator<Station> = (a, b, cost) => ({
+export const generateTransferOwnLineArc: ArcGenerator<TrafficItem<Station>> = (a, b, cost) => ({
   type: 'TransferOwnLine',
   ...buildWeakRefArc(a, b, cost)
 })

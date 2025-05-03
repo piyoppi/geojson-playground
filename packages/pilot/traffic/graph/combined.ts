@@ -3,8 +3,8 @@ import { buildDuplicateNodesMarger, buildNodeMerger } from "../../graph/graph.js
 import { buildGraphDeserializer } from "../../graph/serialize.js"
 import { buildBusStopGraphGenerator } from "./busStopGraph.js"
 import { buildTrafficGraphDeserializer } from "./serialize.js"
-import { buildStationGraphGenerator, StationNode } from "./stationGraph.js"
-import { generateTransferOtherLineArc, generateTransferOwnLineArc, TrafficGraphNode } from "./trafficGraph.js"
+import { buildStationGraphGenerator } from "./stationGraph.js"
+import { generateTransferOtherLineArc, generateTransferOwnLineArc, TrafficGraphNode, TrafficItem } from "./trafficGraph.js"
 import { buildTrafficGraphFromFile } from "./trafficGraphFile.js"
 import type { Station } from "../transportation"
 import type { BusStopNode } from "../busroute"
@@ -30,10 +30,10 @@ export const buildDefaultTrafficGraphFromFile = () => buildTrafficGraphFromFile(
 
 const defaultArcGenerator = buildWeakRefArc
 
-const defaultTrafficGraphGenerator: ArcGenerator<StationNode> = (a, b, cost) => {
-  if (a.companyId !== b.companyId) {
+const defaultTrafficGraphGenerator: ArcGenerator<TrafficItem> = (a, b, cost) => {
+  if (a.item.companyId !== b.item.companyId) {
     return generateTransferOtherLineArc(a, b, cost)
-  } else if (a.item.routeId !== b.item.routeId) {
+  } else if (a.item.station.routeId !== b.item.station.routeId) {
     return generateTransferOwnLineArc(a, b, cost)
   }
 

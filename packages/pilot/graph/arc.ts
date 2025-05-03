@@ -1,4 +1,3 @@
-import type { ArcGenerator } from "./arcGenerator"
 import type { GraphNode } from "./graph"
 
 export interface Arc<T> {
@@ -7,7 +6,11 @@ export interface Arc<T> {
   b: () => Promise<GraphNode<T> | undefined>
 }
 
-export const buildWeakRefArc: ArcGenerator<GraphNode<unknown>> = (a, b, cost) => {
+export const buildWeakRefArc = <T>(
+  a: GraphNode<T>, 
+  b: GraphNode<T>, 
+  cost: number
+): Arc<T> => {
   const aRef = new WeakRef(a)
   const bRef = new WeakRef(b)
 

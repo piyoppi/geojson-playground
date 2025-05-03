@@ -1,5 +1,6 @@
 import { type SerializedArc, type GraphDeserializer as GraphNodeDeserializer, serialize as serializedGraphNode } from '../../graph/serialize.js'
 import { type Route, type Station, stationIdToString } from '../transportation.js'
+import { TrafficGraphNode, TrafficItem } from './trafficGraph.js'
 
 export type SerializedTrafficGraph = {
   arcs: SerializedTrafficArc[]
@@ -7,7 +8,7 @@ export type SerializedTrafficGraph = {
 
 type SerializedTrafficArc = SerializedArc
 
-export const serialize = async <T extends Station>(nodes: TrafficGraphNode<T>[]): Promise<SerializedTrafficGraph> => {
+export const serialize = async <S extends Station>(nodes: TrafficGraphNode<S>[]): Promise<SerializedTrafficGraph> => {
   const serialized = await serializedGraphNode(nodes)
 
   return {
@@ -16,9 +17,9 @@ export const serialize = async <T extends Station>(nodes: TrafficGraphNode<T>[])
 }
 
 export type TrafficGraphDeserializer = ReturnType<typeof buildTrafficGraphDeserializer>
-export const buildTrafficGraphDeserializer = (
-  deserializeGraphNode: GraphNodeDeserializer
-) => <S extends Station>(
+export const buildTrafficGraphDeserializer = <S extends Station>(
+  deserializeGraphNode: GraphNodeDeserializer<TrafficItem<S>>
+) => (
   serialized: SerializedTrafficGraph,
   routes: Route<S>[],
 ): TrafficGraphNode<S>[] => {
@@ -30,8 +31,8 @@ export const buildTrafficGraphDeserializer = (
     stations,
     serialized,
     (node, stringId) => {
-      const item = stationsById.get(stringId)
-      if (!item) {
+      const station = stationsById.get(stringId)
+      if (!station) {
         throw new Error(`Station not found for id: ${stringId}`)
       }
 
@@ -43,8 +44,10 @@ export const buildTrafficGraphDeserializer = (
       return {
         id: node.id,
         arcs: [],
-        companyId: route.companyId,
-        item
+        item: {
+          companyId: route.companyId,
+          station
+        }
       }
     }
   )

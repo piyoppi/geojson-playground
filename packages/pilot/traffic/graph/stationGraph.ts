@@ -14,9 +14,9 @@ export type RailroadStationNodeItem = TrafficItem<RailroadStation>
 export type RailroadArc = Arc<RailroadStation>
 
 export const buildStationGraphGenerator = (
-  generateArc: ArcGenerator<RailroadStationNodeItem>,
+  generateArc: ArcGenerator<TrafficItem>,
   generateTransferCost: TransferCostGenerator,
-  nodeMerger: DuplicateNodesMarger<RailroadStationNodeItem>
+  nodeMerger: DuplicateNodesMarger<TrafficItem, RailroadStationNodeItem>
 ) => async (
   railroads: Railroad[]
 ): Promise<RailroadStationNode[]> => {
