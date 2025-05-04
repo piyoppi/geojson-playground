@@ -30,7 +30,7 @@ export const buildDefaultTrafficGraphFromFile = () => buildTrafficGraphFromFile(
 
 const defaultArcGenerator = buildWeakRefArc
 
-const defaultTrafficGraphGenerator: ArcGenerator<TrafficItem> = (a, b, cost) => {
+const defaultTrafficGraphGenerator: ArcGenerator<TrafficItem<Station>> = (a, b, cost) => {
   if (a.item.companyId !== b.item.companyId) {
     return generateTransferOtherLineArc(a, b, cost)
   } else if (a.item.station.routeId !== b.item.station.routeId) {

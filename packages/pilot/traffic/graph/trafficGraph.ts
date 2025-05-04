@@ -28,7 +28,7 @@ export const generateTransferOwnLineArc: ArcGenerator<TrafficItem<Station>> = (a
   ...buildWeakRefArc(a, b, cost)
 })
 
-export const generateTransferOtherLineArc: ArcGenerator<Station> = (a, b, cost) => ({
+export const generateTransferOtherLineArc: ArcGenerator<TrafficItem<Station>> = (a, b, cost) => ({
   type: 'TransferOtherLineArc',
   ...buildWeakRefArc(a, b, cost)
 })

@@ -17,12 +17,12 @@ export const serialize = async <S extends Station>(nodes: TrafficGraphNode<S>[])
 }
 
 export type TrafficGraphDeserializer = ReturnType<typeof buildTrafficGraphDeserializer>
-export const buildTrafficGraphDeserializer = <S extends Station>(
-  deserializeGraphNode: GraphNodeDeserializer<TrafficItem<S>>
+export const buildTrafficGraphDeserializer = (
+  deserializeGraphNode: GraphNodeDeserializer<TrafficItem<Station>>
 ) => (
   serialized: SerializedTrafficGraph,
-  routes: Route<S>[],
-): TrafficGraphNode<S>[] => {
+  routes: Route<Station>[],
+): TrafficGraphNode<Station>[] => {
   const stations = routes.flatMap(r => r.stations)
   const stationsById = new Map(stations.map(station => [stationIdToString(station.id), station]))
   const routeByStationId = new Map(routes.flatMap(r => r.stations.map(s => [stationIdToString(s.id), r])))

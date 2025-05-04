@@ -61,9 +61,9 @@ export const arcExists = async <T>(a: GraphNode<T>, b: GraphNode<T>): Promise<bo
   ).then(results => results.some(result => result))
 }
 
-export const buildNodeMerger = <IG, I extends IG>(
+export const buildNodeMerger = <IG>(
   generateArc: ArcGenerator<IG>
-) => async (
+) => async <I extends IG>(
   ...nodes: GraphNode<I>[]
 ): Promise<GraphNode<I>> => {
   const mergedNode = {...nodes[0], arcs: []}
@@ -100,10 +100,10 @@ export const buildNodeMerger = <IG, I extends IG>(
   return mergedNode
 }
 
-export type DuplicateNodesMarger<IG, I extends IG> = ReturnType<typeof buildDuplicateNodesMarger<IG, I>>
-export const buildDuplicateNodesMarger = <IG, I extends IG>(
-  mergeNodes: ReturnType<typeof buildNodeMerger<IG, I>>
-) => async (targetNodes: GraphNode<I>[]): Promise<GraphNode<I>[]> => {
+export type DuplicateNodesMarger<IG> = ReturnType<typeof buildDuplicateNodesMarger<IG>>
+export const buildDuplicateNodesMarger = <IG>(
+  mergeNodes: ReturnType<typeof buildNodeMerger<IG>>
+) => async <I extends IG>(targetNodes: GraphNode<I>[]): Promise<GraphNode<I>[]> => {
   const duplicatedNodes = new Set()
 
   await Promise.all(
@@ -122,18 +122,18 @@ export const buildDuplicateNodesMarger = <IG, I extends IG>(
   return targetNodes.filter(node => !duplicatedNodes.has(node))
 }
 
-export const findShortestPath = async <T>(
-  startNode: GraphNode<T>,
-  endNode: GraphNode<T>
-): Promise<GraphNode<T>[]> => {
+export const findShortestPath = async <I>(
+  startNode: GraphNode<I>,
+  endNode: GraphNode<I>
+): Promise<GraphNode<I>[]> => {
   const visited = new Set<NodeId>()
 
   const distances = new Map<NodeId, number>()
   distances.set(startNode.id, 0)
 
-  const previous = new Map<NodeId, GraphNode<T>>()
+  const previous = new Map<NodeId, GraphNode<I>>()
 
-  const queue: [GraphNode<T>, number][] = [[startNode, 0]]
+  const queue: [GraphNode<I>, number][] = [[startNode, 0]]
 
   while (queue.length > 0) {
     queue.sort((a, b) => a[1] - b[1])
@@ -173,7 +173,7 @@ export const findShortestPath = async <T>(
     return []
   }
 
-  const path: GraphNode<T>[] = [endNode]
+  const path: GraphNode<I>[] = [endNode]
   let current = endNode
 
   while (current.id !== startNode.id) {

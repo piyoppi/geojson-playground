@@ -3,7 +3,10 @@ import { buildRepositoryArcGenerator, type PartitionedRepository } from "../../g
 import type { CompanyId, Station } from "../transportation";
 import { TrafficGraphNode, TrafficItem } from "./trafficGraph.js";
 
-export const separate = async (repository: PartitionedRepository<TrafficItem>, stationNodes: TrafficGraphNode[]): Promise<Map<CompanyId, TrafficGraphNode[]>> => {
+export const separate = async (
+  repository: PartitionedRepository<TrafficItem>,
+  stationNodes: TrafficGraphNode<Station>[]
+): Promise<Map<CompanyId, TrafficGraphNode<Station>[]>> => {
   const stationGroupByCompany = Map.groupBy(stationNodes, n => n.item.companyId)
   const buildRepositoryArc = buildRepositoryArcGenerator(
     repository.get,

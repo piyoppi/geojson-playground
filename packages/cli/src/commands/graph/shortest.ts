@@ -16,7 +16,7 @@ export const execute = async (inputGraphFilename: string, fromId: string, toId: 
 
   console.log(
     (await findShortestPath(startNode, endNode))
-      .map(node => `${node.name}(${node.id}) \n ↓ ${node.routeId} \n`)
+      .map(node => `${node.item.station.name}(${node.id}) \n ↓ ${node.item.station.routeId} \n`)
       .join('')
   )
 }

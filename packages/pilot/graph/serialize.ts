@@ -38,12 +38,12 @@ export const serialize = async <I>(
 export type GraphDeserializer<I> = ReturnType<typeof buildGraphDeserializer<I>>
 export const buildGraphDeserializer = <I>(
   generateArc: ArcGenerator<I>
-) => <InputItems extends {id: NodeId}>(
+) => <InputItems extends {id: NodeId}, IG extends I>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
-  graphGenerator: (node: InputItems, id: string) => GraphNode<I>
-): GraphNode<I>[] => {
-  const nodeMap = new Map<string, GraphNode<I>>()
+  graphGenerator: (node: InputItems, id: string) => GraphNode<IG>
+): GraphNode<IG>[] => {
+  const nodeMap = new Map<string, GraphNode<IG>>()
   
   for (const item of items) {
     const stringId = nodeIdToString(item.id)
