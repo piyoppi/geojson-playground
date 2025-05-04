@@ -10,7 +10,7 @@ import { TrafficItem } from "./trafficGraph.js"
 type TransferCostGenerator = (aNode: RailroadStationNode, bNode: RailroadStationNode) => number
 
 export type RailroadStationNode = GraphNode<RailroadStationNodeItem>
-export type RailroadStationNodeItem = TrafficItem<RailroadStation>
+export type RailroadStationNodeItem = TrafficItem
 export type RailroadArc = Arc<RailroadStation>
 
 export const buildStationGraphGenerator = (
@@ -45,7 +45,7 @@ export const buildStationGraphGenerator = (
         acc.set(k, [...cur, ...v])
       })
       return acc
-    }, new Map<RouteId, RailroadStationNode[]>())
+    }, new Map<RouteId, (GraphNode<TrafficItem & {station: {groupId: string}}>)[]>())
     .values()
     .toArray()
 

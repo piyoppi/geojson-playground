@@ -2,19 +2,16 @@ import { graphBuilder } from "../../graph/fromNeighborsNode.js"
 import type { BusRoute, BusStop } from "../busroute"
 import type { RouteId } from "../transportation"
 import type { ArcGenerator } from "../../graph/arcGenerator"
-import { GraphNode } from "../../graph/graph.js"
-import { TrafficItem } from "./trafficGraph.js"
+import { TrafficGraphNode, TrafficItem } from "./trafficGraph.js"
 import { Arc } from "../../graph/arc.js"
 
-export type BusStopNode = GraphNode<BusStopNodeItem>
-export type BusStopNodeItem = TrafficItem<BusStop>
 export type BusRouteArc = Arc<BusStop>
 
 export const buildBusStopGraphGenerator = (
-  generateArc: ArcGenerator<BusStopNodeItem>
+  generateArc: ArcGenerator<TrafficItem>
 ) => async (
   routes: BusRoute[],
-): Promise<Map<RouteId, BusStopNode[]>> => {
+): Promise<Map<RouteId, TrafficGraphNode[]>> => {
   const fromNeighborsPoints = graphBuilder(generateArc)
 
   const busStops = routes.flatMap(b => b.stations)
@@ -24,7 +21,7 @@ export const buildBusStopGraphGenerator = (
     await Promise.all(
      Map.groupBy(busStops, b => b.routeId)
       .entries()
-      .map<Promise<[RouteId, BusStopNode[]]>>(async ([routeId, busStops]) => {
+      .map<Promise<[RouteId, TrafficGraphNode[]]>>(async ([routeId, busStops]) => {
         const route = routeById.get(routeId)
 
         if (!route) {

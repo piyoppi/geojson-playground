@@ -3,32 +3,32 @@ import type { ArcGenerator } from "../../graph/arcGenerator"
 import type { GraphNode } from "../../graph/graph"
 import type { CompanyId, Station } from "../transportation"
 
-export type TrafficGraphNode<S extends Station> = GraphNode<TrafficItem<S>>
+export type TrafficGraphNode = GraphNode<TrafficItem>
 
-export type TrafficItem<T extends Station = Station> = {
-  station: T,
+export type TrafficItem = {
+  station: Station,
   companyId: CompanyId
 }
 
-export interface TransferOwnLineArc<S extends Station> extends Arc<TrafficItem<S>> {
+export interface TransferOwnLineArc extends Arc<TrafficItem> {
   type: 'TransferOwnLine'
 }
 
-export interface TransferOtherLineArc<S extends Station> extends Arc<TrafficItem<S>> {
+export interface TransferOtherLineArc extends Arc<TrafficItem> {
   type: 'TransferOtherLineArc'
 }
 
-export type TrafficArc<S extends Station> =
-    Arc<TrafficItem<S>>
-  | TransferOwnLineArc<S>
-  | TransferOtherLineArc<S>
+export type TrafficArc =
+    Arc<TrafficItem>
+  | TransferOwnLineArc
+  | TransferOtherLineArc
 
-export const generateTransferOwnLineArc: ArcGenerator<TrafficItem<Station>> = (a, b, cost) => ({
+export const generateTransferOwnLineArc: ArcGenerator<TrafficItem> = (a, b, cost) => ({
   type: 'TransferOwnLine',
   ...buildWeakRefArc(a, b, cost)
 })
 
-export const generateTransferOtherLineArc: ArcGenerator<TrafficItem<Station>> = (a, b, cost) => ({
+export const generateTransferOtherLineArc: ArcGenerator<TrafficItem> = (a, b, cost) => ({
   type: 'TransferOtherLineArc',
   ...buildWeakRefArc(a, b, cost)
 })

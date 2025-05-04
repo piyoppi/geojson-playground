@@ -9,9 +9,6 @@ import {
   type Station as TransportationStation
 } from "./transportation.js"
 import type { Position2D } from "../geojson"
-import type { TrafficGraphNode } from "./graph/trafficGraph"
-
-export type BusStopNode = TrafficGraphNode<BusStop>
 
 export type BusRoute = Route<BusStop>
 

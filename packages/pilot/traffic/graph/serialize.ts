@@ -8,7 +8,7 @@ export type SerializedTrafficGraph = {
 
 type SerializedTrafficArc = SerializedArc
 
-export const serialize = async <S extends Station>(nodes: TrafficGraphNode<S>[]): Promise<SerializedTrafficGraph> => {
+export const serialize = async (nodes: TrafficGraphNode[]): Promise<SerializedTrafficGraph> => {
   const serialized = await serializedGraphNode(nodes)
 
   return {
@@ -18,11 +18,11 @@ export const serialize = async <S extends Station>(nodes: TrafficGraphNode<S>[])
 
 export type TrafficGraphDeserializer = ReturnType<typeof buildTrafficGraphDeserializer>
 export const buildTrafficGraphDeserializer = (
-  deserializeGraphNode: GraphNodeDeserializer<TrafficItem<Station>>
+  deserializeGraphNode: GraphNodeDeserializer<TrafficItem>
 ) => (
   serialized: SerializedTrafficGraph,
   routes: Route<Station>[],
-): TrafficGraphNode<Station>[] => {
+): TrafficGraphNode[] => {
   const stations = routes.flatMap(r => r.stations)
   const stationsById = new Map(stations.map(station => [stationIdToString(station.id), station]))
   const routeByStationId = new Map(routes.flatMap(r => r.stations.map(s => [stationIdToString(s.id), r])))
