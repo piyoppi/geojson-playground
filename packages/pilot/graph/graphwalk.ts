@@ -1,5 +1,5 @@
-import type { Arc } from "./arc"
-import type { GraphNode } from "./graph"
+import type { Arc } from "./arc.js"
+import type { GraphNode } from "./graph.js"
 
 type WalkCallback<I> = (current: GraphNode<I>, from: GraphNode<I>, arc: Arc<I>) => void
 

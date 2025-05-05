@@ -1,4 +1,4 @@
-import type { Arc } from './arc'
+import type { Arc } from './arc.js'
 import { ArcGenerator } from './arcGenerator.js'
 import { type GraphNode, connect, nodeIdToString, NodeId } from './graph.js'
 

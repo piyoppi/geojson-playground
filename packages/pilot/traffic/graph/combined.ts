@@ -4,7 +4,7 @@ import { buildGraphDeserializer } from "../../graph/serialize.js"
 import { buildBusStopGraphGenerator } from "./busStopGraph.js"
 import { buildTrafficGraphDeserializer } from "./serialize.js"
 import { buildStationGraphGenerator } from "./stationGraph.js"
-import { generateTransferOtherLineArc, generateTransferOwnLineArc, TrafficGraphNode, TrafficItem } from "./trafficGraph.js"
+import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficItem } from "./trafficGraph.js"
 import { buildTrafficGraphFromFile } from "./trafficGraphFile.js"
 import type { ArcGenerator } from "../../graph/arcGenerator"
 

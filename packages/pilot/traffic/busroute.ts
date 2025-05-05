@@ -8,7 +8,7 @@ import {
   type SerializedStation,
   type Station as TransportationStation
 } from "./transportation.js"
-import type { Position2D } from "../geojson"
+import type { Position2D } from "../geojson.js"
 
 export type BusRoute = Route<BusStop>
 

@@ -1,7 +1,7 @@
 import { buildWeakRefArc, type Arc } from "../../graph/arc.js"
-import type { ArcGenerator } from "../../graph/arcGenerator"
-import type { GraphNode } from "../../graph/graph"
-import type { CompanyId, Station } from "../transportation"
+import type { ArcGenerator } from "../../graph/arcGenerator.js"
+import type { GraphNode } from "../../graph/graph.js"
+import type { CompanyId, Station } from "../transportation.js"
 
 export type TrafficGraphNode = GraphNode<TrafficItem>
 

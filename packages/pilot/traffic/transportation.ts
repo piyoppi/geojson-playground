@@ -1,4 +1,4 @@
-import type { Position2D } from "../geojson"
+import type { Position2D } from "../geojson.js"
 import { toId, idToString, stringToId, type Id } from "../utils/Id.js"
 
 export type RouteId = Id & { readonly __brand: unique symbol }

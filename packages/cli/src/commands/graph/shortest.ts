@@ -12,7 +12,9 @@ export const execute = async (inputGraphFilename: string, fromId: string, toId: 
   const startNode = graph.find(n => n.id === fromId)
   const endNode = graph.find(n => n.id === toId)
 
-  console.log(`startNode: ${startNode?.name}(${startNode.id}), endNode: ${endNode?.name}(${endNode.id})`)
+  if (!startNode || !endNode) {
+    throw new Error("Start or end node not found");
+  }
 
   console.log(
     (await findShortestPath(startNode, endNode))

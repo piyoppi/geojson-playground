@@ -1,4 +1,4 @@
-import { rgb } from './color'
+import { rgb } from './color.js'
 
 export const randomRgb = (
   option?: {

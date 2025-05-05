@@ -1,7 +1,7 @@
 import { graphBuilder } from "../../graph/fromNeighborsNode.js"
-import type { BusRoute, BusStop } from "../busroute"
-import type { RouteId } from "../transportation"
-import type { ArcGenerator } from "../../graph/arcGenerator"
+import type { BusRoute, BusStop } from "../busroute.js"
+import type { RouteId } from "../transportation.js"
+import type { ArcGenerator } from "../../graph/arcGenerator.js"
 import { TrafficGraphNode, TrafficItem } from "./trafficGraph.js"
 import { Arc } from "../../graph/arc.js"
 

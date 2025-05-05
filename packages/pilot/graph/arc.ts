@@ -1,4 +1,4 @@
-import type { GraphNode } from "./graph"
+import type { GraphNode } from "./graph.js"
 
 export interface Arc<T> {
   cost: number

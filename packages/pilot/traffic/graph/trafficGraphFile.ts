@@ -2,7 +2,7 @@ import { TrafficGraphDeserializer, serialize, type SerializedTrafficGraph } from
 import { deserializeRailroad, serializeRailroad, type Railroad, type SerializedRailroad } from "../railroad.js"
 import { deserializeBusRoute, serializedBusRoute, type BusRoute, type SerializedBusRoute } from "../busroute.js"
 import { deserializeCompany, serializeCompany, type Company, type SerializedCompany } from "../transportation.js"
-import type { TrafficGraphNode } from "./trafficGraph"
+import type { TrafficGraphNode } from "./trafficGraph.js"
 
 export type TrafficGraphFile = {
   graph: SerializedTrafficGraph,

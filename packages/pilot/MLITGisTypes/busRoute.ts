@@ -1,7 +1,7 @@
 import { type Company, toCompanyId, toRouteId, toStationId } from "../traffic/transportation.js"
-import type { Feature, LineString2D } from "../geojson"
-import type { BusRoute } from "../traffic/busroute"
-import type { BusStopsGeoJson } from "./busStop"
+import type { Feature, LineString2D } from "../geojson.js"
+import type { BusRoute } from "../traffic/busroute.js"
+import type { BusStopsGeoJson } from "./busStop.js"
 
 export type BusRoutesGeoJson = {
   type: string

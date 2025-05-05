@@ -10,8 +10,8 @@ import {
   type PathChain,
   type PointInPathchain
 } from "../pathchain.js"
-import type { Position2D } from "../geometry"
-import type { ArcGenerator } from "./arcGenerator"
+import type { Position2D } from "../geometry.js"
+import type { ArcGenerator } from "./arcGenerator.js"
 
 type NodeOnPath = {
   position: Position2D,
