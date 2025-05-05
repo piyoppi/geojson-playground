@@ -38,10 +38,10 @@ const defaultTrafficGraphGenerator: ArcGenerator<TrafficItem> = (a, b, cost) => 
   return buildWeakRefArc(a, b, cost)
 }
 
-const defaultGraphDeserializer = buildGraphDeserializer(
+export const buildDefaultGraphDeserializer = () => buildGraphDeserializer(
   defaultTrafficGraphGenerator
 )
 
 const defaultTrafficGraphDeserializer = buildTrafficGraphDeserializer(
-  defaultGraphDeserializer
+  buildDefaultGraphDeserializer()
 )

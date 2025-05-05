@@ -26,7 +26,6 @@ export const execute = async (
     CREATE INDEX IF NOT EXISTS idx_stations_name ON stations (name)
   `)
 
-  // Insert stations data
   const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, name, route_name) VALUES (?, ?, ?)')
   
   try {

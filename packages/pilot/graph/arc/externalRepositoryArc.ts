@@ -25,6 +25,8 @@ export const buildRepositoryArcGenerator = <I>(
   return {
     a: () => getter(a.id, partitionKeyGetter(a)),
     b: () => getter(b.id, partitionKeyGetter(b)),
+    aPk: partitionKeyGetter(a),
+    bPk: partitionKeyGetter(b),
     cost
   }
 }

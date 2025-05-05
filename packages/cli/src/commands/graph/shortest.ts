@@ -1,24 +1,43 @@
 import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
-import { readFileSync } from 'node:fs'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
-import type { TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile'
+import { buildRepository, buildRepositoryArcGenerator } from '@piyoppi/sansaku-pilot/graph/arc/externalRepositoryArc'
+import { join as pathJoin } from 'node:path'
+import { readFile } from 'node:fs/promises'
 
-export const execute = async (inputGraphFilename: string, fromId: string, toId: string) => {
-  const trafficGraphFromFile = buildDefaultTrafficGraphFromFile()
-  const railroadJson = JSON.parse(readFileSync(inputGraphFilename, "utf-8")) as TrafficGraphFile
+export const execute = async (inputGraphDir: string, fromId: string, toId: string) => {
+  const repository = buildRepository(
+    async (partitionKey) => {
+      const { graph } = await loadPartialFile(inputGraphDir, partitionKey)
 
-  const { graph } = trafficGraphFromFile(railroadJson)
-
-  const startNode = graph.find(n => n.id === fromId)
-  const endNode = graph.find(n => n.id === toId)
-
-  if (!startNode || !endNode) {
-    throw new Error("Start or end node not found");
-  }
-
-  console.log(
-    (await findShortestPath(startNode, endNode))
-      .map(node => `${node.item.station.name}(${node.id}) \n ↓ ${node.item.station.routeId} \n`)
-      .join('')
+      return graph
+    },
+    async () => {}
   )
+
+  const buildRepositoryArc = buildRepositoryArcGenerator(
+    repository.get,
+    node => node.item.companyId
+  )
+
+  //const startNode = graph.find(n => n.id === fromId)
+  //const endNode = graph.find(n => n.id === toId)
+
+  //if (!startNode || !endNode) {
+  //  throw new Error("Start or end node not found");
+  //}
+
+  //console.log(
+  //  (await findShortestPath(startNode, endNode))
+  //    .map(node => `${node.item.station.name}(${node.id}) \n ↓ ${node.item.station.routeId} \n`)
+  //    .join('')
+  //)
+}
+
+const loadPartialFile = async (baseDir: string, partitionKey: string) => {
+  const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile()
+  const filename = pathJoin(baseDir, `${partitionKey}.json`)
+  const fileContent = await readFile(filename, "utf-8")
+  const file = buildTrafficGraphFromFile(JSON.parse(fileContent))
+
+  return file
 }

@@ -68,7 +68,7 @@ const main = defineCommand({
             name: "Find shortest path between stations."
           },
           args: {
-            graphfile: {
+            graphdir: {
               type: "input",
               description: "Input railroad graph json.",
               required: true
