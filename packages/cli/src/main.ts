@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { defineCommand, runMain } from 'citty'
-import { execute as executeGenerate } from './commands/graph/generate.js'
+import { execute as executeGenerate } from './commands/graph/generate/generate.js'
+import { execute as executeSeparate } from './commands/graph/separate.js'
 import { execute as executeRailroadShortest } from './commands/graph/shortest.js'
 
 const main = defineCommand({
@@ -41,6 +42,24 @@ const main = defineCommand({
           },
           run({ args }) {
             executeGenerate(args.output, args.railroads, args.stations, args.busstops)
+          }
+        },
+        separate: {
+          args: {
+            graphfile: {
+              type: "input",
+              description: "Input railroad graph json.",
+              required: true
+            },
+            outdir: {
+              type: "string",
+              description: "Output directory.",
+              required: true
+            },
+          },
+          async run({ args }) {
+            const { graphfile, outdir } = args
+            await executeSeparate(graphfile, outdir)
           }
         },
         shortest: {

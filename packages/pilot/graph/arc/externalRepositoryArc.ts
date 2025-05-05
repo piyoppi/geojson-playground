@@ -45,6 +45,7 @@ export const buildRepository = <I>(
   return {
     register(node: GraphNode<I>, partitionKey: string) {
       getPartitionByRepository(partitionKey).set(node.id, node)
+      return Promise.resolve()
     },
     get: async (id: NodeId, partitionKey: string) => {
       const inMemoryItem = repositoryByPartition.get(partitionKey)?.get(id)
