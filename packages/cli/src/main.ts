@@ -4,6 +4,7 @@ import { defineCommand, runMain } from 'citty'
 import { execute as executeGenerate } from './commands/graph/generate/generate.js'
 import { execute as executeSeparate } from './commands/graph/separate.js'
 import { execute as executeRailroadShortest } from './commands/graph/shortest.js'
+import { execute as executeDatabaseStore } from './commands/database/store.js'
 
 const main = defineCommand({
   meta: {
@@ -90,6 +91,28 @@ const main = defineCommand({
         }
       },
     },
+    database: {
+      subCommands: {
+        store: {
+          args: {
+            graphfile: {
+              type: "input",
+              description: "Input railroad graph json.",
+              required: true
+            },
+            out: {
+              type: "string",
+              description: "Output directory.",
+              required: true
+            },
+          },
+          run({ args }) {
+            const { graphfile, outdir } = args
+            executeDatabaseStore(graphfile, outdir)
+          }
+        }
+      }
+    }
   },
 });
 
