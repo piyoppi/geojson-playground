@@ -77,7 +77,7 @@ const serializeArc = async <I>(arc: Arc<I>): Promise<SerializedArc | undefined> 
   if (!nodeA || !nodeB) {
     return undefined
   }
-  
+
   return {
     ...arc,
     aNodeId: nodeIdToString(nodeA.id),

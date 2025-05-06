@@ -1,4 +1,4 @@
-import { to } from "../../graph/graph.js";
+import { nodeIdToString, to } from "../../graph/graph.js";
 import { buildRepositoryArcGenerator, type PartitionedRepository } from "../../graph/arc/externalRepositoryArc.js";
 import { TrafficGraphNode, TrafficItem } from "./trafficGraph.js";
 
@@ -37,6 +37,7 @@ export const separate = async (
         const newArc = buildRepositoryArc(aNode, bNode, arc.cost)
         node.arcs[i] = newArc
       }
+      repository.register(node, node.item.companyId)
     }
   }
 }
