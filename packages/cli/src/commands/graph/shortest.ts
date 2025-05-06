@@ -44,12 +44,11 @@ export const execute = async (inputGraphDir: string, fromId: string, fromPk: str
 }
 
 const buildPartialFileLoader = (repository: PartitionedRepository<TrafficItem>) => {
-  const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile<TrafficItem>({
+  const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile({
     repository
   })
 
   return async (baseDir: string, partitionKey: string) => {
-    console.log(`baseDir: ${baseDir}, partitionKey: ${partitionKey}`)
     const fileContent = await readFile(pathJoin(baseDir, `${partitionKey}.json`), "utf-8")
     return buildTrafficGraphFromFile(JSON.parse(fileContent))
   }

@@ -1,6 +1,7 @@
+import { Arc } from "../arc.js"
 import type { ArcGenerator } from "../arcGenerator.js"
 import type { GraphNode, NodeId } from "../graph.js"
-import { ArcDeserializer, SerializedArc } from "../serialize.js"
+import type { ArcDeserializer } from "../serialize.js"
 
 export type PartitionedRepository<I> = {
   register: (node: GraphNode<I>, partitionKey: string) => Promise<void>,
@@ -34,10 +35,11 @@ export const buildRepositoryArcGenerator = <I>(
 }
 
 export const buildRepositoryArcDeserializer = <I>(
-  repository: PartitionedRepository<I>
+  repository: PartitionedRepository<I>,
+  getter: (id: NodeId) => GraphNode<I> | undefined
 ): ArcDeserializer<I> => (
   serializedArc,
-  resolvedAllCallback
+  resolvedCallback,
 ) => {
   if (!('aPk' in serializedArc && 'bPk' in serializedArc)) {
     return undefined
@@ -51,7 +53,11 @@ export const buildRepositoryArcDeserializer = <I>(
   }
 
   const lazyResolveHandler = (nodeId: NodeId, pk: string, resolvedCallback: (node: GraphNode<I>) => void) => {
-    const initial = repository.getInMemory(nodeId, pk)
+    const initial = getter(nodeId)
+    if (initial) {
+      resolvedCallback(initial)
+    }
+
     let resolved: GraphNode<I> | undefined = undefined
     return async () => {
       if (!resolved) {
@@ -66,31 +72,14 @@ export const buildRepositoryArcDeserializer = <I>(
     }
   }
 
-  const dependentHandler = (() => {
-    let aResolved: GraphNode<I> | undefined = undefined
-    let bResolved: GraphNode<I> | undefined = undefined
-    return (node: GraphNode<I>) => {
-      if (node.id === serializedArc.aNodeId) {
-        aResolved = node
-      }
-
-      if (node.id === serializedArc.bNodeId) {
-        bResolved = node
-      }
-
-      if (aResolved && bResolved) {
-        resolvedAllCallback(arc, aResolved, bResolved)
-      }
-    }
-  })()
-
-  const arc = {
-    a: lazyResolveHandler(serializedArc.aNodeId, aPk, dependentHandler),
-    b: lazyResolveHandler(serializedArc.bNodeId, bPk, dependentHandler),
-    aPk,
-    bPk,
+  const arc: Arc<I> = {
+    a: () => Promise.resolve(undefined),
+    b: () => Promise.resolve(undefined),
     cost: Number(serializedArc.arcCost)
   }
+
+  arc.a = lazyResolveHandler(serializedArc.aNodeId, aPk, (node) => resolvedCallback(arc, node))
+  arc.b = lazyResolveHandler(serializedArc.bNodeId, bPk, (node) => resolvedCallback(arc, node))
 
   return arc
 }

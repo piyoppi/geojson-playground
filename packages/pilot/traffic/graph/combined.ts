@@ -1,4 +1,4 @@
-import { buildWeakRefArc, buildWeakRefArcDeserializer } from "../../graph/arc.js"
+import { buildWeakRefArc } from "../../graph/arc.js"
 import { buildDuplicateNodesMarger, buildNodeMerger, GraphNode, NodeId } from "../../graph/graph.js"
 import { ArcDeserializer, buildGraphDeserializer } from "../../graph/serialize.js"
 import { buildBusStopGraphGenerator } from "./busStopGraph.js"
@@ -7,7 +7,7 @@ import { buildStationGraphGenerator } from "./stationGraph.js"
 import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficItem } from "./trafficGraph.js"
 import { buildTrafficGraphFromFile } from "./trafficGraphFile.js"
 import type { ArcGenerator } from "../../graph/arcGenerator.js"
-import { buildRepositoryArcDeserializer, PartitionedRepository, type NodeRepositoryGetter } from "../../graph/arc/externalRepositoryArc.js"
+import { buildRepositoryArcDeserializer, type PartitionedRepository } from "../../graph/arc/externalRepositoryArc.js"
 
 export const buildDefaultStationGrpahGenerator = () => buildStationGraphGenerator(
   defaultTrafficArcGenerator,
@@ -39,23 +39,26 @@ type DefaultTrafficFromFileOptions = {
   repository?: PartitionedRepository<TrafficItem>
 }
 
-export const buildDefaultTrafficGraphFromFile = <I>(
+export const buildDefaultTrafficGraphFromFile = (
   options: DefaultTrafficFromFileOptions = {}
 ) => buildTrafficGraphFromFile(
   buildTrafficGraphDeserializer(
     buildGraphDeserializer(
-      options.repository &&
-      defaultArcDeserializer(
-        options.repository
-      ),
+      getter => buildDefaultArcDeserializer<TrafficItem>(
+        options.repository,
+        getter
+      )
     )
   )
 )
 
-export const defaultArcDeserializer = <I>(
-  repository: PartitionedRepository<I>
+export const buildDefaultArcDeserializer = <I>(
+  repository: PartitionedRepository<I> | undefined,
+  getter: (id: NodeId) => GraphNode<I> | undefined
 ): ArcDeserializer<I> => {
-  const repositoryArcDeserializer = buildRepositoryArcDeserializer(repository)
+  if (!repository) return () => undefined
+
+  const repositoryArcDeserializer = buildRepositoryArcDeserializer(repository, getter)
 
   return (serializedArc, resolved) => 
     repositoryArcDeserializer(serializedArc, resolved) 

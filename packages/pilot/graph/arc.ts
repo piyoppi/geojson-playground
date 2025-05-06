@@ -37,7 +37,8 @@ export const buildWeakRefArcDeserializer = <I>(
 
   const arc = buildWeakRefArc(nodeA, nodeB, Number(serializedArc.arcCost))
 
-  resolved(arc, nodeA, nodeB)
+  resolved(arc, nodeA)
+  resolved(arc, nodeB)
 
   return arc
 }
