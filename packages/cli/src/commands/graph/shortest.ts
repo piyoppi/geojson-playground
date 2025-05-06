@@ -47,6 +47,7 @@ const buildPartialFileLoader = (getter: NodeRepositoryGetter<GraphNode<TrafficIt
   })
 
   return async (baseDir: string, partitionKey: string) => {
+    console.log(`baseDir: ${baseDir}, partitionKey: ${partitionKey}`)
     const fileContent = await readFile(pathJoin(baseDir, `${partitionKey}.json`), "utf-8")
     return buildTrafficGraphFromFile(JSON.parse(fileContent))
   }

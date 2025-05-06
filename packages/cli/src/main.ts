@@ -95,8 +95,8 @@ const main = defineCommand({
             },
           },
           run({ args }) {
-            const { graphfile, from, to, frompk, topk } = args
-            executeRailroadShortest(graphfile, from, frompk, to, topk)
+            const { graphdir, from, to, frompk, topk } = args
+            executeRailroadShortest(graphdir, from, frompk, to, topk)
           }
         }
       },
@@ -117,8 +117,8 @@ const main = defineCommand({
             },
           },
           run({ args }) {
-            const { graphfile, outdir } = args
-            executeDatabaseStore(graphfile, outdir)
+            const { graphfile, out } = args
+            executeDatabaseStore(graphfile, out)
           }
         }
       }

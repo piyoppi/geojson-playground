@@ -17,6 +17,7 @@ export const execute = async (
   database.exec(`
     CREATE TABLE IF NOT EXISTS stations (
       id TEXT PRIMARY KEY,
+      partition_key TEXT,
       name TEXT,
       route_name TEXT
     )
@@ -26,7 +27,7 @@ export const execute = async (
     CREATE INDEX IF NOT EXISTS idx_stations_name ON stations (name)
   `)
 
-  const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, name, route_name) VALUES (?, ?, ?)')
+  const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, partition_key, name, route_name) VALUES (?, ?, ?, ?)')
   
   try {
     database.exec('BEGIN TRANSACTION')
@@ -35,7 +36,7 @@ export const execute = async (
       const routeName = railroad.name
       
       for (const station of railroad.stations) {
-        insertStmt.run(station.id, station.name, routeName)
+        insertStmt.run(station.id, railroad.companyId, station.name, routeName)
       }
     }
     
