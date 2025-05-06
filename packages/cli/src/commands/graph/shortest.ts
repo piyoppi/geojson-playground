@@ -1,8 +1,8 @@
 import { join as pathJoin } from 'node:path'
 import { readFile } from 'node:fs/promises'
-import { findShortestPath, GraphNode } from '@piyoppi/sansaku-pilot/graph/graph.js'
+import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
-import { buildRepository, NodeRepositoryGetter, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/externalRepositoryArc.js'
+import { buildRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/externalRepositoryArc.js'
 import { TrafficItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const execute = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {

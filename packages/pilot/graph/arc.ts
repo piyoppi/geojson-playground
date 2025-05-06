@@ -1,5 +1,5 @@
 import type { GraphNode, NodeId } from "./graph.js"
-import { ArcDeserializer, SerializedArc } from "./serialize.js"
+import type { ArcDeserializer } from "./serialize.js"
 
 export interface Arc<T> {
   cost: number
