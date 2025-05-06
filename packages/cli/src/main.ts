@@ -78,15 +78,25 @@ const main = defineCommand({
               description: "from",
               required: true
             },
+            frompk: {
+              type: "string",
+              description: "from partition key",
+              required: true
+            },
             to: {
               type: "string",
               description: "to",
               required: true
-            }
+            },
+            topk: {
+              type: "string",
+              description: "to partition key",
+              required: true
+            },
           },
           run({ args }) {
-            const { graphfile, from, to } = args
-            executeRailroadShortest(graphfile, from, to)
+            const { graphfile, from, to, frompk, topk } = args
+            executeRailroadShortest(graphfile, from, frompk, to, topk)
           }
         }
       },

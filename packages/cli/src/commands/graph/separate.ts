@@ -4,6 +4,7 @@ import { buildRepository } from '@piyoppi/sansaku-pilot/graph/arc/externalReposi
 import { join as pathJoin } from 'node:path'
 import { toTrafficGraphFile, TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
+import { TrafficItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
 
 export const execute = async (
   inputGraphFilename: string,
@@ -14,7 +15,7 @@ export const execute = async (
 
   const { graph, railroads, busRoutes, companies } = buildTrafficGraphFromFile(railroadJson)
 
-  const repository = buildRepository(
+  const repository = buildRepository<TrafficItem>(
     partitionKey => Promise.reject(new Error(`Node is not found (partitionKey: ${partitionKey})`)),
     async (partitionKey, nodes) => {
       const file = await toTrafficGraphFile(

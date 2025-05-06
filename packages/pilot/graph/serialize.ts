@@ -1,5 +1,4 @@
 import type { Arc } from './arc.js'
-import { ArcGenerator } from './arcGenerator.js'
 import { type GraphNode, connect, nodeIdToString, NodeId } from './graph.js'
 
 export type SerializedGraphNode = {
@@ -11,6 +10,8 @@ export type SerializedArc = {
   bNodeId: string,
   arcCost: string
 }
+
+export type ArcDeserializer<I> = (serialized: SerializedArc, aNode: GraphNode<I>, bNode: GraphNode<I>) => Arc<I> | undefined
 
 export const serialize = async <I>(
   nodes: GraphNode<I>[]
@@ -35,15 +36,15 @@ export const serialize = async <I>(
   }
 }
 
-export type GraphDeserializer<I> = ReturnType<typeof buildGraphDeserializer<I>>
-export const buildGraphDeserializer = <I>(
-  generateArc: ArcGenerator<I>
-) => <InputItems extends {id: NodeId}, IG extends I>(
+export type GraphDeserializer<IG> = ReturnType<typeof buildGraphDeserializer<IG>>
+export const buildGraphDeserializer = <IG>(
+  deserializeArc: ArcDeserializer<IG>
+) => <InputItems extends {id: NodeId}, I extends IG>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
-  graphGenerator: (node: InputItems, id: string) => GraphNode<IG>
-): GraphNode<IG>[] => {
-  const nodeMap = new Map<string, GraphNode<IG>>()
+  graphGenerator: (node: InputItems, id: string) => GraphNode<I>
+): GraphNode<I>[] => {
+  const nodeMap = new Map<string, GraphNode<I>>()
   
   for (const item of items) {
     const stringId = nodeIdToString(item.id)
@@ -58,13 +59,11 @@ export const buildGraphDeserializer = <I>(
       continue
     }
     
-    const arcCost = Number(serializedArc.arcCost)
-
-    if (isNaN(arcCost)) {
-      continue
+    const arc = deserializeArc(serializedArc, nodeA, nodeB)
+    if (!arc) {
+      throw new Error(`Arc deserialization failed for nodes: ${nodeA.id}, ${nodeB.id}`)
     }
-    
-    const arc = generateArc(nodeA, nodeB, arcCost)
+
     connect(nodeA, nodeB, arc)
   }
   

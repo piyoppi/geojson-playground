@@ -1,5 +1,6 @@
-import type { ArcGenerator } from "../arcGenerator"
-import type { GraphNode, NodeId } from "../graph"
+import type { ArcGenerator } from "../arcGenerator.js"
+import type { GraphNode, NodeId } from "../graph.js"
+import { ArcDeserializer, SerializedArc } from "../serialize.js"
 
 export type PartitionedRepository<I> = {
   register: (node: GraphNode<I>, partitionKey: string) => Promise<void>,
@@ -29,6 +30,40 @@ export const buildRepositoryArcGenerator = <I>(
     bPk: partitionKeyGetter(b),
     cost
   }
+}
+
+export const buildRepositoryArcDeserializer = <I>(
+  getFromRepository: NodeRepositoryGetter<GraphNode<I>>
+) => (
+  serializedArc: SerializedArc,
+  a: GraphNode<I>,
+  b: GraphNode<I>
+) => {
+  if (!('aPk' in serializedArc && 'bPk' in serializedArc)) {
+    return undefined
+  }
+
+  const aPk = serializedArc.aPk
+  const bPk = serializedArc.bPk
+
+  if (typeof aPk !== 'string' || typeof bPk !== 'string') {
+    return undefined
+  }
+
+  return buildRepositoryArcGenerator(
+    getFromRepository,
+    node => {
+      const partitionKey = (node.id === a.id) ? aPk :
+        (node.id === b.id) ? bPk :
+        undefined
+
+      if (!partitionKey) {
+        throw new Error(`Partition key is not found (id: ${node.id})`)
+      }
+
+      return partitionKey
+    }
+  )(a, b, Number(serializedArc.arcCost))
 }
 
 export const buildRepository = <I>(
