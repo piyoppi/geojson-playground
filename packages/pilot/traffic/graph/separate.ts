@@ -1,6 +1,6 @@
-import { nodeIdToString, to } from "../../graph/graph.js";
+import { to } from "../../graph/graph.js";
 import { buildRepositoryArcGenerator, type PartitionedRepository } from "../../graph/arc/externalRepositoryArc.js";
-import { TrafficGraphNode, TrafficItem } from "./trafficGraph.js";
+import type { TrafficGraphNode, TrafficItem } from "./trafficGraph.js";
 
 export const separate = async (
   repository: PartitionedRepository<TrafficItem>,

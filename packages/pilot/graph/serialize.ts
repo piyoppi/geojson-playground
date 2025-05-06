@@ -1,4 +1,4 @@
-import type { Arc } from './arc.js'
+import { buildWeakRefArcDeserializer, type Arc } from './arc.js'
 import { type GraphNode, connect, nodeIdToString, NodeId } from './graph.js'
 
 export type SerializedGraphNode = {
@@ -11,7 +11,10 @@ export type SerializedArc = {
   arcCost: string
 }
 
-export type ArcDeserializer<I> = (serialized: SerializedArc, aNode: GraphNode<I>, bNode: GraphNode<I>) => Arc<I> | undefined
+export type ArcDeserializer<I> = (
+  serialized: SerializedArc,
+  resolved: (arc: Arc<I>, a: GraphNode<I>, b: GraphNode<I>) => void,
+) => Arc<I> | undefined
 
 export const serialize = async <I>(
   nodes: GraphNode<I>[]
@@ -38,7 +41,7 @@ export const serialize = async <I>(
 
 export type GraphDeserializer<IG> = ReturnType<typeof buildGraphDeserializer<IG>>
 export const buildGraphDeserializer = <IG>(
-  deserializeArc: ArcDeserializer<IG>
+  deserializeArc: ArcDeserializer<IG> = () => undefined
 ) => <InputItems extends {id: NodeId}, I extends IG>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
@@ -51,20 +54,16 @@ export const buildGraphDeserializer = <IG>(
     nodeMap.set(stringId, graphGenerator(item, stringId))
   }
   
-  for (const serializedArc of serialized.arcs) {
-    const nodeA = nodeMap.get(serializedArc.aNodeId)
-    const nodeB = nodeMap.get(serializedArc.bNodeId)
-    
-    if (!nodeA || !nodeB) {
-      continue
-    }
-    
-    const arc = deserializeArc(serializedArc, nodeA, nodeB)
-    if (!arc) {
-      throw new Error(`Arc deserialization failed for nodes: ${nodeA.id}, ${nodeB.id}`)
-    }
+  const weakRefArcDeserializer = buildWeakRefArcDeserializer(id => nodeMap.get(id))
+  const arcResolvedHandler = <IH>(arc: Arc<IH>, a: GraphNode<IH>, b: GraphNode<IH>) => connect(a, b, arc)
 
-    connect(nodeA, nodeB, arc)
+  for (const serializedArc of serialized.arcs) {
+    const arc = deserializeArc(serializedArc, arcResolvedHandler) ||
+      weakRefArcDeserializer(serializedArc, arcResolvedHandler)
+
+    if (!arc) {
+      throw new Error(`Arc deserialization failed for nodes`)
+    }
   }
   
   return Array.from(nodeMap.values())

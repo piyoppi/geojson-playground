@@ -13,8 +13,12 @@ export interface GraphNode<T> {
 }
 
 export const connect = <T>(a: GraphNode<T>, b: GraphNode<T>, arc: Arc<T>): void => {
-  a.arcs.push(arc)
-  b.arcs.push(arc)
+  setArc(a, arc)
+  setArc(b, arc)
+}
+
+export const setArc = <T>(node: GraphNode<T>, arc: Arc<T>): void => {
+  node.arcs.push(arc)
 }
 
 export const disconnect = async <T>(a: GraphNode<T>, b: GraphNode<T>) => {

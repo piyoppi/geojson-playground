@@ -5,6 +5,7 @@ import { ArcDeserializer, SerializedArc } from "../serialize.js"
 export type PartitionedRepository<I> = {
   register: (node: GraphNode<I>, partitionKey: string) => Promise<void>,
   get: (id: NodeId, partitionKey: string) => Promise<GraphNode<I> | undefined>
+  getInMemory: (id: NodeId, partitionKey: string) => GraphNode<I> | undefined
 }
 
 export type NodeRepositoryGetter<I> = (id: NodeId, partitionKey: string) => Promise<I | undefined>
@@ -33,11 +34,10 @@ export const buildRepositoryArcGenerator = <I>(
 }
 
 export const buildRepositoryArcDeserializer = <I>(
-  getFromRepository: NodeRepositoryGetter<GraphNode<I>>
-) => (
-  serializedArc: SerializedArc,
-  a: GraphNode<I>,
-  b: GraphNode<I>
+  repository: PartitionedRepository<I>
+): ArcDeserializer<I> => (
+  serializedArc,
+  resolvedAllCallback
 ) => {
   if (!('aPk' in serializedArc && 'bPk' in serializedArc)) {
     return undefined
@@ -50,20 +50,49 @@ export const buildRepositoryArcDeserializer = <I>(
     return undefined
   }
 
-  return buildRepositoryArcGenerator(
-    getFromRepository,
-    node => {
-      const partitionKey = (node.id === a.id) ? aPk :
-        (node.id === b.id) ? bPk :
-        undefined
+  const lazyResolveHandler = (nodeId: NodeId, pk: string, resolvedCallback: (node: GraphNode<I>) => void) => {
+    const initial = repository.getInMemory(nodeId, pk)
+    let resolved: GraphNode<I> | undefined = undefined
+    return async () => {
+      if (!resolved) {
+        resolved = initial || await repository.get(nodeId, pk)
 
-      if (!partitionKey) {
-        throw new Error(`Partition key is not found (id: ${node.id})`)
+        if (resolved) {
+          resolvedCallback(resolved)
+        }
       }
 
-      return partitionKey
+      return resolved
     }
-  )(a, b, Number(serializedArc.arcCost))
+  }
+
+  const dependentHandler = (() => {
+    let aResolved: GraphNode<I> | undefined = undefined
+    let bResolved: GraphNode<I> | undefined = undefined
+    return (node: GraphNode<I>) => {
+      if (node.id === serializedArc.aNodeId) {
+        aResolved = node
+      }
+
+      if (node.id === serializedArc.bNodeId) {
+        bResolved = node
+      }
+
+      if (aResolved && bResolved) {
+        resolvedAllCallback(arc, aResolved, bResolved)
+      }
+    }
+  })()
+
+  const arc = {
+    a: lazyResolveHandler(serializedArc.aNodeId, aPk, dependentHandler),
+    b: lazyResolveHandler(serializedArc.bNodeId, bPk, dependentHandler),
+    aPk,
+    bPk,
+    cost: Number(serializedArc.arcCost)
+  }
+
+  return arc
 }
 
 export const buildRepository = <I>(
@@ -98,6 +127,9 @@ export const buildRepository = <I>(
       }
 
       return repository.get(id)
+    },
+    getInMemory: (id: NodeId, partitionKey: string) => {
+      return repositoryByPartition.get(partitionKey)?.get(id)
     },
     store: async () => {
       for (const [partitionKey, repository] of repositoryByPartition.entries()) {

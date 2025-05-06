@@ -11,7 +11,12 @@ export type TrafficGraphFile = {
   companies: SerializedCompany[]
 }
 
-export const toTrafficGraphFile = async (nodes: TrafficGraphNode[], companies: Company[], railroads: Railroad[], busRoutes: BusRoute[]): Promise<TrafficGraphFile> => {
+export const toTrafficGraphFile = async (
+  nodes: TrafficGraphNode[],
+  companies: Company[],
+  railroads: Railroad[],
+  busRoutes: BusRoute[]
+): Promise<TrafficGraphFile> => {
   const graph = await serialize(nodes)
 
   return {

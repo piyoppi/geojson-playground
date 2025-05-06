@@ -1,5 +1,5 @@
-import { buildWeakRefArc } from "../../graph/arc.js"
-import { buildDuplicateNodesMarger, buildNodeMerger, GraphNode } from "../../graph/graph.js"
+import { buildWeakRefArc, buildWeakRefArcDeserializer } from "../../graph/arc.js"
+import { buildDuplicateNodesMarger, buildNodeMerger, GraphNode, NodeId } from "../../graph/graph.js"
 import { ArcDeserializer, buildGraphDeserializer } from "../../graph/serialize.js"
 import { buildBusStopGraphGenerator } from "./busStopGraph.js"
 import { buildTrafficGraphDeserializer } from "./serialize.js"
@@ -7,7 +7,7 @@ import { buildStationGraphGenerator } from "./stationGraph.js"
 import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficItem } from "./trafficGraph.js"
 import { buildTrafficGraphFromFile } from "./trafficGraphFile.js"
 import type { ArcGenerator } from "../../graph/arcGenerator.js"
-import { buildRepositoryArcDeserializer, type NodeRepositoryGetter } from "../../graph/arc/externalRepositoryArc.js"
+import { buildRepositoryArcDeserializer, PartitionedRepository, type NodeRepositoryGetter } from "../../graph/arc/externalRepositoryArc.js"
 
 export const buildDefaultStationGrpahGenerator = () => buildStationGraphGenerator(
   defaultTrafficArcGenerator,
@@ -36,7 +36,7 @@ const defaultTrafficArcGenerator: ArcGenerator<TrafficItem> = (a, b, cost) => {
 }
 
 type DefaultTrafficFromFileOptions = {
-  nodeRepositoryGetter?: NodeRepositoryGetter<GraphNode<TrafficItem>>
+  repository?: PartitionedRepository<TrafficItem>
 }
 
 export const buildDefaultTrafficGraphFromFile = <I>(
@@ -44,21 +44,19 @@ export const buildDefaultTrafficGraphFromFile = <I>(
 ) => buildTrafficGraphFromFile(
   buildTrafficGraphDeserializer(
     buildGraphDeserializer(
-      defaultArcDeserializer(options.nodeRepositoryGetter),
+      options.repository &&
+      defaultArcDeserializer(
+        options.repository
+      ),
     )
   )
 )
 
 export const defaultArcDeserializer = <I>(
-  getter?: NodeRepositoryGetter<GraphNode<I>>
+  repository: PartitionedRepository<I>
 ): ArcDeserializer<I> => {
-  if (!getter) {
-    return (serializedArc, a, b) => buildWeakRefArc(a, b, Number(serializedArc.arcCost))
-  }
+  const repositoryArcDeserializer = buildRepositoryArcDeserializer(repository)
 
-  const repositoryArcDeserializer = buildRepositoryArcDeserializer(getter)
-
-  return (serializedArc, a, b) => 
-    repositoryArcDeserializer(serializedArc, a, b) ||
-    buildWeakRefArc(a, b, Number(serializedArc.arcCost))
+  return (serializedArc, resolved) => 
+    repositoryArcDeserializer(serializedArc, resolved) 
 }
