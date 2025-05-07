@@ -4,10 +4,10 @@ import type { GraphNode } from './graph'
 import type { Arc } from './arc'
 
 describe('walk function', () => {
-  const createNode = (id: string): GraphNode & { id: string } => ({ id, arcs: [] })
+  const createNode = (id: string): GraphNode<{}> & { id: string } => ({ id, arcs: [], item: {} })
 
-  const connect = (a: GraphNode & { id: string }, b: GraphNode & { id: string }, cost = 1): void => {
-    const arcAB: Arc = {
+  const connect = (a: GraphNode<{}> & { id: string }, b: GraphNode<{}> & { id: string }, cost = 1): void => {
+    const arcAB: Arc<{}> = {
       cost,
       a: () => Promise.resolve(a),
       b: () => Promise.resolve(b)
@@ -75,7 +75,7 @@ describe('walk function', () => {
   })
 
   it('handles empty graph', (t) => {
-    const singleNode: GraphNode & { id: string } = { id: 'alone', arcs: [] }
+    const singleNode: GraphNode<{}> & { id: string } = { id: 'alone', arcs: [], item: {} }
     let callCount = 0
     
     walk(singleNode, () => {

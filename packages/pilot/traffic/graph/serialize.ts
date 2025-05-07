@@ -1,4 +1,8 @@
-import { type SerializedArc, type GraphDeserializer as GraphNodeDeserializer, serialize as serializedGraphNode } from '../../graph/serialize.js'
+import {
+  type SerializedArc,
+  type GraphDeserializer as GraphNodeDeserializer,
+  serialize as serializedGraphNode
+} from '../../graph/serialize.js'
 import { type Route, type Station, stationIdToString } from '../transportation.js'
 import { TrafficGraphNode, TrafficItem } from './trafficGraph.js'
 
@@ -30,7 +34,7 @@ export const buildTrafficGraphDeserializer = (
   return deserializeGraphNode(
     stations,
     serialized,
-    (node, stringId) => {
+    (item, stringId) => {
       const station = stationsById.get(stringId)
       if (!station) {
         throw new Error(`Station not found for id: ${stringId}`)
@@ -42,7 +46,7 @@ export const buildTrafficGraphDeserializer = (
       }
 
       return {
-        id: node.id,
+        id: item.id,
         arcs: [],
         item: {
           companyId: route.companyId,

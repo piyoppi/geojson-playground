@@ -46,13 +46,13 @@ export const buildGraphDeserializer = <I>(
 ) => <InputItems extends {id: NodeId}>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
-  graphGenerator: (node: InputItems, id: string) => GraphNode<I>
+  generateNode: (item: InputItems, id: string) => GraphNode<I>
 ): GraphNode<I>[] => {
   const nodeMap = new Map<string, GraphNode<I>>()
   
   for (const item of items) {
     const stringId = nodeIdToString(item.id)
-    nodeMap.set(stringId, graphGenerator(item, stringId))
+    nodeMap.set(stringId, generateNode(item, stringId))
   }
   
   const weakRefArcDeserializer = buildWeakRefArcDeserializer(id => nodeMap.get(id))
