@@ -1,11 +1,6 @@
-import type { GraphNode, NodeId } from "./graph.js"
-import type { ArcDeserializer } from "./serialize.js"
-
-export interface Arc<T> {
-  cost: number
-  a: () => Promise<GraphNode<T> | undefined>
-  b: () => Promise<GraphNode<T> | undefined>
-}
+import type { GraphNode, NodeId } from "../graph.js"
+import type { ArcDeserializer } from "../serialize.js"
+import type { Arc } from "./index.js"
 
 export const buildWeakRefArc = <I>(
   a: GraphNode<I>, 

@@ -1,7 +1,7 @@
 import { describe, it, TestContext } from 'node:test'
 import { GraphNode, connect } from './graph'
-import { serialize, deserialize} from './serialize'
-import { ArcGenerator } from './arcGenerator'
+import { serialize, deserialize } from './serialize'
+import type { ArcGenerator } from './arc/index'
 
 const graphs = () => {
   const nodeA: GraphNode = { id: 'A', arcs: [] }

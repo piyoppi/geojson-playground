@@ -1,8 +1,7 @@
-import { Arc } from "../../graph/arc.js"
-import { ArcGenerator } from "../../graph/arcGenerator.js"
 import { buildGraphBuilder } from "../../graph/fromPathChain.js"
-import { arcExists, connect, GraphNode, type DuplicateNodesMarger } from "../../graph/graph.js"
 import { ends, buildPathchain } from '../../pathchain.js'
+import { arcExists, connect, type GraphNode, type DuplicateNodesMarger } from "../../graph/graph.js"
+import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { Railroad, RailroadStation } from "../railroad.js"
 import type { RouteId } from "../transportation.js"
 import type { TrafficItem } from "./trafficGraph.js"

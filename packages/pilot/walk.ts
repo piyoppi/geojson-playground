@@ -4,6 +4,7 @@ type Current = {
   pathChain: PathChain,
   pathDirection: PathDirection
 }
+
 type CallbackReturn<R = unknown> = {
   stopBranch?: boolean
   stop?: boolean

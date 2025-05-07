@@ -1,6 +1,5 @@
 import { idToString, type Id } from "../utils/Id.js"
-import type { Arc } from "./arc.js"
-import type { ArcGenerator } from "./arcGenerator.js"
+import type { Arc, ArcGenerator } from "./arc/index.js"
 
 export type NodeId = Id
 export const isEqualNodeId = (aNodeId: NodeId, bNodeId: NodeId): boolean => aNodeId === bNodeId

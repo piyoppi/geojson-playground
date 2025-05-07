@@ -1,4 +1,4 @@
-import { buildWeakRefArc } from "../../graph/arc.js"
+import { buildWeakRefArc } from "../../graph/arc/weakRefArc.js"
 import { buildDuplicateNodesMarger, buildNodeMerger, GraphNode, NodeId } from "../../graph/graph.js"
 import { ArcDeserializer, buildGraphDeserializer } from "../../graph/serialize.js"
 import { buildBusStopGraphGenerator } from "./busStopGraph.js"
@@ -6,8 +6,8 @@ import { buildTrafficGraphDeserializer } from "./serialize.js"
 import { buildStationGraphGenerator } from "./stationGraph.js"
 import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficItem } from "./trafficGraph.js"
 import { buildTrafficGraphFromFile } from "./trafficGraphFile.js"
-import type { ArcGenerator } from "../../graph/arcGenerator.js"
 import { buildRepositoryArcDeserializer, type PartitionedRepository } from "../../graph/arc/externalRepositoryArc.js"
+import type { ArcGenerator } from "../../graph/arc/index.js"
 
 export const buildDefaultStationGrpahGenerator = () => buildStationGraphGenerator(
   defaultTrafficArcGenerator,

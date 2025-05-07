@@ -1,6 +1,6 @@
 import { findNearestPoint, type Position2D } from "../geometry.js"
-import { arcExists, connect, GraphNode, type NodeId } from "./graph.js"
-import type { ArcGenerator } from "./arcGenerator.js"
+import { arcExists, connect, type GraphNode, type NodeId } from "./graph.js"
+import type { ArcGenerator } from "./arc/index.js"
 
 type CallbackGenerated<I> = [NodeId, I]
 

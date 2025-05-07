@@ -1,4 +1,5 @@
-import { buildWeakRefArcDeserializer, type Arc } from './arc.js'
+import type { Arc } from './arc/index.js'
+import { buildWeakRefArcDeserializer } from './arc/weakRefArc.js'
 import { type GraphNode, nodeIdToString, NodeId, setArc } from './graph.js'
 
 export type SerializedGraphNode = {
@@ -41,7 +42,7 @@ export const serialize = async <I>(
 
 export type GraphDeserializer<I> = ReturnType<typeof buildGraphDeserializer<I>>
 export const buildGraphDeserializer = <I>(
-  buildDeserializeArc?: (getter: (id: NodeId) => GraphNode<I> | undefined) => ArcDeserializer<I>
+  buildDeserializeArc: (getter: (id: NodeId) => GraphNode<I> | undefined) => ArcDeserializer<I>
 ) => <InputItems extends {id: NodeId}>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
