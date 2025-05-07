@@ -1,9 +1,9 @@
 import { describe, it, type TestContext } from 'node:test'
 import { fromPathChain } from './fromPathChain'
 import { to } from './graph'
-import { buildPathchain } from '../pathchain'
+import { buildPathchain } from '../geometry/path/pathchain'
 import type { Position2D } from '../geojson'
-import type { Path } from '../path'
+import type { Path } from '../geometry/path'
 
 describe('fromPathChain', () => {
   it('Should return nodes', async (t: TestContext) => {

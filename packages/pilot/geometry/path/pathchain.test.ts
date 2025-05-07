@@ -1,6 +1,6 @@
 import { describe, it, TestContext } from 'node:test'
 import { buildFromInternal, buildPathchain, mergeTIntersection, PathInternal } from './pathchain'
-import { type Path } from './path'
+import { type Path } from './index'
 import { pathChainWalk } from './walk'
 
 describe('buildPathchain tests', () => {

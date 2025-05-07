@@ -1,6 +1,6 @@
 import { connect, type NodeId, type GraphNode } from "./graph.js"
-import { pathLength, type Path } from "../path.js"
-import { pathChainWalk, type BranchId } from "../walk.js"
+import { pathLength, type Path } from "../geometry/path/index.js"
+import { pathChainWalk, type BranchId } from "../geometry/path/walk.js"
 import {
   findPointInPathChain,
   type IsolatedPathChain,
@@ -9,8 +9,8 @@ import {
   type VisitFnGenerator,
   type PathChain,
   type PointInPathchain
-} from "../pathchain.js"
-import type { Position2D } from "../geometry.js"
+} from "../geometry/path/pathchain.js"
+import type { Position2D } from "../geometry/index.js"
 import type { ArcGenerator } from "./arc/index.js"
 
 type NodeOnPath = {

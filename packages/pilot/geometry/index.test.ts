@@ -7,7 +7,7 @@ import {
   add,
   subtract,
   length
-} from './geometry.ts'
+} from './index.ts'
 
 describe('normalize', () => {
   it('should return a unit vector for a given vector', (t) => {

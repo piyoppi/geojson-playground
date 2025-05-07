@@ -1,4 +1,4 @@
-import type { Path } from "../path.js"
+import type { Path } from "../geometry/path/index.js"
 import {
   serializeRoute,
   serializeStation,

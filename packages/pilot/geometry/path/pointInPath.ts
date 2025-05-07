@@ -1,6 +1,5 @@
-import { type Position2D, innerProduction, subtract, length } from "./geometry.js"
-
-export type Path = Position2D[]
+import { subtract, length, innerProduction, type Position2D } from "../index.js"
+import { Path, pathLength } from "./index.js"
 
 export type PointInPath = {
   path: WeakRef<Path>
@@ -40,9 +39,3 @@ export const pointInPath = (pos: Readonly<Position2D>, path: Path): PointInPath 
     distance: () => pathLength(path.slice(0, index + 1)) + distance
   }
 }
-
-export const pathLength = (path: Path) => path.slice(1).reduce((acc, end, i) => {
-  const start = path[i]
-  
-  return acc + length(subtract(start, end))
-}, 0)

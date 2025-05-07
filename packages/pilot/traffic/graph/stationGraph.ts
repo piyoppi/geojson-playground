@@ -1,5 +1,5 @@
 import { buildGraphBuilder } from "../../graph/fromPathChain.js"
-import { ends, buildPathchain } from '../../pathchain.js'
+import { ends, buildPathchain } from '../../geometry/path/pathchain.js'
 import { arcExists, connect, type GraphNode, type DuplicateNodesMarger } from "../../graph/graph.js"
 import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { Railroad, RailroadStation } from "../railroad.js"
