@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
-import { TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile'
-import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined'
-import { DatabaseSync } from 'node:sqlite'
+import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
+import type { TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
+import { createHandlerFromFile, createTable } from '@piyoppi/sansaku-viewmodel'
 
 export const execute = async (
   inputGraphFilename: string,
@@ -12,39 +12,7 @@ export const execute = async (
 
   const { railroads } = buildTrafficGraphFromFile(railroadJson)
 
-  const database = new DatabaseSync(outFilename)
+  const database = createHandlerFromFile(outFilename)
 
-  database.exec(`
-    CREATE TABLE IF NOT EXISTS stations (
-      id TEXT PRIMARY KEY,
-      partition_key TEXT,
-      name TEXT,
-      route_name TEXT
-    )
-  `)
-  
-  database.exec(`
-    CREATE INDEX IF NOT EXISTS idx_stations_name ON stations (name)
-  `)
-
-  const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, partition_key, name, route_name) VALUES (?, ?, ?, ?)')
-  
-  try {
-    database.exec('BEGIN TRANSACTION')
-    
-    for (const railroad of railroads) {
-      const routeName = railroad.name
-      
-      for (const station of railroad.stations) {
-        insertStmt.run(station.id, railroad.companyId, station.name, routeName)
-      }
-    }
-    
-    database.exec('COMMIT')
-  } catch (error) {
-    database.exec('ROLLBACK')
-    throw error
-  } finally {
-    database.close()
-  }
+  createTable(database, railroads)
 }

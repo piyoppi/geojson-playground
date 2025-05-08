@@ -1,12 +1,9 @@
 {
-  "name": "@piyoppi/sansaku-cli",
+  "name": "@piyoppi/sansaku-viewmodel",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "dist/main.js",
-  "bin": {
-    "sansaku": "./dist/main.js"
-  },
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc"
@@ -15,8 +12,6 @@
     "typescript": "~5.7.2"
   },
   "dependencies": {
-    "@piyoppi/sansaku-pilot": "1.0.0",
-    "@piyoppi/sansaku-viewmodel": "1.0.0",
-    "citty": "^0.1.6"
+    "@piyoppi/sansaku-pilot": "1.0.0"
   }
 }

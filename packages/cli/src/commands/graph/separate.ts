@@ -4,7 +4,7 @@ import { buildRepository } from '@piyoppi/sansaku-pilot/graph/arc/externalReposi
 import { join as pathJoin } from 'node:path'
 import { toTrafficGraphFile, TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
-import { TrafficItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
+import type { TrafficItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const execute = async (
   inputGraphFilename: string,
