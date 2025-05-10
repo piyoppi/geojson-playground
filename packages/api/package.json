@@ -6,10 +6,12 @@
     "build": "esbuild --bundle --outfile=./dist/index.js --platform=node --target=node20 ./src/index.ts"
   },
   "devDependencies": {
-    "typescript": "~5.7.2",
-    "hono": "^4.7.8"
+    "hono": "^4.7.8",
+    "typescript": "~5.7.2"
   },
   "dependencies": {
+    "@hono/ajv-validator": "^0.0.1",
+    "@piyoppi/sansaku-api-spec": "0.1.0",
     "@piyoppi/sansaku-pilot": "1.0.0",
     "@piyoppi/sansaku-viewmodel": "1.0.0"
   }

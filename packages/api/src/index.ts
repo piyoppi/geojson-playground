@@ -1,5 +1,8 @@
 import { Hono } from 'hono'
+import { type JSONSchemaType } from 'ajv'
 import { createKeywordHandler } from './handlers/getStationSummaries'
+import { ajvValidator } from '@hono/ajv-validator'
+import schema from '@piyoppi/sansaku-api-spec/openapi.json'
 
 export const createApp = (
   databaseFileName: string
@@ -8,15 +11,16 @@ export const createApp = (
 
   const getStationSummariesFromKeywordHandler = createKeywordHandler(databaseFileName)
 
-  app.get('/stations', (c) => {
-    const name = c.req.query('name')
+  const stationsSchema: JSONSchemaType<{name: string}> = schema.paths['/stations/{name}'].get.parameters
 
-    if (!name) {
-      throw new Error('')
-    }
+  app.get(
+    '/stations',
+    ajvValidator('json', stationsSchema),
+    (c) => {
+    const params = c.req.valid('json')
 
     return c.json(
-      getStationSummariesFromKeywordHandler(name)
+      getStationSummariesFromKeywordHandler(params.name)
     )
   })
 
