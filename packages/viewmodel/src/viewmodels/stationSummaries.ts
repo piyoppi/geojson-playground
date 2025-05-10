@@ -1,6 +1,13 @@
 import type { DatabaseHandler } from '../database.js'
 import type { Railroad } from '@piyoppi/sansaku-pilot/traffic/railroad.js'
 
+export type StationSummary = {
+  id: string,
+  partitionKey: string,
+  name: string,
+  routeName: string
+}
+
 export const createTable = (database: DatabaseHandler, railroads: Railroad[]) => {
   database.exec(`
     CREATE TABLE IF NOT EXISTS stations (
@@ -35,4 +42,25 @@ export const createTable = (database: DatabaseHandler, railroads: Railroad[]) =>
   } finally {
     database.close()
   }
+}
+
+export const findStationSummaries = (database: DatabaseHandler, stationName: string): StationSummary[] => {
+  const query = `
+    SELECT id, partition_key, name, route_name 
+    FROM stations 
+    WHERE name LIKE ? 
+    ORDER BY name
+  `
+  
+  const stmt = database.prepare(query)
+  const searchPattern = `${stationName}%`
+  
+  const items: any[] = stmt.all(searchPattern)
+
+  return items.map(item => ({
+    id: item.id,
+    partitionKey: item.partition_key,
+    name: item.name,
+    routeName: item.route_name
+  }))
 }

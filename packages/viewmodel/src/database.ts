@@ -8,6 +8,7 @@ export interface DatabaseHandler {
 
 interface Statement {
   run: (...items: (string | number)[]) => void
+  all: (...items: (string | number)[]) => unknown[]
 }
 
 export const createHandlerFromFile = (filename: string): DatabaseHandler => new DatabaseSync(filename)

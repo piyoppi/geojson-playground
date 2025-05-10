@@ -1,10 +1,24 @@
 import { Hono } from 'hono'
-import { handle } from 'hono/aws-lambda'
+import { createKeywordHandler } from './handlers/getStationSummaries'
 
-const app = new Hono()
+export const createApp = (
+  databaseFileName: string
+) => {
+  const app = new Hono()
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+  const getStationSummariesFromKeywordHandler = createKeywordHandler(databaseFileName)
 
-export const handler = handle(app)
+  app.get('/stations', (c) => {
+    const name = c.req.query('name')
+
+    if (!name) {
+      throw new Error('')
+    }
+
+    return c.json(
+      getStationSummariesFromKeywordHandler(name)
+    )
+  })
+
+  return app
+}

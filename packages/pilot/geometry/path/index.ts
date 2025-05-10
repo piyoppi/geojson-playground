@@ -1,4 +1,4 @@
-import { length, subtract, type Position2D } from "../index"
+import { length, subtract, type Position2D } from "../index.js"
 
 export type Path = Position2D[]
 

@@ -3,5 +3,6 @@ export {
 } from './database.js'
 
 export {
-  createTable
-} from './viewmodels/stations.js'
+  createTable,
+  findStationSummaries
+} from './viewmodels/stationSummaries.js'
