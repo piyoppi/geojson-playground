@@ -5,6 +5,10 @@ export const createKeywordHandler = (
 ) => (
   keyword: string
 ) => {
+  if (keyword === '') {
+    return []
+  }
+
   const database = createHandlerFromFile(outFilename)
   const results = findStationSummaries(database, keyword)
 

@@ -1,5 +1,5 @@
+import { Route, Station } from '@piyoppi/sansaku-pilot/traffic/transportation'
 import type { DatabaseHandler } from '../database.js'
-import type { Railroad } from '@piyoppi/sansaku-pilot/traffic/railroad.js'
 
 export type StationSummary = {
   id: string,
@@ -8,7 +8,7 @@ export type StationSummary = {
   routeName: string
 }
 
-export const createTable = (database: DatabaseHandler, railroads: Railroad[]) => {
+export const createTable = (database: DatabaseHandler, routes: Route<Station>[]) => {
   database.exec(`
     CREATE TABLE IF NOT EXISTS stations (
       id TEXT PRIMARY KEY,
@@ -27,7 +27,7 @@ export const createTable = (database: DatabaseHandler, railroads: Railroad[]) =>
   try {
     database.exec('BEGIN TRANSACTION')
     
-    for (const railroad of railroads) {
+    for (const railroad of routes) {
       const routeName = railroad.name
       
       for (const station of railroad.stations) {

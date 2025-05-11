@@ -4,12 +4,11 @@ import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic
 import { JsonFileReader } from "./jsonFileReader";
 import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
-import type { Station } from "@piyoppi/sansaku-pilot/traffic/transportation";
 
 const trafficGraphFromFile = buildDefaultTrafficGraphFromFile()
 
 type JsonFileSelectorProps = {
-  onFileLoaded: (nodes: TrafficGraphNode<Station>[], railroads: Railroad[], busRoutes: BusRoute[]) => void
+  onFileLoaded: (nodes: TrafficGraphNode[], railroads: Railroad[], busRoutes: BusRoute[]) => void
 }
 
 export function TrafficFileReader ({ onFileLoaded }: JsonFileSelectorProps) {

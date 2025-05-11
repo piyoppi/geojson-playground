@@ -1,21 +1,44 @@
-import type { Station } from "@piyoppi/sansaku-pilot/traffic/transportation"
+import { $api } from "~/lib/api";
 import { Combobox } from "./ui/combobox"
+import { useState } from "react";
 
 type PropTypes = {
-  stations: Station[],
-  onStationSelected?: (station: Station) => void
+  onStationSelected?: (stationId: string) => void
 }
 
-export function StationCombobox({ stations, onStationSelected }: PropTypes) {
-  const handleStationSelected = (station: Station) => {
+export function StationCombobox({ onStationSelected }: PropTypes) {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleStationSelected = (id: string) => {
     if (onStationSelected) {
-      onStationSelected(station)
+      onStationSelected(id)
     }
   }
 
+  const handleSearchValueChanged = (search: string) => {
+    setSearchQuery(search)
+  }
+
+  const { data, error, isLoading } = $api.useQuery(
+    "get",
+    "/stations",
+    {
+      params: {
+        query: {
+          name: searchQuery
+        }
+      },
+    },
+  )
+
+  if (isLoading || !data) return "Loading..."
+
+  if (error) return `An error occured: ${error.title}`
+
   return (
     <Combobox
-      items={stations.map(station => [station.name, station.id.toString(), station])}
+      items={data.items.map(s => [s.name, s.id, s.id])}
+      onSearchValueChanged={handleSearchValueChanged}
       onItemSelected={handleStationSelected}
     />
   )

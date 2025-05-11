@@ -10,9 +10,9 @@ export const execute = async (
   const railroadJson = JSON.parse(readFileSync(inputGraphFilename, "utf-8")) as TrafficGraphFile
   const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile()
 
-  const { railroads } = buildTrafficGraphFromFile(railroadJson)
+  const { railroads, busRoutes } = buildTrafficGraphFromFile(railroadJson)
 
   const database = createHandlerFromFile(outFilename)
 
-  createTable(database, railroads)
+  createTable(database, [...railroads, ...busRoutes])
 }

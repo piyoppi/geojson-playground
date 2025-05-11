@@ -26,11 +26,18 @@ type PropTypes<T> = {
   placeholder?: string
   emptyText?: string
   onItemSelected?: (item: T) => void
+  onSearchValueChanged?: (search: string) => void
 }
 
-export function Combobox<T>({ items, placeholder, emptyText, onItemSelected }: PropTypes<T>) {
+export function Combobox<T>({ items, placeholder, emptyText, onItemSelected, onSearchValueChanged }: PropTypes<T>) {
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState("")
+
+  const searchHandler = (search: string) => {
+    if (onSearchValueChanged) {
+      onSearchValueChanged(search)
+    }
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -50,7 +57,7 @@ export function Combobox<T>({ items, placeholder, emptyText, onItemSelected }: P
       </PopoverTrigger>
       <PopoverContent className="p-0">
         <Command>
-          <CommandInput placeholder="Search..." />
+          <CommandInput onValueChange={searchHandler} placeholder="Search..." />
           <CommandList>
             <CommandEmpty>{ emptyText }</CommandEmpty>
             <CommandGroup>
