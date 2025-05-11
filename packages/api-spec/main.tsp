@@ -24,5 +24,5 @@ model Error {
 @route("/stations")
 @tag("StationSummaries")
 interface StationSummaries {
-  @get list(@path name: string): StationSummaryList | Error;
+  @get list(@query name: string): StationSummaryList | Error;
 }
