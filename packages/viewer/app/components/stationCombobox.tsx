@@ -16,10 +16,16 @@ export function StationCombobox({ onStationSelected }: PropTypes) {
   }
 
   const handleSearchValueChanged = (search: string) => {
-    setSearchQuery(search)
+    const query = search.replaceAll(' ', '')
+
+    if (
+      !/^[Ａ-Ｚａ-ｚ０-９]$/.test(query[0])
+    ) {
+      setSearchQuery(query.substring(0, 1))
+    }
   }
 
-  const { data, error, isLoading } = $api.useQuery(
+  const { data, error } = $api.useQuery(
     "get",
     "/stations",
     {
@@ -31,13 +37,11 @@ export function StationCombobox({ onStationSelected }: PropTypes) {
     },
   )
 
-  if (isLoading || !data) return "Loading..."
-
   if (error) return `An error occured: ${error.title}`
 
   return (
     <Combobox
-      items={data.items.map(s => [s.name, s.id, s.id])}
+      items={data?.items.map(s => [s.name, s.id, s.id]) || []}
       onSearchValueChanged={handleSearchValueChanged}
       onItemSelected={handleStationSelected}
     />

@@ -1,18 +1,9 @@
 import "@typespec/http";
+import "./components/stationSummary.tsp";
 
 using Http;
 @service(#{ title: "Sansaku API" })
 namespace SansakuApi;
-
-model StationSummary {
-  id: string;
-  name: string;
-  routeName: string
-}
-
-model StationSummaryList {
-  items: StationSummary[];
-}
 
 @error
 @mediaTypeHint("application/problem+json")

@@ -43,7 +43,6 @@ export function Combobox<T>({ items, placeholder, emptyText, onItemSelected, onS
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          disabled={items.length === 0}
           variant="outline"
           role="combobox"
           aria-expanded={open}
