@@ -6,13 +6,15 @@ import Ajv from 'ajv'
 import type { Env, MiddlewareHandler } from 'hono'
 import oas from '@piyoppi/sansaku-api-spec/openapi.json'
 import { paths } from '@piyoppi/sansaku-api-spec/openapi.d.ts'
+import { cors } from 'hono/cors'
 
 export const createApp = (
+  app: Hono,
   databaseFileName: string
 ) => {
-  const app = new Hono()
-
   const getStationSummariesFromKeywordHandler = createKeywordHandler(databaseFileName)
+
+  app.use('*', cors())
 
   app.get(
     '/stations',
