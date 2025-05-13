@@ -1,5 +1,5 @@
 import "@typespec/http";
-import "./components/stationSummary.tsp";
+import "./models/stationSummary.tsp";
 
 using Http;
 @service(#{ title: "Sansaku API" })
@@ -15,5 +15,11 @@ model Error {
 @route("/stations")
 @tag("StationSummaries")
 interface StationSummaries {
+  @get list(@query name: string): StationSummaryList | Error;
+}
+
+@route("/transfer")
+@tag("Transfer")
+interface Transfer {
   @get list(@query name: string): StationSummaryList | Error;
 }
