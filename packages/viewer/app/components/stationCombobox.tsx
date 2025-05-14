@@ -1,6 +1,7 @@
 import { $api } from "~/lib/api";
 import { Combobox } from "./ui/combobox"
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 type PropTypes = {
   onStationSelected?: (stationId: string) => void
@@ -25,23 +26,21 @@ export function StationCombobox({ onStationSelected }: PropTypes) {
     }
   }
 
-  const { data, error } = $api.useQuery(
-    "get",
-    "/stations",
-    {
+  const query = useQuery({
+    queryKey: ["get", "/stations", searchQuery],
+    queryFn: () => $api.GET("/stations", {
       params: {
         query: {
           name: searchQuery
         }
       },
-    },
-  )
-
-  if (error) return `An error occured: ${error.title}`
+    }),
+    enabled: searchQuery.length > 0,
+  })
 
   return (
     <Combobox
-      items={data?.items.map(s => [s.name, s.id, s.id]) || []}
+      items={query.data?.data?.items.map(s => [s.name, s.id, s.id]) || []}
       onSearchValueChanged={handleSearchValueChanged}
       onItemSelected={handleStationSelected}
     />
