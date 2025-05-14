@@ -8,6 +8,13 @@ export type StationSummary = {
   routeName: string
 }
 
+type StationSummaryRecord = {
+  id: string,
+  partition_key: string,
+  name: string,
+  route_name: string
+}
+
 export const createTable = (database: DatabaseHandler, routes: Route<Station>[]) => {
   database.exec(`
     CREATE TABLE IF NOT EXISTS stations (
@@ -44,7 +51,7 @@ export const createTable = (database: DatabaseHandler, routes: Route<Station>[])
   }
 }
 
-export const findStationSummaries = (database: DatabaseHandler, stationName: string): StationSummary[] => {
+export const findStationSummariesFromKeyword = (database: DatabaseHandler, stationName: string): StationSummary[] => {
   const query = `
     SELECT id, partition_key, name, route_name 
     FROM stations 
@@ -55,12 +62,29 @@ export const findStationSummaries = (database: DatabaseHandler, stationName: str
   const stmt = database.prepare(query)
   const searchPattern = `${stationName}%`
   
-  const items: any[] = stmt.all(searchPattern)
+  const items: any[] = stmt.all(searchPattern) as StationSummaryRecord[]
 
-  return items.map(item => ({
+  return convertRecordToModel(items)
+}
+
+export const findStationSummariesFromId = (database: DatabaseHandler, ids: string[]): StationSummary[] => {
+  const query = `
+    SELECT id, partition_key, name, route_name 
+    FROM stations 
+    WHERE id in ${ids.map(_ => '?').join(',')}
+    ORDER BY name
+  `
+
+  const stmt = database.prepare(query)
+  const items = stmt.all(...ids) as StationSummaryRecord[]
+
+  return convertRecordToModel(items)
+}
+
+const convertRecordToModel = (items: StationSummaryRecord[]): StationSummary[] =>
+  items.map(item => ({
     id: item.id,
     partitionKey: item.partition_key,
     name: item.name,
     routeName: item.route_name
   }))
-}

@@ -1,7 +1,8 @@
-import { createHandlerFromFile, findStationSummaries } from "@piyoppi/sansaku-viewmodel"
+import { findStationSummariesFromKeyword } from "@piyoppi/sansaku-viewmodel"
+import { DatabaseHandler } from "@piyoppi/sansaku-viewmodel/dist/database"
 
 export const createKeywordHandler = (
-  outFilename: string
+  databaseHandler: DatabaseHandler
 ) => (
   keyword: string
 ) => {
@@ -11,8 +12,7 @@ export const createKeywordHandler = (
     }
   }
 
-  const database = createHandlerFromFile(outFilename)
-  const results = findStationSummaries(database, keyword)
+  const results = findStationSummariesFromKeyword(databaseHandler, keyword)
 
   return {
     items: results

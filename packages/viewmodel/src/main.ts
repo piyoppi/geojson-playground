@@ -4,5 +4,6 @@ export {
 
 export {
   createTable,
-  findStationSummaries
+  findStationSummariesFromId,
+  findStationSummariesFromKeyword
 } from './viewmodels/stationSummaries.js'

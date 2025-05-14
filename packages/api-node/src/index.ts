@@ -8,11 +8,18 @@ if (!databaseFileName) {
   throw new Error('DATABASE_FILE is not set.')
 }
 
+const inputGraphDir = process.env.INPUT_GRAPH_DIR
+
+if (!inputGraphDir) {
+  throw new Error('INPUT_GRAPH_DIR is not set.')
+}
+
 const app = new Hono()
 
 createApp(
   app,
-  databaseFileName
+  databaseFileName,
+  inputGraphDir
 )
 
 serve({

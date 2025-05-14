@@ -5,6 +5,8 @@ import { paths } from '@piyoppi/sansaku-api-spec/openapi.d.ts'
 import { cors } from 'hono/cors'
 import { buildQueryValidator } from './validators/queryValidator'
 import { OpenAPIV3_1 } from 'openapi-types'
+import { createHandlerFromFile } from '@piyoppi/sansaku-viewmodel'
+import { createGetTransferHandler } from './handlers/getTransfer'
 
 type Paths = paths & {
   [key: string]: never
@@ -12,11 +14,15 @@ type Paths = paths & {
 
 export const createApp = (
   app: Hono,
-  databaseFileName: string
+  databaseFileName: string,
+  inputGraphDir: string
 ) => {
   const queryValidator = buildQueryValidator<Paths>(oas as OpenAPIV3_1.Document)
 
-  const getStationSummariesFromKeywordHandler = createKeywordHandler(databaseFileName)
+  const database = createHandlerFromFile(databaseFileName)
+
+  const getStationSummariesFromKeywordHandler = createKeywordHandler(database)
+  const getTransferHandler = createGetTransferHandler(database, inputGraphDir)
 
   app.use('*', cors())
 
@@ -28,6 +34,18 @@ export const createApp = (
 
       return c.json(
         getStationSummariesFromKeywordHandler(params.name)
+      )
+    }
+  )
+
+  app.get(
+    '/transfer',
+    queryValidator('/transfer', 'get'),
+    (c) => {
+      const params = c.req.valid('query')
+
+      return c.json(
+        getTransferHandler(params.from, params.to)
       )
     }
   )

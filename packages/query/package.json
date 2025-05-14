@@ -1,0 +1,25 @@
+{
+  "name": "@piyoppi/sansaku-query",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "test": "tsx --test",
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "author": "piyoppi",
+  "license": "MIT",
+  "dependencies": {
+    "@piyoppi/sansaku-pilot": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}

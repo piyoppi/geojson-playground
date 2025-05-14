@@ -17,6 +17,7 @@
   "dependencies": {
     "@piyoppi/sansaku-pilot": "1.0.0",
     "@piyoppi/sansaku-viewmodel": "1.0.0",
+    "@piyoppi/sansaku-query": "1.0.0",
     "citty": "^0.1.6"
   }
 }

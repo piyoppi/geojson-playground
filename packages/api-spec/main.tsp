@@ -21,5 +21,5 @@ interface StationSummaries {
 @route("/transfer")
 @tag("Transfer")
 interface Transfer {
-  @get list(@query name: string): StationSummaryList | Error;
+  @get list(@query from: string, @query to: string): StationSummaryList | Error;
 }

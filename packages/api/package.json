@@ -13,6 +13,7 @@
     "@piyoppi/sansaku-api-spec": "0.1.0",
     "@piyoppi/sansaku-pilot": "1.0.0",
     "@piyoppi/sansaku-viewmodel": "1.0.0",
+    "@piyoppi/sansaku-query": "1.0.0",
     "ajv": "^8.17.1",
     "openapi-types": "^12.1.3"
   },
