@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
 import type { TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
-import { createHandlerFromFile, createTable } from '@piyoppi/sansaku-viewmodel'
+import { createHandlerFromFile, createRouteTable, createStationTable } from '@piyoppi/sansaku-viewmodel'
 
 export const execute = async (
   inputGraphFilename: string,
@@ -14,5 +14,8 @@ export const execute = async (
 
   const database = createHandlerFromFile(outFilename)
 
-  createTable(database, [...railroads, ...busRoutes])
+  createStationTable(database, [...railroads, ...busRoutes])
+  createRouteTable(database, [...railroads, ...busRoutes])
+
+  database.close()
 }

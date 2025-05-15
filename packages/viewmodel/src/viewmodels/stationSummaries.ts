@@ -46,8 +46,6 @@ export const createTable = (database: DatabaseHandler, routes: Route<Station>[])
   } catch (error) {
     database.exec('ROLLBACK')
     throw error
-  } finally {
-    database.close()
   }
 }
 

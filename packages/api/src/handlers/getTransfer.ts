@@ -1,4 +1,4 @@
-import { findStationSummariesFromId } from "@piyoppi/sansaku-viewmodel"
+import { findRouteSummariesFromId, findStationSummariesFromId } from "@piyoppi/sansaku-viewmodel"
 import { DatabaseHandler } from "@piyoppi/sansaku-viewmodel/dist/database"
 import { shortest } from '@piyoppi/sansaku-query'
 
@@ -25,11 +25,17 @@ export const createGetTransferHandler = (
     toStationSummary.partitionKey
   )
 
+  const routeIds = Array.from(new Set(results.map(node => node.item.station.routeId)))
+  const routeSummaries = new Map(
+    findRouteSummariesFromId(databaseHandler, routeIds)
+      .map(r => [r.id, r.name])
+  )
+
   return {
     items: results.map(node => ({
       id: node.item.station.id,
       name: node.item.station.name,
-      routeName: '',
+      routeName: routeSummaries.get(node.item.station.routeId) || '',
     })),
   }
 }

@@ -33,6 +33,7 @@ export function TransferResult({ fromStationId, toStationId }: PropTypes) {
       {query.data?.items.map((item) => (
         <li key={item.id}>
           <button type="button" onClick={() => console.log(item)}>{item.name}</button>
+          <p>{item.routeName}</p>
         </li>
       ))}
     </ol>
