@@ -71,7 +71,7 @@ export const findStationSummariesFromId = (database: DatabaseHandler, ids: strin
   const query = `
     SELECT id, partition_key, name, route_name 
     FROM stations 
-    WHERE id in ${ids.map(_ => '?').join(',')}
+    WHERE id in (${ids.map(_ => '?').join(',')})
     ORDER BY name
   `
 

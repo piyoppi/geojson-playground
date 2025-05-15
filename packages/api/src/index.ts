@@ -41,11 +41,11 @@ export const createApp = (
   app.get(
     '/transfer',
     queryValidator('/transfer', 'get'),
-    (c) => {
+    async (c) => {
       const params = c.req.valid('query')
 
       return c.json(
-        getTransferHandler(params.from, params.to)
+        await getTransferHandler(params.from, params.to)
       )
     }
   )

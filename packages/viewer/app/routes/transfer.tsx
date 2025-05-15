@@ -7,6 +7,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
+import { TransferResult } from "~/components/transferResult"
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -18,19 +19,18 @@ export function meta({}: Route.MetaArgs) {
 export const queryClient = new QueryClient()
 
 export default function Transfer() {
-  const [fromStationId, setFromStationId] = useState<string | null>(null)
-  const [toStationId, setToStationId] = useState<string | null>(null)
+  const [fromStationId, setFromStationId] = useState<string | undefined>(undefined)
+  const [toStationId, setToStationId] = useState<string | undefined>(undefined)
 
   const handleFromStationSelected = useCallback((stationId: string) => {
     setFromStationId(stationId)
+    console.log(stationId)
   }, [])
 
   const handleToStationSelected = useCallback((stationId: string) => {
     setToStationId(stationId)
+    console.log(stationId)
   }, [])
-
-  const handleSearch = useCallback(async () => {
-  }, [fromStationId, toStationId])
 
   return <article className="p-4">
     <div className="flex flex-col gap-4">
@@ -42,13 +42,15 @@ export default function Transfer() {
               <StationCombobox onStationSelected={handleToStationSelected}/>
             </QueryClientProvider>
             <CardFooter className="p-0">
-              <Button className="w-full" onClick={handleSearch}>検索</Button>
             </CardFooter>
           </Card>
         </div>
         <div className="flex flex-col gap-4 w-96 h-full">
-          <ol>
-          </ol>
+          <Card className="h-1/2 p-4">
+            <QueryClientProvider client={queryClient}>
+              <TransferResult fromStationId={fromStationId} toStationId={toStationId}/>
+            </QueryClientProvider>
+          </Card>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { shortest } from '@piyoppi/sansaku-query'
 export const createGetTransferHandler = (
   databaseHandler: DatabaseHandler,
   inputGraphDir: string
-) => (
+) => async (
   from: string,
   to: string
 ) => {
@@ -17,7 +17,7 @@ export const createGetTransferHandler = (
 
   const [fromStationSummary, toStationSummary] = stationSummaries
 
-  const results = shortest(
+  const results = await shortest(
     inputGraphDir,
     fromStationSummary.id,
     fromStationSummary.partitionKey,
@@ -26,6 +26,10 @@ export const createGetTransferHandler = (
   )
 
   return {
-    items: results
+    items: results.map(node => ({
+      id: node.item.station.id,
+      name: node.item.station.name,
+      routeName: '',
+    })),
   }
 }
