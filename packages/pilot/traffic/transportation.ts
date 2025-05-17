@@ -20,16 +20,18 @@ export const toRouteId = async (str: string) => RouteId(await toId(str))
 export const toStationId = async (str: string) => StationId(await toId(str))
 export const toCompanyId = async (str: string) => CompanyId(await toId(str))
 
+export type RouteKind = 'railroad' | 'bus'
+
 export type Route<S extends Station> = {
   id: RouteId,
   name: string,
   companyId: CompanyId,
+  kind: RouteKind,
   stations: S[]
 }
 
-export type SerializedRoute<S extends SerializedStation> = {
+export type SerializedRoute<S extends SerializedStation> = Omit<Route<Station>, 'id' | 'companyId' | 'stations'> & {
   id: string,
-  name: string,
   companyId: string,
   stations: S[]
 }
@@ -39,7 +41,7 @@ export type Station = {
   name: string,
   routeId: RouteId,
   position: Position2D,
-  groupId?: string
+  groupId?: string,
 }
 
 export type SerializedStation = {
@@ -62,17 +64,18 @@ export type SerializedCompany = {
 export const serializeRoute = <S extends Station, SS extends SerializedStation>(
   route: Route<S>,
   serializeStation: (station: S) => SS
-) => ({
+): SerializedRoute<SS> => ({
   id: routeIdToString(route.id),
   name: route.name,
+  kind: route.kind,
   companyId: companyIdToString(route.companyId),
   stations: route.stations.map(s => serializeStation(s))
 })
 
-export const deserializeRoute = <S extends SerializedStation, SS extends Station>(
-  route: SerializedRoute<S>,
-  deserializeStation: (station: S, routeId: RouteId) => SS
-) => {
+export const deserializeRoute = <S extends Station, SS extends SerializedStation>(
+  route: SerializedRoute<SS>,
+  deserializeStation: (station: SS, routeId: RouteId) => S
+): Route<S> => {
   const id = stringToRouteId(route.id)
   const companyId = stringToCompanyId(route.companyId)
   return {

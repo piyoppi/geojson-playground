@@ -72,6 +72,7 @@ const createRailroad = async (railroadFeatures: RailroadFeature[], companyId: Co
   return {
     id: routeId,
     name: lineName,
+    kind: 'railroad',
     companyId,
     rails: railroadFeatures.map(r => r.geometry.coordinates),
     stations: stationsList

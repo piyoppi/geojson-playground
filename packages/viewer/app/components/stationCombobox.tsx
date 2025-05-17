@@ -40,7 +40,12 @@ export function StationCombobox({ onStationSelected }: PropTypes) {
 
   return (
     <Combobox
-      items={query.data?.data?.items.map(s => [`${s.name}`, s.id, s.id]) || []}
+      items={
+        query.data?.data?.items.map(s => {
+          const kind = (s.kind === 'bus') ? 'バス' : '鉄道'
+          return [`${kind} | ${s.name}`, s.id, s.id]
+        }) || []
+      }
       onSearchValueChanged={handleSearchValueChanged}
       onItemSelected={handleStationSelected}
     />

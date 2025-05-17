@@ -3,9 +3,12 @@ import type { DatabaseHandler } from '../database.js'
 import { buildPlaceholder } from '../helpers/query.js'
 import { getTrafficGraphPartitionKey } from '@piyoppi/sansaku-pilot/traffic/graph/separate'
 
+type StationKind = 'station' | 'busStop'
+
 export type StationSummaryGroup = {
   id: string,
-  name: string
+  name: string,
+  kind: StationKind
 }
 
 export type StationSummary = {
@@ -13,6 +16,7 @@ export type StationSummary = {
   groupId: string,
   partitionKey: string,
   name: string,
+  kind: StationKind,
   routeName: string
 }
 
@@ -21,12 +25,14 @@ type StationSummaryRecord = {
   group_id: string,
   partition_key: string,
   name: string,
+  kind: StationKind,
   route_name: string
 }
 
 type StationSummaryGroupRecord = {
   id: string,
-  name: string
+  name: string,
+  kind: StationKind
 }
 
 export const createTable = (database: DatabaseHandler, routes: Route<Station>[]) => {
@@ -39,7 +45,7 @@ export const createTable = (database: DatabaseHandler, routes: Route<Station>[])
 
 export const findStationSummariesFromGroupId = (database: DatabaseHandler, groupIds: string[]): StationSummary[] => {
   const query = `
-    SELECT id, group_id, partition_key, name, route_name 
+    SELECT id, group_id, partition_key, name, kind, route_name 
     FROM stations 
     WHERE group_id in (${buildPlaceholder(groupIds)})
     ORDER BY name
@@ -48,12 +54,12 @@ export const findStationSummariesFromGroupId = (database: DatabaseHandler, group
   const stmt = database.prepare(query)
   const items = stmt.all(...groupIds) as StationSummaryRecord[]
 
-  return convertRecordToModel(items)
+  return convertStationSummaryRecordsToModel(items)
 }
 
 export const findStationSummariesFromKeyword = (database: DatabaseHandler, stationNamePart: string, limit: number): StationSummary[] => {
   const query = `
-    SELECT id, group_id, partition_key, name, route_name 
+    SELECT id, group_id, partition_key, name, kind, route_name 
     FROM stations 
     WHERE name LIKE ? 
     ORDER BY name
@@ -65,12 +71,12 @@ export const findStationSummariesFromKeyword = (database: DatabaseHandler, stati
   
   const items: any[] = stmt.all(searchPattern, limit) as StationSummaryRecord[]
 
-  return convertRecordToModel(items)
+  return convertStationSummaryRecordsToModel(items)
 }
 
 export const findStationSummaryGroupsFromKeyword = (database: DatabaseHandler, stationNamePart: string, limit: number): StationSummaryGroup[] => {
   const query = `
-    SELECT id, name
+    SELECT id, name, kind
     FROM station_groups
     WHERE name LIKE ?
     ORDER BY name
@@ -82,15 +88,12 @@ export const findStationSummaryGroupsFromKeyword = (database: DatabaseHandler, s
   
   const items: any[] = stmt.all(searchPattern, limit) as StationSummaryGroupRecord[]
 
-  return items.map(item => ({
-    id: item.id,
-    name: item.name
-  }))
+  return convertStationSummaryGroupRecordsToModel(items)
 }
 
 export const findStationSummariesFromId = (database: DatabaseHandler, ids: string[]): StationSummary[] => {
   const query = `
-    SELECT id, group_id, partition_key, name, route_name 
+    SELECT id, group_id, partition_key, name, kind, route_name 
     FROM stations 
     WHERE id in (${buildPlaceholder(ids)})
     ORDER BY name
@@ -99,12 +102,12 @@ export const findStationSummariesFromId = (database: DatabaseHandler, ids: strin
   const stmt = database.prepare(query)
   const items = stmt.all(...ids) as StationSummaryRecord[]
 
-  return convertRecordToModel(items)
+  return convertStationSummaryRecordsToModel(items)
 }
 
 export const findStationSummaryGroupFromId = (database: DatabaseHandler, ids: string[]): StationSummaryGroup[] => {
   const query = `
-    SELECT id, name 
+    SELECT id, name, kind
     FROM station_groups 
     WHERE id in (${buildPlaceholder(ids)})
     ORDER BY name
@@ -113,19 +116,24 @@ export const findStationSummaryGroupFromId = (database: DatabaseHandler, ids: st
   const stmt = database.prepare(query)
   const items = stmt.all(...ids) as StationSummaryGroupRecord[]
 
-  return items.map(item => ({
-    id: item.id,
-    name: item.name
-  }))
+  return convertStationSummaryGroupRecordsToModel(items)
 }
 
-const convertRecordToModel = (items: StationSummaryRecord[]): StationSummary[] =>
+const convertStationSummaryRecordsToModel = (items: StationSummaryRecord[]): StationSummary[] =>
   items.map(item => ({
     id: item.id,
     groupId: item.group_id,
     partitionKey: item.partition_key,
     name: item.name,
+    kind: item.kind,
     routeName: item.route_name
+  }))
+
+const convertStationSummaryGroupRecordsToModel = (items: StationSummaryGroupRecord[]): StationSummaryGroup[] =>
+  items.map(item => ({
+    id: item.id,
+    name: item.name,
+    kind: item.kind
   }))
 
 const createStationSummaryTable = (database: DatabaseHandler) => {
@@ -135,6 +143,7 @@ const createStationSummaryTable = (database: DatabaseHandler) => {
       group_id TEXT,
       partition_key TEXT,
       name TEXT,
+      kind TEXT,
       route_name TEXT
     )
   `)
@@ -148,7 +157,8 @@ const createStationSummaryGroupTable = (database: DatabaseHandler) => {
   database.exec(`
     CREATE TABLE IF NOT EXISTS station_groups (
       id TEXT PRIMARY KEY,
-      name TEXT
+      name TEXT,
+      kind TEXT
     )
   `)
 
@@ -158,7 +168,7 @@ const createStationSummaryGroupTable = (database: DatabaseHandler) => {
 }
 
 const insertStationSummaryGroup = (database: DatabaseHandler, routes: Route<Station>[]) => {
-  const insertStmt = database.prepare('INSERT OR REPLACE INTO station_groups (id, name) VALUES (?, ?)')
+  const insertStmt = database.prepare('INSERT OR REPLACE INTO station_groups (id, name, kind) VALUES (?, ?, ?)')
   const insertedGroups = new Set<string>()
   
   try {
@@ -170,7 +180,7 @@ const insertStationSummaryGroup = (database: DatabaseHandler, routes: Route<Stat
           continue
         }
 
-        insertStmt.run(station.groupId || station.id, station.name)
+        insertStmt.run(station.groupId || station.id, station.name, railroad.kind)
       }
     }
     
@@ -182,7 +192,7 @@ const insertStationSummaryGroup = (database: DatabaseHandler, routes: Route<Stat
 }
 
 const insertStationSummary = (database: DatabaseHandler, routes: Route<Station>[]) => {
-  const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, group_id, partition_key, name, route_name) VALUES (?, ?, ?, ?, ?)')
+  const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, group_id, partition_key, name, kind, route_name) VALUES (?, ?, ?, ?, ?, ?)')
   
   try {
     database.exec('BEGIN TRANSACTION')
@@ -191,7 +201,7 @@ const insertStationSummary = (database: DatabaseHandler, routes: Route<Station>[
       const routeName = railroad.name
       
       for (const station of railroad.stations) {
-        insertStmt.run(station.id, station.groupId || station.id, getTrafficGraphPartitionKey(railroad), station.name, routeName)
+        insertStmt.run(station.id, station.groupId || station.id, getTrafficGraphPartitionKey(railroad), station.name, railroad.kind, routeName)
       }
     }
     

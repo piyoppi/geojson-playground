@@ -48,6 +48,7 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
         id: routeId,
         name: routeName,
         companyId: company.id,
+        kind: 'bus',
         stations: await Promise.all(
           b.map(async ([name, _company, _routeName, geometry])=> ({
             id: await toStationId(`${companyName}-${routeName}-${name}-${geometry.coordinates[0]}-${geometry.coordinates[1]}`),
@@ -56,7 +57,7 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
             position: geometry.coordinates
           }))
         )
-      }
+      } as const
     }))
 
   return [companies.values().toArray(), busStops]
