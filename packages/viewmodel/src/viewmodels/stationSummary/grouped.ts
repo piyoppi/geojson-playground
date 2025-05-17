@@ -1,15 +1,17 @@
 import { Route, Station } from '@piyoppi/sansaku-pilot/traffic/transportation'
-import type { DatabaseHandler } from '../database.js'
+import type { DatabaseHandler } from '../../database.js'
 
-export type StationSummary = {
+export type StationSummaryGroup = {
   id: string,
+  groupId: string,
   partitionKey: string,
   name: string,
   routeName: string
 }
 
-type StationSummaryRecord = {
+type StationSummaryGroupRecord = {
   id: string,
+  group_id: string,
   partition_key: string,
   name: string,
   route_name: string
@@ -17,11 +19,9 @@ type StationSummaryRecord = {
 
 export const createTable = (database: DatabaseHandler, routes: Route<Station>[]) => {
   database.exec(`
-    CREATE TABLE IF NOT EXISTS stations (
+    CREATE TABLE IF NOT EXISTS station_groups (
       id TEXT PRIMARY KEY,
-      partition_key TEXT,
-      name TEXT,
-      route_name TEXT
+      name TEXT
     )
   `)
 
@@ -29,7 +29,7 @@ export const createTable = (database: DatabaseHandler, routes: Route<Station>[])
     CREATE INDEX IF NOT EXISTS idx_stations_name ON stations (name)
   `)
 
-  const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, partition_key, name, route_name) VALUES (?, ?, ?, ?)')
+  const insertStmt = database.prepare('INSERT OR REPLACE INTO stations (id, name) VALUES (?, ?, ?, ?)')
   
   try {
     database.exec('BEGIN TRANSACTION')
@@ -49,18 +49,19 @@ export const createTable = (database: DatabaseHandler, routes: Route<Station>[])
   }
 }
 
-export const findStationSummariesFromKeyword = (database: DatabaseHandler, stationName: string): StationSummary[] => {
+export const findStationSummariesFromKeyword = (database: DatabaseHandler, stationNamePart: string, limit: number): StationSummary[] => {
   const query = `
     SELECT id, partition_key, name, route_name 
     FROM stations 
     WHERE name LIKE ? 
     ORDER BY name
+    LIMIT ?
   `
   
   const stmt = database.prepare(query)
-  const searchPattern = `${stationName}%`
+  const searchPattern = `${stationNamePart}%`
   
-  const items: any[] = stmt.all(searchPattern) as StationSummaryRecord[]
+  const items: any[] = stmt.all(searchPattern, limit) as StationSummaryRecord[]
 
   return convertRecordToModel(items)
 }

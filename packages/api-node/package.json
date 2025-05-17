@@ -1,7 +1,7 @@
 {
   "name": "@piyoppi/sansaku-api-node",
   "scripts": {
-    "dev": "tsx --env-file=.env src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "esbuild --bundle --outfile=./dist/index.js --platform=node --target=node20 ./src/index.ts"
   },
   "devDependencies": {

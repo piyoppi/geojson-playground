@@ -12,7 +12,7 @@ export const createKeywordHandler = (
     }
   }
 
-  const results = findStationSummariesFromKeyword(databaseHandler, keyword)
+  const results = findStationSummariesFromKeyword(databaseHandler, keyword, 20)
 
   return {
     items: results

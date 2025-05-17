@@ -17,12 +17,12 @@ export function StationCombobox({ onStationSelected }: PropTypes) {
   }
 
   const handleSearchValueChanged = (search: string) => {
-    const query = search.replaceAll(' ', '')
+    const searchQuery = search.replaceAll(' ', '')
 
     if (
-      !/^[Ａ-Ｚａ-ｚ０-９]$/.test(query[0])
+      !/^[Ａ-Ｚａ-ｚ０-９]$/.test(searchQuery[0])
     ) {
-      setSearchQuery(query.substring(0, 1))
+      setSearchQuery(searchQuery)
     }
   }
 
