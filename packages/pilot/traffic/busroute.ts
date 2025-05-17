@@ -8,17 +8,10 @@ import {
   type SerializedStation,
   type Station as TransportationStation
 } from "./transportation.js"
-import type { Position2D } from "../geojson.js"
 
 export type BusRoute = Route<BusStop>
-
-export type BusStop = TransportationStation & {
-  position: Position2D
-}
-
-export type SerializedBusStop = SerializedStation & {
-  position: Position2D
-}
+export type BusStop = TransportationStation
+export type SerializedBusStop = SerializedStation
 export type SerializedBusRoute = SerializedRoute<SerializedBusStop>
 
 export const serializedBusRoute = (busRoute: BusRoute): SerializedBusRoute => 

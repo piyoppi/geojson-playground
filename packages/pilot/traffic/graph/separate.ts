@@ -1,12 +1,15 @@
 import { to } from "../../graph/graph.js";
 import { buildRepositoryArcGenerator, type PartitionedRepository } from "../../graph/arc/externalRepositoryArc.js";
 import type { TrafficGraphNode, TrafficItem } from "./trafficGraph.js";
+import { Route, Station } from "../transportation.js";
+
+export const getTrafficGraphPartitionKey = (item: TrafficItem | Route<Station>) => item.companyId
 
 export const separate = async (
   repository: PartitionedRepository<TrafficItem>,
   stationNodes: TrafficGraphNode[]
 ): Promise<void> => {
-  const stationGroupByCompany = Map.groupBy(stationNodes, n => n.item.companyId)
+  const stationGroupByCompany = Map.groupBy(stationNodes, n => getTrafficGraphPartitionKey(n.item))
   const buildRepositoryArc = buildRepositoryArcGenerator(
     repository.get,
     node => node.item.companyId

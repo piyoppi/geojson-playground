@@ -1,4 +1,4 @@
-import { findRouteSummariesFromId, findStationSummariesFromId } from "@piyoppi/sansaku-viewmodel"
+import { findRouteSummariesFromId, findStationSummariesFromGroupId } from "@piyoppi/sansaku-viewmodel"
 import { DatabaseHandler } from "@piyoppi/sansaku-viewmodel/dist/database"
 import { shortest } from '@piyoppi/sansaku-query'
 
@@ -9,13 +9,13 @@ export const createGetTransferHandler = (
   from: string,
   to: string
 ) => {
-  const stationSummaries = findStationSummariesFromId(databaseHandler, [from, to])
+  const stationSummaries = Map.groupBy(findStationSummariesFromGroupId(databaseHandler, [from, to]), s => s.groupId)
+  const fromStationSummary = stationSummaries.get(from)?.at(0)
+  const toStationSummary = stationSummaries.get(to)?.at(0)
 
-  if (stationSummaries.length !== 2) {
+  if (!fromStationSummary || !toStationSummary) {
     throw new Error('')
   }
-
-  const [fromStationSummary, toStationSummary] = stationSummaries
 
   const results = await shortest(
     inputGraphDir,

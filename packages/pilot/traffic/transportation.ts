@@ -38,13 +38,15 @@ export type Station = {
   id: StationId,
   name: string,
   routeId: RouteId,
-  position: Position2D
+  position: Position2D,
+  groupId?: string
 }
 
 export type SerializedStation = {
   id: string,
   name: string,
-  position: Position2D
+  position: Position2D,
+  groupId?: string
 }
 
 export type Company = {
@@ -84,7 +86,8 @@ export const deserializeRoute = <S extends SerializedStation, SS extends Station
 export const serializeStation = (station: Station) => ({
   id: stationIdToString(station.id),
   name: station.name,
-  position: station.position
+  position: station.position,
+  ...(() => station.groupId ? { groupId: station.groupId } : {})()
 })
 
 export const deserializeStation = (station: SerializedStation, routeId: RouteId) => ({

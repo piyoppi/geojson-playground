@@ -18,13 +18,9 @@ export type SerializedRailroad = SerializedRoute<SerializedRailroadStation> & {
   rails?: undefined
 }
 
-export type RailroadStation = TransportationStation & {
-  groupId: string,
-}
+export type RailroadStation = TransportationStation
 
-export type SerializedRailroadStation = SerializedStation & {
-  groupId: string,
-}
+export type SerializedRailroadStation = SerializedStation
 
 export const serializeRailroad = (railroad: Railroad): SerializedRailroad =>
   serializeRoute(railroad, (s) => ({

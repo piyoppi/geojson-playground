@@ -55,7 +55,7 @@ export const buildStationGraphGenerator = (
 
   // Connect each transit station nodes
   for (const node of mergedStationNodes) {
-    const sameGroupNodes = nodesByGroup.get(node.item.station.groupId) ?? []
+    const sameGroupNodes = (node.item.station.groupId && nodesByGroup.get(node.item.station.groupId)) || []
     for (const current of sameGroupNodes) {
       if (node.id !== current.id && !(await arcExists(node, current)) && node.item.station.routeId !== current.item.station.routeId) {
         const arc = generateArc(node, current, generateTransferCost(node, current))

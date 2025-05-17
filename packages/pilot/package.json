@@ -6,6 +6,7 @@
   "scripts": {
     "test": "tsx --test",
     "dev": "tsc --watch",
+    "check": "tsc --noEmit",
     "build": "tsc"
   },
   "exports": {

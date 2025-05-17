@@ -13,9 +13,9 @@ model Error {
 }
 
 @route("/stations")
-@tag("StationSummaries")
-interface StationSummaries {
-  @get list(@query name: string): StationSummaryList | Error;
+@tag("StationSummaryGroup")
+interface StationSummaryGroup {
+  @get list(@query name: string): StationSummaryGroupList | Error;
 }
 
 @route("/transfer")

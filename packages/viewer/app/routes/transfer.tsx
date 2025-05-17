@@ -24,12 +24,10 @@ export default function Transfer() {
 
   const handleFromStationSelected = useCallback((stationId: string) => {
     setFromStationId(stationId)
-    console.log(stationId)
   }, [])
 
   const handleToStationSelected = useCallback((stationId: string) => {
     setToStationId(stationId)
-    console.log(stationId)
   }, [])
 
   return <article className="p-4">

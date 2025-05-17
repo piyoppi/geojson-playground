@@ -9,7 +9,10 @@
     "dev": {
       "dependsOn": [
         "^build"
-      ]
+      ],
+      "options": {
+        "clearScreen": false
+      }
     },
     "test": {
       "dependsOn": [

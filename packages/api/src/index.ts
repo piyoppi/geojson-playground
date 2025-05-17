@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { createKeywordHandler } from './handlers/getStationSummaries'
+import { createKeywordHandler } from './handlers/getStationSummaryGroups'
 import oas from '@piyoppi/sansaku-api-spec/openapi.json'
 import { paths } from '@piyoppi/sansaku-api-spec/openapi.d.ts'
 import { cors } from 'hono/cors'
@@ -21,7 +21,7 @@ export const createApp = (
 
   const database = createHandlerFromFile(databaseFileName)
 
-  const getStationSummariesFromKeywordHandler = createKeywordHandler(database)
+  const getStationSummaryGroupsFromKeywordHandler = createKeywordHandler(database)
   const getTransferHandler = createGetTransferHandler(database, inputGraphDir)
 
   app.use('*', cors())
@@ -33,7 +33,7 @@ export const createApp = (
       const params = c.req.valid('query')
 
       return c.json(
-        getStationSummariesFromKeywordHandler(params.name)
+        getStationSummaryGroupsFromKeywordHandler(params.name)
       )
     }
   )
