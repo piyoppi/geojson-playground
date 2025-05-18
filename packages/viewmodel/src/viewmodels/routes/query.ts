@@ -82,6 +82,8 @@ export const findStationSummariesFromId = (database: DatabaseHandler, ids: strin
 }
 
 export const findStationSummaryGroupsFromKeyword = (database: DatabaseHandler, stationNamePart: string, limit: number): StationSummaryGroup[] => {
+  database.exec('PRAGMA case_sensitive_like=ON;')
+
   const query = `
     SELECT station_groups.id, station_groups.name, station_groups.kind, routes.id AS route_id, routes.name AS route_name, routes.company_id, companies.name AS company_name
     FROM station_groups
@@ -89,7 +91,6 @@ export const findStationSummaryGroupsFromKeyword = (database: DatabaseHandler, s
     INNER JOIN routes ON stations.route_id = routes.id
     INNER JOIN companies ON routes.company_id = companies.id
     WHERE station_groups.name LIKE ?
-    ORDER BY station_groups.name
     LIMIT ?;
   `
 
