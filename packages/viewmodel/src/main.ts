@@ -1,16 +1,6 @@
 export {
-  createHandlerFromFile
+  createHandlerFromFile,
+  DatabaseHandler
 } from './database.js'
 
-export {
-  createTable as createStationTable,
-  findStationSummariesFromId,
-  findStationSummariesFromKeyword,
-  findStationSummaryGroupsFromKeyword,
-  findStationSummariesFromGroupId
-} from './viewmodels/stationSummaries.js'
-
-export {
-  createTable as createRouteTable,
-  findRouteSummariesFromId
-} from './viewmodels/routeSummaries.js'
+export * from './viewmodels/routes/index.js'

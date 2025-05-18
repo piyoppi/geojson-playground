@@ -1,5 +1,4 @@
-import { findStationSummaryGroupsFromKeyword } from "@piyoppi/sansaku-viewmodel"
-import { DatabaseHandler } from "@piyoppi/sansaku-viewmodel/dist/database"
+import { findStationSummaryGroupsFromKeyword, DatabaseHandler } from "@piyoppi/sansaku-viewmodel"
 
 export const createKeywordHandler = (
   databaseHandler: DatabaseHandler
@@ -12,9 +11,9 @@ export const createKeywordHandler = (
     }
   }
 
-  const results = findStationSummaryGroupsFromKeyword(databaseHandler, keyword, 20)
+  const stationSummaryGroups = findStationSummaryGroupsFromKeyword(databaseHandler, keyword, 20)
 
   return {
-    items: results
+    items: stationSummaryGroups
   }
 }
