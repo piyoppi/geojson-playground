@@ -46,7 +46,7 @@ export function Combobox<T>({ items, placeholder, emptyText, onItemSelected, onS
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="truncate justify-between"
         >
           {value
             ? items.find(([text, _]) => text === value)?.[0]

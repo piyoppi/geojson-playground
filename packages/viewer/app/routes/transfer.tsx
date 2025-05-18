@@ -44,11 +44,9 @@ export default function Transfer() {
           </Card>
         </div>
         <div className="flex flex-col gap-4 w-96 h-full">
-          <Card className="h-1/2 p-4">
-            <QueryClientProvider client={queryClient}>
-              <TransferResult fromStationId={fromStationId} toStationId={toStationId}/>
-            </QueryClientProvider>
-          </Card>
+          <QueryClientProvider client={queryClient}>
+            <TransferResult fromStationId={fromStationId} toStationId={toStationId}/>
+          </QueryClientProvider>
         </div>
       </div>
     </div>

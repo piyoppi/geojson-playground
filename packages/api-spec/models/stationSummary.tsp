@@ -2,7 +2,7 @@ model StationSummaryGroup {
   id: string;
   name: string;
   kind: string;
-  routeSummries: {
+  routeSummaries: {
     id: string,
     name: string,
     companyId: string

@@ -1,6 +1,6 @@
 import { $api } from "~/lib/api";
 import { Combobox } from "./ui/combobox"
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 type PropTypes = {
@@ -9,6 +9,7 @@ type PropTypes = {
 
 export function StationCombobox({ onStationSelected }: PropTypes) {
   const [searchQuery, setSearchQuery] = useState('')
+  const currentTimerId = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const handleStationSelected = (id: string) => {
     if (onStationSelected) {
@@ -22,7 +23,16 @@ export function StationCombobox({ onStationSelected }: PropTypes) {
     if (
       !/^[Ａ-Ｚａ-ｚ０-９]$/.test(searchQuery[0])
     ) {
-      setSearchQuery(searchQuery)
+      if (currentTimerId) {
+        clearTimeout(currentTimerId.current)
+      }
+
+      const timerId = setTimeout(() => {
+        setSearchQuery(searchQuery)
+        clearTimeout(currentTimerId.current)
+      }, 1000)
+
+      currentTimerId.current = timerId
     }
   }
 
@@ -43,7 +53,8 @@ export function StationCombobox({ onStationSelected }: PropTypes) {
       items={
         query.data?.data?.items.map(s => {
           const kind = (s.kind === 'bus') ? 'バス' : '鉄道'
-          return [`${kind} | ${s.name}`, s.id, s.id]
+          const routeName = s.routeSummaries.map(r => r.name).join(',')
+          return [`${kind} | ${s.name} (${routeName})`, s.id, s.id]
         }) || []
       }
       onSearchValueChanged={handleSearchValueChanged}
