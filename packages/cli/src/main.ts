@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { defineCommand, runMain } from 'citty'
-import { execute as executeGenerate } from './commands/graph/generate/generate.js'
+import { execute as executeGenerate } from './commands/graph/generate.js'
 import { execute as executeSeparate } from './commands/graph/separate.js'
 import { execute as executeRailroadShortest } from './commands/graph/shortest.js'
 import { execute as executeDatabaseStore } from './commands/database/store.js'
