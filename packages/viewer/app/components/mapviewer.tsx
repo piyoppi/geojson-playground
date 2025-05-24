@@ -5,7 +5,7 @@ import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/graph/traf
 import type { RouteId, Station } from '@piyoppi/sansaku-pilot/traffic/transportation'
 
 type PropTypes = {
-  nodeSet: TrafficGraphNode<Station>[][],
+  nodeSet: TrafficGraphNode[][],
   activeRouteId?: RouteId,
 }
 
@@ -13,7 +13,7 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
   const sigmaRef = useRef<Sigma | null>(null)
 
-  const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode<Station>[][]>([])
+  const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode[][]>([])
   const graph = useMemo(() => new Graph({ multi: true }), [])
 
   useEffect(() => {
@@ -23,11 +23,11 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
       graph.addNode(
         node.id,
         {
-          label: `${node.item.name}(${node.item.id})`,
-          routeId: node.item.routeId,
+          label: `${node.item.station.name}(${node.item.station.id})`,
+          routeId: node.item.station.routeId,
           size: 0.55,
-          x: node.item.position[0],
-          y: node.item.position[1],
+          x: node.item.station.position[0],
+          y: node.item.station.position[1],
           color: "blue"
         })
     })

@@ -1,5 +1,9 @@
 import { $api } from "~/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { RailroadItem } from "./railroadItem";
+import type { StationResponse } from "~/types";
+import { RouteMarker } from "./routeMarker";
+import { StationListItem } from "./stationListItem";
 
 type PropTypes = {
   fromStationId?: string
@@ -11,7 +15,7 @@ export function TransferResult({ fromStationId, toStationId }: PropTypes) {
     queryKey: ["get", "/transfer", fromStationId, toStationId],
     queryFn: async () => {
       if (!fromStationId || !toStationId) {
-        return { items: [] }
+        return []
       }
 
       const result = await $api.GET("/transfer", {
@@ -23,18 +27,32 @@ export function TransferResult({ fromStationId, toStationId }: PropTypes) {
         },
       })
 
-      return result.data
+      const routes: StationResponse[][] = []
+      let currentRouteName = ''
+
+      for (const item of result.data?.items ?? []) {
+        if (currentRouteName !== item.routeName) {
+          routes.push([])
+          currentRouteName = item.routeName
+        }
+
+        routes.at(-1)?.push(item)
+      }
+
+      return routes
     },
     enabled: !!fromStationId && !!toStationId,
   })
 
   return (
-    <ol>
-      {query.data?.items.map((item) => (
-        <li key={item.id}>
-          <button type="button" onClick={() => console.log(item)}>{item.name}</button>
-          <p>{item.routeName}</p>
-        </li>
+    <ol className="grid">
+      {query.data?.map(route => (
+        <>
+          <RailroadItem key={route.reduce((acc, r) => `${acc}-${r.id}`, '')} stations={route} />
+          <li>
+            <StationListItem type="none">乗り換え</StationListItem>
+          </li>
+        </>
       ))}
     </ol>
   )
