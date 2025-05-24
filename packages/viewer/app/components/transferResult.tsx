@@ -2,7 +2,6 @@ import { $api } from "~/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { RailroadItem } from "./railroadItem";
 import type { StationResponse } from "~/types";
-import { RouteMarker } from "./routeMarker";
 import { StationListItem } from "./stationListItem";
 
 type PropTypes = {
@@ -45,15 +44,20 @@ export function TransferResult({ fromStationId, toStationId }: PropTypes) {
   })
 
   return (
-    <ol className="grid">
-      {query.data?.map(route => (
-        <>
-          <RailroadItem key={route.reduce((acc, r) => `${acc}-${r.id}`, '')} stations={route} />
-          <li>
-            <StationListItem type="none">乗り換え</StationListItem>
-          </li>
-        </>
-      ))}
+    <ol>
+      {query.data?.flatMap((route, idx, routes) => [
+        <RailroadItem
+          key={route.reduce((acc, r) => `${acc}-${r.id}`, '')}
+          stations={route}
+          start={idx === 0}
+          end={idx === routes.length - 1}
+        />,
+        <li className="pl-3">
+          <StationListItem type="none">
+            <span className="text-gray-400">乗り換え</span>
+          </StationListItem>
+        </li>
+      ]).slice(0, -1)}
     </ol>
   )
 }
