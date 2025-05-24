@@ -27,7 +27,7 @@ export function RailroadItem({ stations, start, end }: PropTypes) {
         <details>
           <summary className="block cursor-pointer">
             <div className="pl-3 text-gray-400">
-              <StationListItem type="none">途中駅</StationListItem>
+              <StationListItem type="none">途中駅 ({between.length} 駅)</StationListItem>
             </div>
           </summary>
           <ol>
