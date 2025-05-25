@@ -76,7 +76,11 @@ export const buildGraphBuilder = <IG>(
   return mapping(start(), createNodeCallback, groupIdCallback, pointInPathchains, arcGenerator, options)
 }
 
-const distance = (allPaths: [Path, PathDirection][], fromPointInPathchain: PointInPathchain, toPointInPathchain?: PointInPathchain) => {
+const distance = (
+  allPaths: [Path, PathDirection][],
+  fromPointInPathchain: PointInPathchain,
+  toPointInPathchain?: PointInPathchain
+) => {
   const paths = allPaths.slice(
     ...[
       ...(() => toPointInPathchain ? [allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p)] : [])(),
