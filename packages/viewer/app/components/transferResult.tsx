@@ -54,7 +54,7 @@ export function TransferResult({ fromStationId, toStationId }: PropTypes) {
         />,
         <li className="pl-3">
           <StationListItem type="none">
-            <span className="text-gray-400">乗り換え</span>
+            <span className="text-gray-400">&#x1f6b6; 乗り換え</span>
           </StationListItem>
         </li>
       ]).slice(0, -1)}

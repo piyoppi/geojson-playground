@@ -34,7 +34,29 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
     repository.register(node, toPk)
   }
 
-  return await findShortestPath(startNode, endNode)
+  const shortest = await findShortestPath(startNode, endNode)
+
+  const grouped = shortest.reduce((acc, n, i, a) => {
+    const next = a[i + 1]
+    if (next === undefined) return acc
+
+    if (n.item.station.groupId === undefined || n.item.station.groupId !== next.item.station.groupId) {
+      acc.push(i)
+    }
+
+    return acc
+  }, [] as number[])
+
+  console.log(shortest.map(n => n.item.station.name))
+  console.log(grouped)
+
+  const firstRange = grouped.at(0) ?? 0
+  const lastRange = (grouped.at(-1) ?? shortest.length - 1) + 1
+
+  console.log(firstRange, lastRange)
+  console.log(shortest.slice(firstRange, lastRange).map(s => s.item.station.name))
+
+  return shortest.slice(firstRange, lastRange + 1)
 }
 
 const buildPartialFileLoader = (repository: PartitionedRepository<TrafficItem>) => {
