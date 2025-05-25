@@ -2,7 +2,7 @@ import { useEffect, useRef, useMemo, useState } from 'react'
 import Sigma from "sigma"
 import Graph from "graphology"
 import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
-import type { RouteId, Station } from '@piyoppi/sansaku-pilot/traffic/transportation'
+import type { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
 
 type PropTypes = {
   nodeSet: TrafficGraphNode[][],
@@ -23,9 +23,9 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
       graph.addNode(
         node.id,
         {
-          label: `${node.item.station.name}(${node.item.station.id})`,
+          label: `${node.item.station.name}(${node.item.station.routeId})`,
           routeId: node.item.station.routeId,
-          size: 0.55,
+          size: 0.45,
           x: node.item.station.position[0],
           y: node.item.station.position[1],
           color: "blue"
@@ -36,7 +36,7 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
       for (const arc of node.arcs) {
         Promise.all([arc.a(), arc.b()]).then((([aNode, bNode]) => {
           if (!aNode || !bNode) return
-          graph.addEdge(aNode.id, bNode.id, { color: "darkgray" })
+          graph.addEdge(aNode.id, bNode.id, { label: Math.ceil(arc.cost * 1000000000.0), labelColor: "black", size: 0.2, color: "darkgray" })
         }))
       }
     }
@@ -61,7 +61,7 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
 
   useEffect(() => {
     if (!entry.current) return
-    const sigma = new Sigma(graph, entry.current)
+    const sigma = new Sigma(graph, entry.current, {renderEdgeLabels: true})
     sigmaRef.current = sigma
 
     return () => {
