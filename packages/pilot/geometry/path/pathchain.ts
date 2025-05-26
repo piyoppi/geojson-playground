@@ -1,5 +1,5 @@
 import { type Position2D, distance } from "../index.js"
-import { type Path } from "./index.js"
+import { pathLength, type Path } from "./index.js"
 import { type PointInPath, pointInPath as findPointInPath } from './pointInPath.js'
 import { pathChainWalk } from "./walk.js"
 
@@ -190,4 +190,59 @@ export const mergeTIntersection = (pathInternals: PathInternal[]) => {
       }
     }
   }
+}
+
+export const distanceBetweenPointInPath = (
+  allPaths: [Path, PathDirection][],
+  fromPointInPathchain: PointInPathchain,
+  toPointInPathchain?: PointInPathchain
+) => {
+
+  //   |<------------------------------ allPaths ---------------------------------->|
+  //   |                                                                            |
+  //   |    |<---------------------- Paths ---------------------->|                 |
+  //   |    |                                                     |                 |
+  //   |    |      Path0       Path1   Path2          Path3       |                 |
+  //   |    |<--------------->|<--->|<-------->|<---------------->|                 |
+  //   |    |                 :     :          :                  |                 |
+  //   |    |                 :     :          :                  |                 |
+  //   *----*-----x-----------*-----*----------*-----------x------*-----------------*
+  //              :                                        :
+  //              A (fromPointInPathchain)                 B (toPointInPathchain)
+  //
+  const paths = allPaths.slice(
+    ...[
+      ...(() => toPointInPathchain ?
+          [
+            allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p)
+          ] : []
+         )(),
+      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
+    ].sort()
+  )
+
+  const tailLength = toPointInPathchain ? (() => {
+    const [path, direction] = paths.at(0) ?? [undefined, undefined]
+    return direction === 'forward' ?
+      pathLength(path) - toPointInPathchain.pointInPath.distance() :
+      toPointInPathchain.pointInPath.distance()
+  })() : pathLength(paths[0][0] ?? [])
+
+  const headLength = (() => {
+    const [path, direction] = paths.at(-1) ?? [undefined, undefined]
+    return direction === 'forward' ?
+      pathLength(path) - fromPointInPathchain.pointInPath.distance() :
+      fromPointInPathchain.pointInPath.distance()
+  })()
+
+  // |<---------------------- Paths ---------------------->|
+  // |                                                     |
+  // |      Path0       Path1   Path2          Path3       |
+  // |<--------------->|<--->|<-------->|<---------------->|
+  // |                 :     :          :                  |
+  // |     A (from)    :     :          :           B (to) |
+  // *-----x-----------*-----*----------*-----------x------*
+  //       |<-headLen->|<---- len ----->|<-tailLen->|
+  //
+  return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
 }

@@ -1,8 +1,8 @@
 import { connect, type NodeId, type GraphNode } from "./graph.js"
-import { pathLength, type Path } from "../geometry/path/index.js"
 import { pathChainWalk, type BranchId } from "../geometry/path/walk.js"
 import {
   findPointInPathChain,
+  distanceBetweenPointInPath,
   type IsolatedPathChain,
   type PathDirection,
   type VisitFn,
@@ -12,6 +12,7 @@ import {
 } from "../geometry/path/pathchain.js"
 import type { Position2D } from "../geometry/index.js"
 import type { ArcGenerator } from "./arc/index.js"
+import type { Path } from "../geometry/path/index.js"
 
 type NodeOnPath = {
   position: Position2D,
@@ -76,42 +77,6 @@ export const buildGraphBuilder = <IG>(
   return mapping(start(), createNodeCallback, groupIdCallback, pointInPathchains, arcGenerator, options)
 }
 
-const distance = (
-  allPaths: [Path, PathDirection][],
-  fromPointInPathchain: PointInPathchain,
-  toPointInPathchain?: PointInPathchain
-) => {
-  const paths = allPaths.slice(
-    ...[
-      ...(() => toPointInPathchain ? [allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p)] : [])(),
-      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
-    ].sort()
-  )
-  const tailLength = toPointInPathchain ? (() => {
-    const [path, direction] = paths.at(0) ?? [undefined, undefined]
-    return direction === 'forward' ?
-      pathLength(path) - toPointInPathchain.pointInPath.distance() :
-      toPointInPathchain.pointInPath.distance()
-  })() : pathLength(paths[0][0] ?? [])
-
-  const headLength = (() => {
-    const [path, direction] = paths.at(-1) ?? [undefined, undefined]
-    return direction === 'forward' ?
-      pathLength(path) - fromPointInPathchain.pointInPath.distance() :
-      fromPointInPathchain.pointInPath.distance()
-  })()
-
-  // |<---------------------- Paths ---------------------->|
-  // |                                                     |
-  // |      Path0       Path1   Path2          Path3       |
-  // |<--------------->|<--->|<-------->|<---------------->|
-  // |                 :     :          :                  |
-  // |     A (from)    :     :          :           B (to) |
-  // *-----x-----------*-----*----------*-----------x------*
-  //       |<-headLen->|<---- len ----->|<-tailLen->|
-  //
-  return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
-}
 
 const distanceBetweenNodes = <N>(ctx: MappingContext<N>, [to, from] = [0, 1]) => {
   const contexts = [ctx, ...findPreviousContexts(ctx)]
@@ -121,7 +86,7 @@ const distanceBetweenNodes = <N>(ctx: MappingContext<N>, [to, from] = [0, 1]) =>
 
   if (!fromPointInPathchain) return 0
 
-  return distance(contexts.map(c => c.paths).flat(), fromPointInPathchain, toPointInPathchain)
+  return distanceBetweenPointInPath(contexts.map(c => c.paths).flat(), fromPointInPathchain, toPointInPathchain)
 }
 
 const findPreviousContexts = <N>(ctx: MappingContext<N>) => {

@@ -4,18 +4,18 @@ import { type Path } from './index'
 import { pathChainWalk } from './walk'
 
 describe('buildPathchain tests', () => {
-  it('should return empty array when paths is empty', (t) => {
-    const result = buildPathchain([])
+  it('should return empty array when paths is empty', async (t) => {
+    const result = await buildPathchain([])
     t.assert.equal(result.length, 0)
   })
 
-  it('should correctly identify chain relationships for multiple paths', (t) => {
+  it('should correctly identify chain relationships for multiple paths', async (t) => {
     const p1: Path = [[0, 0], [1, 1]]
     const p2: Path = [[1, 1], [2, 2]]
     const p3: Path = [[2, 2], [3, 3]]
     const p4: Path = [[2, 2], [3, 2]]
 
-    const results = buildPathchain([p1, p2, p3, p4])
+    const results = await buildPathchain([p1, p2, p3, p4])
     t.assert.equal(results.length, 1)
 
     const result = results[0]
@@ -36,7 +36,7 @@ describe('buildPathchain tests', () => {
 })
 
 describe('mergeTIntersection', () => {
-  it('Should correctly merge T intersections', (t: TestContext) => {
+  it('Should correctly merge T intersections', async (t: TestContext) => {
     const pathInternals: PathInternal[] = [
       {
         path: [
@@ -67,14 +67,21 @@ describe('mergeTIntersection', () => {
 
     const pathchains = buildFromInternal(pathInternals)
     const visitedPaths: string[] = []
-    pathChainWalk(pathchains[0].from(), p => visitedPaths.push(p.path.flat().join(',')))
+    await pathChainWalk(
+      pathchains[0].from(),
+      p => {
+        visitedPaths.push(p.pathChain.path.flat().join(','))
+        return Promise.resolve()
+      }
+    )
+    console.log(visitedPaths)
     t.assert.equal(visitedPaths.length, 3)
     t.assert.ok(visitedPaths.find(p => p === '0,0,5,0'))
     t.assert.ok(visitedPaths.find(p => p === '5,0,10,0'))
     t.assert.ok(visitedPaths.find(p => p === '5,0,5,5'))
   })
 
-  it('Should correctly merge T intersections', (t: TestContext) => {
+  it('Should correctly merge T intersections', async (t: TestContext) => {
     const pathInternals: PathInternal[] = [
       {
         path: [
@@ -123,7 +130,13 @@ describe('mergeTIntersection', () => {
 
     const pathchains = buildFromInternal(pathInternals)
     const visitedPaths: string[] = []
-    pathChainWalk(pathchains[0].from(), p => visitedPaths.push(p.path.flat().join(',')))
+    await pathChainWalk(
+      pathchains[0].from(),
+      p => {
+        visitedPaths.push(p.pathChain.path.flat().join(','))
+        return Promise.resolve()
+      }
+    )
     t.assert.equal(visitedPaths.length, 5)
     t.assert.ok(visitedPaths.find(p => p === '0,0,2,0'))
     t.assert.ok(visitedPaths.find(p => p === '2,0,5,0'))
