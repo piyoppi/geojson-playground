@@ -6,8 +6,15 @@ import type { Position2D } from '../geojson'
 import type { Path } from '../geometry/path'
 import { ArcGenerator } from './arc'
 
+type TestDataNode = { position: Position2D, id: string }
+
+const arcGenerator: ArcGenerator<TestDataNode> = (a, b, cost) => ({
+  a: () => Promise.resolve(a),
+  b: () => Promise.resolve(b),
+  cost
+})
+
 describe('buildGraphBuilder', () => {
-  type TestDataNode = { position: Position2D, id: string }
   it('Should return nodes', async (t: TestContext) => {
     const nodes: TestDataNode[] = [
       { position: [1, 0], id: 'A' },
@@ -28,11 +35,6 @@ describe('buildGraphBuilder', () => {
       [[2, 0], [6, 0]]
     ]
     const pathChains = (await buildPathchain(paths))[0]
-    const arcGenerator: ArcGenerator<TestDataNode> = (a, b, cost) => ({
-      a: () => Promise.resolve(a),
-      b: () => Promise.resolve(b),
-      cost
-    })
     const fromPathChain = buildGraphBuilder(arcGenerator)
     const end = ends(pathChains)[0]
 
@@ -43,6 +45,13 @@ describe('buildGraphBuilder', () => {
       s => Promise.resolve([s.id, {...s}]),
       _ => 'group'
     )
+
+    // expected:
+    //
+    //  A ------- B
+    //  |         |
+    //  |         |
+    //  *--- C ---*
 
     const node = nodeMap.get('group')?.at(0)
     if (!node) t.assert.fail('Graph should not be null')

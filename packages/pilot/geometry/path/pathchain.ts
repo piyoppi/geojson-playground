@@ -93,7 +93,10 @@ const buildPathInternal = (paths: Readonly<Path[]>) => {
   })
 }
 
-const generateStep = (pathInternals: Readonly<PathInternal[]>, pathChains: (index: number) => Readonly<PathChain>) => {
+const generateStep = (
+  pathInternals: Readonly<PathInternal[]>,
+  pathChains: (index: number) => Readonly<PathChain>
+) => {
   const generateVisit = (visitedIndexes: Set<number>, current: number, previous?: number): VisitFn => (): Visited => {
     const pathDirection = (() => {
       const currentPathInternal = pathInternals[current]

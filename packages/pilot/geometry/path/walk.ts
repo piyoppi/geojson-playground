@@ -45,6 +45,16 @@ const _walk = async <R>(visits: VisitFn[], callback: CallbackFn<R>, branchId: Br
   while(true) {
     if (visits.length === 0) break
 
+    const res = visits[0]()
+    const result = await callback(
+      {pathChain: res.pathChain, pathDirection: res.pathDirection},
+      visits.length > 1 ? [...branchId, generateBranchId()] : branchId
+    )
+
+    if (handleResult(result)) {
+      break
+    }
+
     for (const visit of visits.slice(1)) {
       const res = visit()
       const newBranchNum = [...branchId, generateBranchId()]
@@ -68,13 +78,6 @@ const _walk = async <R>(visits: VisitFn[], callback: CallbackFn<R>, branchId: Br
     }
 
     if (stop) break
-
-    const res = visits[0]()
-    const result = await callback({pathChain: res.pathChain, pathDirection: res.pathDirection}, visits.length > 1 ? [...branchId, generateBranchId()] : branchId)
-
-    if (handleResult(result)) {
-      break
-    }
 
     visits = res.next()
   }

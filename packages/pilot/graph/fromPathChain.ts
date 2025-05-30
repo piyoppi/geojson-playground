@@ -199,13 +199,14 @@ const mapping = async <T extends NodeOnPath, IG, I extends IG, G>(
 
     for (const groupId of groupIds) {
       const contextByBranchIdChain = contextsByGroup.get(groupId) ?? new Map<BranchIdChainSerialized, MappingContext<I>>()
-      const currentContext: MappingContext<I> = contextByBranchIdChain.get(BranchIdChainSerialized(branchIdChain)) ?? {
-        ...createMappingContext(currentBranchId),
-        ...(() => {
-          const previousContext = findPreviousContextFromBranchIdChain(contextByBranchIdChain, branchIdChain)
-          return previousContext ? { previousContext } : {}
-        })()
-      }
+      const currentContext: MappingContext<I> = contextByBranchIdChain.get(BranchIdChainSerialized(branchIdChain)) ??
+        {
+          ...createMappingContext(currentBranchId),
+          ...(() => {
+            const previousContext = findPreviousContextFromBranchIdChain(contextByBranchIdChain, branchIdChain)
+            return previousContext ? { previousContext } : {}
+          })()
+        }
 
       currentContext.paths.push([current.pathChain.path, current.pathDirection])
 

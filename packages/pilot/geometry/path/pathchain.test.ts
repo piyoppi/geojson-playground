@@ -74,7 +74,6 @@ describe('mergeTIntersection', () => {
         return Promise.resolve()
       }
     )
-    console.log(visitedPaths)
     t.assert.equal(visitedPaths.length, 3)
     t.assert.ok(visitedPaths.find(p => p === '0,0,5,0'))
     t.assert.ok(visitedPaths.find(p => p === '5,0,10,0'))
