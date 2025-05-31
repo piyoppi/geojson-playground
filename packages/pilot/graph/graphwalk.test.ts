@@ -1,7 +1,7 @@
 import { describe, it, type TestContext } from 'node:test'
 import { walk } from './graphwalk'
 import type { GraphNode } from './graph'
-import type { Arc } from './arc'
+import type { Arc } from './arc/index'
 
 describe('walk function', () => {
   const createNode = (id: string): GraphNode<{}> & { id: string } => ({ id, arcs: [], item: {} })

@@ -1,13 +1,13 @@
 import { subtract, length, innerProduction, type Position2D } from "../index.js"
 import { Path, pathLength } from "./index.js"
 
-export type PointInPath = {
+export type PointOnPath = {
   path: WeakRef<Path>
   startIndex: number,
   distance: () => number
 }
 
-export const pointInPath = (pos: Readonly<Position2D>, path: Path): PointInPath | null => {
+export const checkPointOnPath = (pos: Readonly<Position2D>, path: Path): PointOnPath | null => {
   const [index, distance] = path.slice(1).reduce((current, end, i) => {
     if (current[0] > 0) return current
 

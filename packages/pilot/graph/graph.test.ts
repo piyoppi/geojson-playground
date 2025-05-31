@@ -1,83 +1,69 @@
 import { describe, it, type TestContext } from 'node:test'
 import { 
-  generateNode, 
-  generateArc, 
   to, 
   arcExists, 
-  mergeNodes,
   connect,
   disconnect,
   findShortestPath,
-  GraphNode
-} from './graph.ts'
+  buildNodeMerger
+} from './graph'
+import { ArcGenerator } from './arc/index'
 
-describe('generateNode', () => {
-  it('should create a node with empty arcs array', (t: TestContext) => {
-    const node = generateNode('node1')
-    t.assert.deepStrictEqual(node, { id: 'node1', arcs: [] })
-  })
-})
-
-describe('generateArc', () => {
-  it('should create an arc between two nodes with given cost', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
-    const cost = 10
-    const arc = generateArc(nodeA, nodeB, cost)
-
-    t.assert.strictEqual(arc.cost, cost)
-    t.assert.strictEqual(arc.a.deref(), nodeA)
-    t.assert.strictEqual(arc.b.deref(), nodeB)
-  })
+const generateArc: ArcGenerator<{}> = (a, b, cost) => ({
+  a: () => Promise.resolve(a),
+  b: () => Promise.resolve(b),
+  cost
 })
 
 describe('to', () => {
-  it('should return the other node in the arc', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
-    const arc = generateArc(nodeA, nodeB, 5)
+  it('should return the other node in the arc', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const arc = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 1 }
+    connect(nodeA, nodeB, arc)
 
-    t.assert.strictEqual(to(nodeA, arc), nodeB)
-    t.assert.strictEqual(to(nodeB, arc), nodeA)
+    t.assert.strictEqual(await to(nodeA, arc), nodeB)
+    t.assert.strictEqual(await to(nodeB, arc), nodeA)
   })
 
-  it('should return null if the node is not part of the arc', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
-    const nodeC = generateNode('C')
-    const arc = generateArc(nodeA, nodeB, 5)
+  it('should return null if the node is not part of the arc', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
+    const arc = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 1 }
+    connect(nodeA, nodeB, arc)
 
-    t.assert.strictEqual(to(nodeC, arc), null)
+    t.assert.strictEqual(await to(nodeC, arc), null)
   })
 })
 
 describe('arcExists', () => {
-  it('should return true if an arc exists between nodes', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
-    const arc = generateArc(nodeA, nodeB, 5)
-    nodeA.arcs.push(arc)
+  it('should return true if an arc exists between nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const arc = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 1 }
+    connect(nodeA, nodeB, arc)
 
-    t.assert.strictEqual(arcExists(nodeA, nodeB), true)
+    t.assert.strictEqual(await arcExists(nodeA, nodeB), true)
   })
 
-  it('should return false if no arc exists between nodes', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
-    const nodeC = generateNode('C')
-    const arc = generateArc(nodeA, nodeB, 5)
-    nodeA.arcs.push(arc)
+  it('should return false if no arc exists between nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
+    const arc = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 1 }
+    connect(nodeA, nodeB, arc)
 
-    t.assert.strictEqual(arcExists(nodeA, nodeC), false)
+    t.assert.strictEqual(await arcExists(nodeA, nodeC), false)
   })
 })
 
-describe('mergeNodes', () => {
-  it('should merge nodes and connect arcs properly', (t: TestContext) => {
+describe('buildNodeMerger', () => {
+  it('should merge nodes and connect arcs properly', async (t: TestContext) => {
     // Create test nodes
-    const node1 = generateNode('node1')
-    const node2 = generateNode('node2')
-    const node3 = generateNode('node3')
+    const node1 = { id: 'node1', item: {}, arcs: [] }
+    const node2 = { id: 'node2', item: {}, arcs: [] }
+    const node3 = { id: 'node3', item: {}, arcs: [] }
 
     // Create arcs
     //           arc1             arc2
@@ -86,12 +72,12 @@ describe('mergeNodes', () => {
     //    |              arc3               |
     //    '----------------5----------------'
     //
-    const arc1 = generateArc(node1, node3, 10)
-    const arc2 = generateArc(node2, node3, 20)
-    const arc3 = generateArc(node1, node2, 5)
-    node1.arcs.push(arc1, arc3)
-    node2.arcs.push(arc2, arc3)
-    node3.arcs.push(arc1, arc2)
+    const arc13 = generateArc(node1, node3, 10)
+    const arc23 = generateArc(node2, node3, 20)
+    const arc12 = generateArc(node1, node2, 5)
+    connect(node1, node3, arc13)
+    connect(node2, node3, arc23)
+    connect(node1, node2, arc12)
 
     // Merge node1 and node2
     // 
@@ -104,18 +90,18 @@ describe('mergeNodes', () => {
     //    |              arc3               |
     //    '----------------5----------------'
     //
-    const mergedNode = mergeNodes(node1, node2)
+    const mergeNodes = buildNodeMerger(generateArc)
+    const mergedNode = await mergeNodes(node1, node2)
     t.assert.equal(mergedNode.arcs.length, 1)
     t.assert.equal(node3.arcs.length, 3)
     t.assert.deepEqual(mergedNode.arcs[0].cost, 15)
   })
 
-  it('should merge nodes and connect arcs properly', (t: TestContext) => {
-    // Create test nodes
-    const node1 = generateNode('node1')
-    const node2 = generateNode('node2')
-    const node3 = generateNode('node3')
-    const node4 = generateNode('node4')
+  it('should merge nodes and connect arcs properly', async (t: TestContext) => {
+    const node1 = { id: 'node1', item: {}, arcs: [] }
+    const node2 = { id: 'node2', item: {}, arcs: [] }
+    const node3 = { id: 'node3', item: {}, arcs: [] }
+    const node4 = { id: 'node4', item: {}, arcs: [] }
 
     // Create arcs
     //         arc1                arc2
@@ -126,14 +112,14 @@ describe('mergeNodes', () => {
     //    +-----30------[node3]-----40------+
     //         arc3                arc4
     //
-    const arc1 = generateArc(node1, node2, 10)
-    const arc2 = generateArc(node2, node4, 20)
-    const arc3 = generateArc(node1, node3, 30)
-    const arc4 = generateArc(node3, node4, 40)
-    node1.arcs.push(arc1, arc3)
-    node2.arcs.push(arc2, arc4)
-    node3.arcs.push(arc3, arc4)
-    node4.arcs.push(arc2, arc4)
+    const arc12 = generateArc(node1, node2, 10)
+    const arc24 = generateArc(node2, node4, 20)
+    const arc13 = generateArc(node1, node3, 30)
+    const arc34 = generateArc(node3, node4, 40)
+    connect(node1, node2, arc12)
+    connect(node2, node4, arc24)
+    connect(node1, node3, arc13)
+    connect(node3, node4, arc34)
 
     // Merge node2 and node3
     // 
@@ -145,21 +131,21 @@ describe('mergeNodes', () => {
     //    +-----30------[node3]-----40------+
     //         arc3                arc4
     //
-    const mergedNode = mergeNodes(node2, node3)
+    const mergeNodes = buildNodeMerger(generateArc)
+    const mergedNode = await mergeNodes(node2, node3)
     t.assert.equal(mergedNode.arcs.length, 2)
-    t.assert.ok([node1, mergedNode].includes(mergedNode.arcs[1].a.deref()))
-    t.assert.ok([node1, mergedNode].includes(mergedNode.arcs[1].b.deref()))
-    t.assert.ok([node4, mergedNode].includes(mergedNode.arcs[0].a.deref()))
-    t.assert.ok([node4, mergedNode].includes(mergedNode.arcs[0].b.deref()))
+    t.assert.ok([node1, mergedNode].includes(await (mergedNode.arcs[1].a()) as any))
+    t.assert.ok([node1, mergedNode].includes(await (mergedNode.arcs[1].b()) as any))
+    t.assert.ok([node4, mergedNode].includes(await (mergedNode.arcs[0].a()) as any))
+    t.assert.ok([node4, mergedNode].includes(await (mergedNode.arcs[0].b()) as any))
     t.assert.equal(node1.arcs.length, 3)
     t.assert.equal(node4.arcs.length, 3)
   })
 
-  it('should merge nodes and connect an arc when merged node has an arc that has same cost', (t: TestContext) => {
-    // Create test nodes
-    const node1 = generateNode('node1')
-    const node2 = generateNode('node2')
-    const node3 = generateNode('node3')
+  it('should merge nodes and connect an arc when merged node has an arc that has same cost', async (t: TestContext) => {
+    const node1 = { id: 'node1', item: {}, arcs: [] }
+    const node2 = { id: 'node2', item: {}, arcs: [] }
+    const node3 = { id: 'node3', item: {}, arcs: [] }
 
     // Create arcs
     //           arc1             arc2
@@ -168,12 +154,12 @@ describe('mergeNodes', () => {
     //    |              arc3               |
     //    '----------------5----------------'
     //
-    const arc1 = generateArc(node1, node3, 10)
-    const arc2 = generateArc(node2, node3, 10)
-    const arc3 = generateArc(node1, node2, 5)
-    node1.arcs.push(arc1, arc3)
-    node2.arcs.push(arc2, arc3)
-    node3.arcs.push(arc1, arc2)
+    const arc13 = generateArc(node1, node3, 10)
+    const arc23 = generateArc(node2, node3, 10)
+    const arc12 = generateArc(node1, node2, 5)
+    connect(node1, node3, arc13)
+    connect(node2, node3, arc23)
+    connect(node1, node2, arc12)
 
     // Merge node1 and node2
     // 
@@ -186,45 +172,47 @@ describe('mergeNodes', () => {
     //    |              arc3               |
     //    '----------------5----------------'
     //
-    const mergedNode = mergeNodes(node1, node2)
+    const mergeNodes = buildNodeMerger(generateArc)
+    const mergedNode = await mergeNodes(node1, node2)
     t.assert.equal(mergedNode.arcs.length, 1)
     t.assert.equal(mergedNode.arcs[0].cost, 10)
 
     t.assert.equal(node3.arcs.length, 3)
   })
 
-  it('should return an empty node when merging no nodes', (t: TestContext) => {
-    const mergedNode = mergeNodes()
+  it('should return an empty node when merging no nodes', async (t: TestContext) => {
+    const mergeNodes = buildNodeMerger(generateArc)
+    const mergedNode = await mergeNodes()
     t.assert.equal(mergedNode.arcs.length, 0)
   })
 })
 
 describe('disconnect', () => {
-  it('should remove arcs between two nodes', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
+  it('should remove arcs between two nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
     const arc = generateArc(nodeA, nodeB, 10)
     
     connect(nodeA, nodeB, arc)
     
     t.assert.strictEqual(nodeA.arcs.length, 1)
     t.assert.strictEqual(nodeB.arcs.length, 1)
-    t.assert.strictEqual(arcExists(nodeA, nodeB), true)
+    t.assert.strictEqual(await arcExists(nodeA, nodeB), true)
     
-    disconnect(nodeA, nodeB)
+    await disconnect(nodeA, nodeB)
     
     t.assert.strictEqual(nodeA.arcs.length, 0)
     t.assert.strictEqual(nodeB.arcs.length, 0)
-    t.assert.strictEqual(arcExists(nodeA, nodeB), false)
+    t.assert.strictEqual(await arcExists(nodeA, nodeB), false)
   })
   
-  it('should not affect other connections when disconnecting specific nodes', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
-    const nodeC = generateNode('C')
+  it('should not affect other connections when disconnecting specific nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
     
-    const arcAB = generateArc(nodeA, nodeB, 10)
-    const arcAC = generateArc(nodeA, nodeC, 5)
+    const arcAB = generateArc(nodeA, nodeB, 100)
+    const arcAC = generateArc(nodeA, nodeC, 200)
     
     connect(nodeA, nodeB, arcAB)
     connect(nodeA, nodeC, arcAC)
@@ -233,18 +221,18 @@ describe('disconnect', () => {
     t.assert.strictEqual(nodeB.arcs.length, 1)
     t.assert.strictEqual(nodeC.arcs.length, 1)
     
-    disconnect(nodeA, nodeB)
+    await disconnect(nodeA, nodeB)
     
     t.assert.strictEqual(nodeA.arcs.length, 1)
     t.assert.strictEqual(nodeB.arcs.length, 0)
     t.assert.strictEqual(nodeC.arcs.length, 1)
-    t.assert.strictEqual(arcExists(nodeA, nodeB), false)
-    t.assert.strictEqual(arcExists(nodeA, nodeC), true)
+    t.assert.strictEqual(await arcExists(nodeA, nodeB), false)
+    t.assert.strictEqual(await arcExists(nodeA, nodeC), true)
   })
   
   it('should handle case when nodes have no connection', (t: TestContext) => {
-    const nodeA = generateNode('A')
-    const nodeB = generateNode('B')
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
     
     t.assert.strictEqual(nodeA.arcs.length, 0)
     t.assert.strictEqual(nodeB.arcs.length, 0)
@@ -252,25 +240,25 @@ describe('disconnect', () => {
 })
 
 describe('findShortestPath', () => {
-  it('should find the shortest path between two directly connected nodes', (t: TestContext) => {
-    const nodeA: GraphNode = { id: 'A', arcs: [] }
-    const nodeB: GraphNode = { id: 'B', arcs: [] }
+  it('should find the shortest path between two directly connected nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
 
     const arc = generateArc(nodeA, nodeB, 5)
     connect(nodeA, nodeB, arc)
 
-    const path = findShortestPath(nodeA, nodeB)
+    const path = await findShortestPath(nodeA, nodeB)
     t.assert.ok(path !== null)
     t.assert.equal(path?.length, 2)
     t.assert.equal(path?.[0].id, 'A')
     t.assert.equal(path?.[1].id, 'B')
   })
 
-  it('should find the shortest path through multiple nodes', (t: TestContext) => {
-    const nodeA: GraphNode = { id: 'A', arcs: [] }
-    const nodeB: GraphNode = { id: 'B', arcs: [] }
-    const nodeC: GraphNode = { id: 'C', arcs: [] }
-    const nodeD: GraphNode = { id: 'D', arcs: [] }
+  it('should find the shortest path through multiple nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
+    const nodeD = { id: 'D', item: {}, arcs: [] }
 
     const arcAB = generateArc(nodeA, nodeB, 10)
     const arcAC = generateArc(nodeA, nodeC, 3)
@@ -282,7 +270,7 @@ describe('findShortestPath', () => {
     connect(nodeC, nodeD, arcCD)
     connect(nodeB, nodeD, arcBD)
 
-    const path = findShortestPath(nodeA, nodeD)
+    const path = await findShortestPath(nodeA, nodeD)
     t.assert.ok(path !== null)
     t.assert.equal(path?.length, 3)
     t.assert.equal(path?.[0].id, 'A')
@@ -290,18 +278,18 @@ describe('findShortestPath', () => {
     t.assert.equal(path?.[2].id, 'D')
   })
 
-  it('should return null when no path exists', (t: TestContext) => {
-    const nodeA: GraphNode = { id: 'A', arcs: [] }
-    const nodeB: GraphNode = { id: 'B', arcs: [] }
+  it('should return null when no path exists', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
 
-    const path = findShortestPath(nodeA, nodeB)
-    t.assert.equal(path, null)
+    const nodes = await findShortestPath(nodeA, nodeB)
+    t.assert.strictEqual(0, nodes.length)
   })
 
-  it('should handle a cycle in the graph', (t: TestContext) => {
-    const nodeA: GraphNode = { id: 'A', arcs: [] }
-    const nodeB: GraphNode = { id: 'B', arcs: [] }
-    const nodeC: GraphNode = { id: 'C', arcs: [] }
+  it('should handle a cycle in the graph', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
 
     const arcAB = generateArc(nodeA, nodeB, 1)
     const arcBC = generateArc(nodeB, nodeC, 1)
@@ -311,17 +299,17 @@ describe('findShortestPath', () => {
     connect(nodeB, nodeC, arcBC)
     connect(nodeC, nodeA, arcCA)
 
-    const path = findShortestPath(nodeA, nodeC)
+    const path = await findShortestPath(nodeA, nodeC)
     t.assert.ok(path !== null)
     t.assert.equal(path?.length, 2)
     t.assert.equal(path?.[0].id, 'A')
     t.assert.equal(path?.[1].id, 'C')
   })
 
-  it('should return a single node when start and end are the same', (t: TestContext) => {
-    const nodeA: GraphNode = { id: 'A', arcs: [] }
+  it('should return a single node when start and end are the same', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
 
-    const path = findShortestPath(nodeA, nodeA)
+    const path = await findShortestPath(nodeA, nodeA)
     t.assert.ok(path !== null)
     t.assert.equal(path?.length, 1)
     t.assert.equal(path?.[0].id, 'A')

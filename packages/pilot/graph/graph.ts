@@ -21,13 +21,17 @@ export const setArc = <T>(node: GraphNode<T>, arc: Arc<T>): void => {
 }
 
 export const disconnect = async <T>(a: GraphNode<T>, b: GraphNode<T>) => {
-  const arcsToRemove = a.arcs.filter(async arc => {
-    const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
-    return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
-  })
+  const removalArcs: Arc<T>[] = []
 
-  a.arcs = a.arcs.filter(arc => !arcsToRemove.includes(arc))
-  b.arcs = b.arcs.filter(arc => !arcsToRemove.includes(arc))
+  for (const arc of a.arcs) {
+    const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
+    if ((nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)) {
+      removalArcs.push(arc)
+    }
+  }
+
+  a.arcs = a.arcs.filter(arc => !removalArcs.includes(arc))
+  b.arcs = b.arcs.filter(arc => !removalArcs.includes(arc))
 }
 
 export const removeNode = async (node: GraphNode<unknown>) => {

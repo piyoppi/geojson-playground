@@ -11,7 +11,7 @@ type CallbackReturn<R = unknown> = {
   returned?: R
 }
 
-type CallbackFn<R> = (current: Current, branchIdChain: BranchId[]) => Promise<void | CallbackReturn<R>>
+type CallbackFn<R> = (current: Current, branchIdChain: BranchId[], isNewBranch: boolean) => Promise<void | CallbackReturn<R>>
 
 export const pathChainWalk = async <R>(start: VisitFn, callback: CallbackFn<R>) => {
   return (await _walk([start], callback, [generateBranchId()]))[1]
@@ -48,7 +48,8 @@ const _walk = async <R>(visits: VisitFn[], callback: CallbackFn<R>, branchId: Br
     const res = visits[0]()
     const result = await callback(
       {pathChain: res.pathChain, pathDirection: res.pathDirection},
-      visits.length > 1 ? [...branchId, generateBranchId()] : branchId
+      visits.length > 1 ? [...branchId, generateBranchId()] : branchId,
+      visits.length > 1
     )
 
     if (handleResult(result)) {
@@ -59,7 +60,7 @@ const _walk = async <R>(visits: VisitFn[], callback: CallbackFn<R>, branchId: Br
       const res = visit()
       const newBranchNum = [...branchId, generateBranchId()]
 
-      const result = await callback({pathChain: res.pathChain, pathDirection: res.pathDirection}, newBranchNum)
+      const result = await callback({pathChain: res.pathChain, pathDirection: res.pathDirection}, newBranchNum, true)
 
       if (handleResult(result)) {
         if (stop) {

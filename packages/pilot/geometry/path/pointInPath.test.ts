@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
-import { pointInPath } from './pointInPath.js'
-import { pathLength, type Path } from './index.js'
+import { pathLength, type Path } from './index'
+import { checkPointOnPath } from './pointInPath'
 
 describe('pointInPath', () => {
   const testCases = [
@@ -20,7 +20,7 @@ describe('pointInPath', () => {
         [8, 8]
       ]
   
-      const result = pointInPath(point, path)
+      const result = checkPointOnPath(point, path)
       t.assert.equal(result?.startIndex, expectedIndex)
       t.assert.equal(result?.distance(), expectedDistance)
     })

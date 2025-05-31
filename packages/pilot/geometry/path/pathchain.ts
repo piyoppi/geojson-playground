@@ -1,30 +1,40 @@
 import { type Position2D, distance } from "../index.js"
 import { pathLength, type Path } from "./index.js"
-import { type PointInPath, pointInPath as findPointInPath } from './pointInPath.js'
+import { type PointOnPath, checkPointOnPath } from './pointInPath.js'
 import { pathChainWalk } from "./walk.js"
 
 export type VisitFnGenerator = () => VisitFn
-export type VisitFn = () => Visited
+
+export type VisitFn = () => Current
+
 export type NextFn = () => VisitFn[]
-export type PathChainState = {
-  path: Path,
-  isEnded: boolean
+
+type PathChainOperator = {
+  from: VisitFnGenerator
 }
-export type PathChain = {
+
+type PathChainState = {
   path: Path,
   isEnded: boolean,
-  from: VisitFnGenerator,
 }
+
+export type PathChain = PathChainState & PathChainOperator
+
 export type PathInternal = {
   path: Path,
   index: number,
   neighbors: [number[], number[]],
 }
+
 export type PathDirection = 'forward' | 'backward'
-type Visited = { pathChain: PathChain, next: NextFn, pathDirection: PathDirection }
-export type PointInPathchain = {
-  pointInPath: PointInPath,
-  pathchain: WeakRef<PathChain>
+
+export type PathChainVisited = { pathChain: PathChain, pathDirection: PathDirection }
+
+type Current = PathChainVisited & { next: NextFn }
+
+export type PointOnPathchain = {
+  pointOnPath: PointOnPath,
+  targetPathChain: WeakRef<PathChain>
 }
 
 export type IsolatedPathChain = PathChain[] & { readonly __brand: unique symbol }
@@ -51,18 +61,18 @@ export const buildFromInternal = (pathInternals: PathInternal[]): PathChain[] =>
 
 export const ends = (pathchains: Readonly<PathChain[]>) => pathchains.filter(r => r.isEnded)
 
-export const findPointInPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly<Position2D>) => {
+export const findPointOnPathChain = (pathchains: Readonly<PathChain[]>) => (p: Readonly<Position2D>) => {
   return pathchains.reduce((acc, pathchain) => {
     if (acc) return acc
 
-    const found = findPointInPath(p, pathchain.path)
+    const found = checkPointOnPath(p, pathchain.path)
     if (!found) return acc
 
     return {
-      pointInPath: found,
-      pathchain: new WeakRef(pathchain)
+      pointOnPath: found,
+      targetPathChain: new WeakRef(pathchain)
     }
-  }, null as null | PointInPathchain)
+  }, null as null | PointOnPathchain)
 }
 
 const buildPathInternal = (paths: Readonly<Path[]>) => {
@@ -97,7 +107,7 @@ const generateStep = (
   pathInternals: Readonly<PathInternal[]>,
   pathChains: (index: number) => Readonly<PathChain>
 ) => {
-  const generateVisit = (visitedIndexes: Set<number>, current: number, previous?: number): VisitFn => (): Visited => {
+  const generateVisit = (visitedIndexes: Set<number>, current: number, previous?: number): VisitFn => (): Current => {
     const pathDirection = (() => {
       const currentPathInternal = pathInternals[current]
       if (previous) {
@@ -154,7 +164,7 @@ export const mergeTIntersection = (pathInternals: PathInternal[]) => {
     for (const end of ends) {
       const intersects = pathInternals.flatMap((targetPathInternal, index) => {
         if (targetPathInternal === endPathInternal) return []
-        const pointInPath = findPointInPath(end.point, targetPathInternal.path)
+        const pointInPath = checkPointOnPath(end.point, targetPathInternal.path)
         return pointInPath ? [{ pointInPath, targetPathInternal, index }] : []
       })
 
@@ -195,13 +205,13 @@ export const mergeTIntersection = (pathInternals: PathInternal[]) => {
   }
 }
 
-export const distanceBetweenPointInPath = (
-  allPaths: [Path, PathDirection][],
-  fromPointInPathchain: PointInPathchain,
-  toPointInPathchain?: PointInPathchain
+export const distanceBetweenVisitedPointOnPathChain = (
+  visitedPathChains: PathChainVisited[],
+  fromPointOnPathchain: PointOnPathchain,
+  toPointOnPathchain?: PointOnPathchain
 ) => {
 
-  //   |<------------------------------ allPaths ---------------------------------->|
+  //   |<------------------------- visitedPathChains ------------------------------>|
   //   |                                                                            |
   //   |    |<---------------------- Paths ---------------------->|                 |
   //   |    |                                                     |                 |
@@ -211,31 +221,31 @@ export const distanceBetweenPointInPath = (
   //   |    |                 :     :          :                  |                 |
   //   *----*-----x-----------*-----*----------*-----------x------*-----------------*
   //              :                                        :
-  //              A (fromPointInPathchain)                 B (toPointInPathchain)
+  //              A (fromPointOnPathchain)                 B (toPointOnPathchain)
   //
-  const paths = allPaths.slice(
+  const paths = visitedPathChains.slice(
     ...[
-      ...(() => toPointInPathchain ?
+      ...(() => toPointOnPathchain ?
           [
-            allPaths.findIndex(([p]) => toPointInPathchain.pathchain.deref()?.path === p)
+            visitedPathChains.findIndex(({pathChain}) => toPointOnPathchain.targetPathChain.deref()?.path === pathChain.path)
           ] : []
          )(),
-      allPaths.findIndex(([p]) => fromPointInPathchain.pathchain.deref()?.path === p),
+      visitedPathChains.findIndex(({pathChain}) => fromPointOnPathchain.targetPathChain.deref()?.path === pathChain.path),
     ].sort()
   )
 
-  const tailLength = toPointInPathchain ? (() => {
-    const [path, direction] = paths.at(0) ?? [undefined, undefined]
-    return direction === 'forward' ?
-      pathLength(path) - toPointInPathchain.pointInPath.distance() :
-      toPointInPathchain.pointInPath.distance()
-  })() : pathLength(paths[0][0] ?? [])
+  const tailLength = toPointOnPathchain ? (() => {
+    const visited = paths.at(0)
+    return visited && visited.pathDirection === 'forward' ?
+      pathLength(visited.pathChain.path) - toPointOnPathchain.pointOnPath.distance() :
+      toPointOnPathchain.pointOnPath.distance()
+  })() : pathLength(paths[0].pathChain.path ?? [])
 
   const headLength = (() => {
-    const [path, direction] = paths.at(-1) ?? [undefined, undefined]
-    return direction === 'forward' ?
-      pathLength(path) - fromPointInPathchain.pointInPath.distance() :
-      fromPointInPathchain.pointInPath.distance()
+    const visited = paths.at(-1)
+    return visited && visited.pathDirection === 'forward' ?
+      pathLength(visited.pathChain.path) - fromPointOnPathchain.pointOnPath.distance() :
+      fromPointOnPathchain.pointOnPath.distance()
   })()
 
   // |<---------------------- Paths ---------------------->|
@@ -247,5 +257,5 @@ export const distanceBetweenPointInPath = (
   // *-----x-----------*-----*----------*-----------x------*
   //       |<-headLen->|<---- len ----->|<-tailLen->|
   //
-  return paths.slice(1, -1).map(([path]) => pathLength(path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
+  return paths.slice(1, -1).map(({pathChain}) => pathLength(pathChain.path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
 }

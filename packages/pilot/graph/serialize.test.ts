@@ -3,10 +3,14 @@ import { GraphNode, connect } from './graph'
 import { serialize, buildGraphDeserializer } from './serialize'
 import type { ArcGenerator } from './arc/index'
 
+const itemA = { id: 'A' }
+const itemB = { id: 'B' }
+const itemC = { id: 'C' }
+
 const graphs = () => {
-  const nodeA: GraphNode<{}> = { id: 'A', arcs: [], item: {} }
-  const nodeB: GraphNode<{}> = { id: 'B', arcs: [], item: {} }
-  const nodeC: GraphNode<{}> = { id: 'C', arcs: [], item: {} }
+  const nodeA: GraphNode<{}> = { ...itemA, arcs: [], item: {} }
+  const nodeB: GraphNode<{}> = { ...itemB, arcs: [], item: {} }
+  const nodeC: GraphNode<{}> = { ...itemC, arcs: [], item: {} }
 
   const generateArc: ArcGenerator<{}> = (a, b, cost) => ({
     a: () => Promise.resolve(a),
@@ -46,7 +50,11 @@ describe('Graph serialization and deserialization', () => {
     t.assert.equal(arcCASerialized?.arcCost, '30')
 
     const deserialize = buildGraphDeserializer(() => () => undefined)
-    const deserialized = deserialize(serialized)
+    const deserialized = deserialize(
+      [itemA, itemB, itemC],
+      serialized,
+      (item, id) => ({item, id, arcs: []})
+    )
     t.assert.equal(deserialized.length, 3)
     
     const findNodeById = (id: string) => deserialized.find(n => n.id === id)
@@ -63,7 +71,7 @@ describe('Graph serialization and deserialization', () => {
     t.assert.equal(nodeBDeserialized?.arcs.length, 2)
     t.assert.equal(nodeCDeserialized?.arcs.length, 2)
     
-    const hasArcBetween = (a: GraphNode<{}>, b: GraphNode<{}>) => {
+    const hasArcBetween = (a: GraphNode<unknown>, b: GraphNode<unknown>) => {
       return a.arcs.some(async arc => {
         const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
         return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
@@ -79,7 +87,12 @@ describe('Graph serialization and deserialization', () => {
     const serialized = await serialize([])
     t.assert.equal(serialized.arcs.length, 0)
     
-    const deserialized = deserialize(serialized)
+    const deserialize = buildGraphDeserializer(() => () => undefined)
+    const deserialized = deserialize(
+      [itemA, itemB, itemC],
+      serialized,
+      (item, id) => ({item, id, arcs: []})
+    )
     t.assert.equal(deserialized.length, 0)
   })
   
@@ -90,7 +103,12 @@ describe('Graph serialization and deserialization', () => {
     const serialized = await serialize([nodeA, nodeB])
     t.assert.equal(serialized.arcs.length, 0)
     
-    const deserialized = deserialize(serialized)
+    const deserialize = buildGraphDeserializer(() => () => undefined)
+    const deserialized = deserialize(
+      [itemA, itemB, itemC],
+      serialized,
+      (item, id) => ({item, id, arcs: []})
+    )
     t.assert.equal(deserialized.length, 2)
     t.assert.equal(deserialized[0].arcs.length, 0)
     t.assert.equal(deserialized[1].arcs.length, 0)

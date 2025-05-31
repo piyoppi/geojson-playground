@@ -7,7 +7,7 @@ import {
   add,
   subtract,
   length
-} from './index.ts'
+} from './index'
 
 describe('normalize', () => {
   it('should return a unit vector for a given vector', (t) => {

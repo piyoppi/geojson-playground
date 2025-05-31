@@ -110,5 +110,5 @@
     "preserveWatchOutput": true
   },
   "include": ["**/*.ts"],
-  "exclude": ["**/*.test.ts", "./dist"]
+  "exclude": ["./dist"]
 }
