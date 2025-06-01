@@ -56,7 +56,7 @@ export const buildGraphBuilder = <IG, JG>(
   pathChains: IsolatedPathChain,
   getFrom: VisitFnGenerator,
   createNodeCallback: CreateNodeCallbackFn<T, I>,
-  //createJunctionNodeCallback: CreateJunctionCallbackFn<J>,
+  createJunctionNodeCallback: CreateJunctionCallbackFn<J>,
   groupIdCallback: GroupIdCallbackFn<T, G>,
 ): Promise<Map<G, GraphNode<I | J>[]>> => {
   const getPointOnPathChain = findPointOnPathChain(pathChains)
@@ -116,25 +116,25 @@ export const buildGraphBuilder = <IG, JG>(
 
         // Create / Connect junction
         // -----------------------------
-        //if (isNewBranch) {
-        //  const position = current.pathChain.path.at(0)
-        //  const pointOnPathChain = position && getPointOnPathChain(position)
-        //  const previousContext = findPreviousContexts(currentContext)[0]
+        if (isNewBranch) {
+          const position = current.pathChain.path.at(0)
+          const pointOnPathChain = position && getPointOnPathChain(position)
+          const previousContext = findPreviousContexts(currentContext)[0]
 
-        //  if (position && pointOnPathChain && previousContext && previousNode) {
-        //    const [junctionId, junctionAttributes] = await createJunctionNodeCallback(position)
-        //    if (!nodes.has(junctionId)) {
-        //      const junctionNode = {id: junctionId, arcs: [], item: junctionAttributes}
+          if (position && pointOnPathChain && previousContext && previousNode) {
+            const [junctionId, junctionAttributes] = await createJunctionNodeCallback(position)
+            if (!nodes.has(junctionId)) {
+              const junctionNode = {id: junctionId, arcs: [], item: junctionAttributes}
 
-        //      connect(previousNode, junctionNode, generateArc(previousNode, junctionNode, distanceBetweenNodes(previousContext)))
+              connect(previousNode, junctionNode, generateArc(previousNode, junctionNode, distanceBetweenNodes(previousContext)))
 
-        //      previousContext.founds.push([junctionNode, pointOnPathChain])
-        //      nodes.set(junctionId, junctionNode)
+              previousContext.founds.push([junctionNode, pointOnPathChain])
+              nodes.set(junctionId, junctionNode)
 
-        //      previousNode = junctionNode
-        //    }
-        //  }
-        //}
+              previousNode = junctionNode
+            }
+          }
+        }
 
         // Connect previous nodes
         // -----------------------------

@@ -49,8 +49,10 @@ export const buildTrafficGraphDeserializer = (
         id: item.id,
         arcs: [],
         item: {
+          type: 'Station',
           companyId: route.companyId,
-          station
+          station,
+          position: () => station.position
         }
       }
     }

@@ -11,6 +11,11 @@ export const StationId = (stationId: Id): StationId => stationId as StationId
 export const stationIdToString = (id: StationId) => idToString(id)
 const stringToStationId = (str: string) => StationId(stringToId(str))
 
+export type JunctionId = Id & { readonly __brand: unique symbol }
+export const JunctionId = (junctionId: Id): JunctionId => junctionId as JunctionId
+export const junctionIdToString = (id: JunctionId) => idToString(id)
+const stringToJunctionId = (str: string) => JunctionId(stringToId(str))
+
 export type CompanyId = Id & { readonly __brand: unique symbol }
 export const CompanyId = (companyId: Id): CompanyId => companyId as CompanyId
 export const companyIdToString = (id: CompanyId) => idToString(id)
@@ -18,6 +23,7 @@ const stringToCompanyId = (str: string) => CompanyId(stringToId(str))
 
 export const toRouteId = async (str: string) => RouteId(await toId(str))
 export const toStationId = async (str: string) => StationId(await toId(str))
+export const toJunctionId = async (str: string) => JunctionId(await toId(str))
 export const toCompanyId = async (str: string) => CompanyId(await toId(str))
 
 export type RouteKind = 'railroad' | 'bus'
@@ -34,6 +40,11 @@ export type SerializedRoute<S extends SerializedStation> = Omit<Route<Station>, 
   id: string,
   companyId: string,
   stations: S[]
+}
+
+export type Junction = {
+  id: JunctionId
+  position: Position2D,
 }
 
 export type Station = {

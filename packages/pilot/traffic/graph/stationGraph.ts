@@ -3,8 +3,8 @@ import { ends, buildPathchain } from '../../geometry/path/pathchain.js'
 import { arcExists, connect, type GraphNode, type DuplicateNodesMarger } from "../../graph/graph.js"
 import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { Railroad, RailroadStation } from "../railroad.js"
-import type { RouteId } from "../transportation.js"
-import type { TrafficItem } from "./trafficGraph.js"
+import { toJunctionId, type RouteId } from "../transportation.js"
+import { toStationNodes, type TrafficItem } from "./trafficGraph.js"
 
 type TransferCostGenerator = (aNode: RailroadStationNode, bNode: RailroadStationNode) => number
 
@@ -31,7 +31,26 @@ export const buildStationGraphGenerator = (
               railroad.stations.map(s => ({...s})),
               pathchains,
               end.from,
-              s => Promise.resolve([s.id, {station: s, companyId: railroad.companyId}]),
+              s => Promise.resolve([
+                s.id,
+                {
+                  type: 'Station',
+                  station: s,
+                  companyId: railroad.companyId,
+                  position: () => s.position
+                }
+              ]),
+              async (p) => {
+                const id = await toJunctionId(`${p[0]}-${p[0]}`)
+                return [
+                  id,
+                  {
+                    type: 'Junction',
+                    junction: { id, position: p },
+                    companyId: railroad.companyId,
+                    position: () => p
+                  }]
+              },
               s => s.routeId,
             )
           })
@@ -49,8 +68,7 @@ export const buildStationGraphGenerator = (
     .toArray()
 
   // Isolated pathchains may have same station
-  const mergedStationNodes = (await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat()
-
+  const mergedStationNodes = toStationNodes((await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat())
   const nodesByGroup = Map.groupBy(mergedStationNodes, n => n.item.station.groupId ?? '')
 
   // Connect each transit station nodes

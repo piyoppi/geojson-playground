@@ -17,7 +17,7 @@ export function connectBusToStation(
   const { grid, cellSize } = buildSpatialIndex(stationNodes, maxDistance);
   
   for (const busNode of busNodes) {
-    const position = busNode.item.station.position;
+    const position = busNode.item.position();
     const nearestStation = findNearest(position, maxDistance, grid, cellSize);
     
     if (nearestStation) {
@@ -47,7 +47,7 @@ function buildSpatialIndex(
   
   // Index all nodes
   for (const node of nodes) {
-    const position = node.item.station.position;
+    const position = node.item.position();
     const cellKey = getCellKey(position, cellSize);
 
     if (!grid.has(cellKey)) {
@@ -85,7 +85,7 @@ function findNearest(
     const nodesInCell = grid.get(key) || [];
 
     for (const node of nodesInCell) {
-      const nodePosition = node.item.station.position;
+      const nodePosition = node.item.position();
       const distance = calculateDistance(position, nodePosition);
 
       if (distance < minDistance) {

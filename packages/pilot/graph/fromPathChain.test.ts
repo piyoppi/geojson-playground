@@ -47,7 +47,7 @@ describe('buildGraphBuilder', () => {
       pathChains,
       end.from,
       s => Promise.resolve([s.id, {...s, type: 'Node' }]),
-      //j => Promise.resolve([`${j[0]}-${j[1]}`, {type: 'Junction'}]),
+      j => Promise.resolve([`${j[0]}-${j[1]}`, {type: 'Junction'}]),
       _ => 'group'
     )
 
