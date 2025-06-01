@@ -223,8 +223,7 @@ export const distanceBetweenVisitedPointOnPathChain = (
   //              :                                        :
   //              A (fromPointOnPathchain)                 B (toPointOnPathchain)
   //
-  const paths = visitedPathChains.slice(
-    ...[
+  const range = [
       ...(() => toPointOnPathchain ?
           [
             visitedPathChains.findIndex(({pathChain}) => toPointOnPathchain.targetPathChain.deref()?.path === pathChain.path)
@@ -232,21 +231,36 @@ export const distanceBetweenVisitedPointOnPathChain = (
          )(),
       visitedPathChains.findIndex(({pathChain}) => fromPointOnPathchain.targetPathChain.deref()?.path === pathChain.path),
     ].sort()
-  )
+
+  if (range[0] === 0 && range[1] === 0) {
+    const visited = visitedPathChains.at(0)
+    if (!visited) return 0
+
+    return (toPointOnPathchain ? toPointOnPathchain.pointOnPath.distance() : pathLength(visited.pathChain.path)) - fromPointOnPathchain.pointOnPath.distance()
+  }
+
+  const paths = visitedPathChains.slice(range[0], range[1] + 1)
+
+  const headLength = (() => {
+    const visited = paths.at(0)
+    if (!visited) return 0
+    return visited.pathDirection === 'forward' ?
+      pathLength(visited.pathChain.path) - fromPointOnPathchain.pointOnPath.distance() :
+      fromPointOnPathchain.pointOnPath.distance()
+  })()
 
   const tailLength = toPointOnPathchain ? (() => {
-    const visited = paths.at(0)
-    return visited && visited.pathDirection === 'forward' ?
+    const visited = paths.at(-1)
+    if (!visited) return 0
+    return visited.pathDirection === 'backward' ?
       pathLength(visited.pathChain.path) - toPointOnPathchain.pointOnPath.distance() :
       toPointOnPathchain.pointOnPath.distance()
   })() : pathLength(paths[0].pathChain.path ?? [])
 
-  const headLength = (() => {
-    const visited = paths.at(-1)
-    return visited && visited.pathDirection === 'forward' ?
-      pathLength(visited.pathChain.path) - fromPointOnPathchain.pointOnPath.distance() :
-      fromPointOnPathchain.pointOnPath.distance()
-  })()
+  const middleLength = paths
+    .slice(1, -1)
+    .map(({pathChain}) => pathLength(pathChain.path))
+    .reduce((acc, length) => acc + length, 0)
 
   // |<---------------------- Paths ---------------------->|
   // |                                                     |
@@ -257,5 +271,5 @@ export const distanceBetweenVisitedPointOnPathChain = (
   // *-----x-----------*-----*----------*-----------x------*
   //       |<-headLen->|<---- len ----->|<-tailLen->|
   //
-  return paths.slice(1, -1).map(({pathChain}) => pathLength(pathChain.path)).reduce((acc, length) => acc + length, 0) + headLength + tailLength
+  return headLength + middleLength + tailLength
 }

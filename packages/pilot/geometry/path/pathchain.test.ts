@@ -1,5 +1,5 @@
 import { describe, it, TestContext } from 'node:test'
-import { buildFromInternal, buildPathchain, mergeTIntersection, PathInternal } from './pathchain'
+import { buildFromInternal, buildPathchain, distanceBetweenVisitedPointOnPathChain, mergeTIntersection, PathChainVisited, PathInternal, PointOnPathchain } from './pathchain'
 import { type Path } from './index'
 import { pathChainWalk } from './walk'
 
@@ -142,5 +142,79 @@ describe('mergeTIntersection', () => {
     t.assert.ok(visitedPaths.find(p => p === '5,5,5,0'))
     t.assert.ok(visitedPaths.find(p => p === '5,0,8,0'))
     t.assert.ok(visitedPaths.find(p => p === '8,0,10,0'))
+  })
+})
+
+describe('distanceBetweenVisitedPointOnPathChain', () => {
+  [
+    {
+      name: 'should calculate distance between two points on the same path',
+      paths: [
+        [[0, 0], [10, 0]]
+      ] satisfies Path[],
+      fromDistance: 2,
+      toDistance: 8,
+      fromPathIndex: 0,
+      toPathIndex: 0,
+      expected: 6
+    },
+    {
+      name: 'should calculate distance between two points on 2 paths',
+      paths: [
+        [[0, 0], [10, 0]], [[10, 0], [20, 0]]
+      ] satisfies Path[],
+      fromDistance: 4,
+      toDistance: 8,
+      fromPathIndex: 0,
+      toPathIndex: 1,
+      expected: 14
+    },
+    {
+      name: 'should calculate distance between two points on 3 paths',
+      paths: [
+        [[0, 0], [10, 0]], [[10, 0], [20, 0]], [[20, 0], [30, 0]]
+      ] satisfies Path[],
+      fromDistance: 4,
+      toDistance: 8,
+      fromPathIndex: 0,
+      toPathIndex: 2,
+      expected: 24
+    }
+  ].forEach(({ name, paths, fromDistance, toDistance, fromPathIndex, toPathIndex, expected }) => {
+    it(name, async (t) => {
+      const pathChains = await buildPathchain(paths)
+      const pathChainList = pathChains[0]
+
+      const fromPathChain = pathChainList.find(p => p.path === paths[fromPathIndex])
+      const toPathChain = pathChainList.find(p => p.path === paths[toPathIndex])
+
+      if (!fromPathChain || !toPathChain) return t.assert.fail('')
+
+      const fromPoint: PointOnPathchain = {
+        pointOnPath: {
+          startIndex: 0,
+          path: new WeakRef(paths[fromPathIndex]),
+          distance: () => fromDistance
+        },
+        targetPathChain: new WeakRef(fromPathChain)
+      }
+
+      const toPoint: PointOnPathchain = {
+        pointOnPath: {
+          startIndex: 0,
+          path: new WeakRef(paths[toPathIndex]),
+          distance: () => toDistance
+        },
+        targetPathChain: new WeakRef(toPathChain)
+      }
+
+      const visitedPathChains: PathChainVisited[] = pathChainList.map(pathChain => ({
+        pathChain,
+        pathDirection: 'forward' as const
+      }))
+
+      const distance = distanceBetweenVisitedPointOnPathChain(visitedPathChains, fromPoint, toPoint)
+      t.assert.equal(distance, expected)
+    })
   })
 })
