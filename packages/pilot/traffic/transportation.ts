@@ -39,7 +39,7 @@ export type Route<S extends Station> = {
 export type SerializedRoute<S extends SerializedStation> = Omit<Route<Station>, 'id' | 'companyId' | 'stations'> & {
   id: string,
   companyId: string,
-  stations: S[]
+  stations: S[],
 }
 
 export type Junction = {
@@ -62,6 +62,10 @@ export type SerializedStation = {
   groupId?: string
 }
 
+export type SerializedJunction = {
+  id: string
+}
+
 export type Company = {
   id: CompanyId,
   name: string
@@ -80,7 +84,7 @@ export const serializeRoute = <S extends Station, SS extends SerializedStation>(
   name: route.name,
   kind: route.kind,
   companyId: companyIdToString(route.companyId),
-  stations: route.stations.map(s => serializeStation(s))
+  stations: route.stations.map(s => serializeStation(s)),
 })
 
 export const deserializeRoute = <S extends Station, SS extends SerializedStation>(

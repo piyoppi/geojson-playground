@@ -26,6 +26,8 @@ export type TrafficItem = JunctionNodeItem | StationNodeItem
 
 export const toStationNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<StationNodeItem>[]
 
+export const toJunctionNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Junction') as GraphNode<JunctionNodeItem>[]
+
 export interface TransferOwnLineArc extends Arc<TrafficItem> {
   type: 'TransferOwnLine'
 }

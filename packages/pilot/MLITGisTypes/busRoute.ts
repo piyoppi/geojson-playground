@@ -35,7 +35,7 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
       ([_, companyName, routeName]) => [companyName, routeName].join('-')
     )
     .entries()
-    .map(async ([k, b]) => {
+    .map(async ([k, b]): Promise<BusRoute> => {
       const [_name, companyName, routeName] = b[0]
       const routeId = await toRouteId(k)
 
@@ -56,8 +56,8 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
             routeId,
             position: geometry.coordinates
           }))
-        )
-      } as const
+        ),
+      }
     }))
 
   return [companies.values().toArray(), busStops]
