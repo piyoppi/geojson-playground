@@ -1,18 +1,16 @@
-import { graphBuilder } from "../../graph/fromNeighborsNode.js"
-import type { BusRoute, BusStop } from "../busroute.js"
-import type { RouteId } from "../transportation.js"
-import { toStationNodes, type TrafficGraphNode, type TrafficItem } from "./trafficGraph.js"
-import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
-import { toId } from "../../utils/Id.js"
-
-export type BusRouteArc = Arc<BusStop>
+import { buildGraphBuilder } from "../../../graph/builder/fromNeighborsNode.js"
+import type { BusRoute } from "../../busroute.js"
+import type { RouteId } from "../../transportation.js"
+import { filterStationNodes, type TrafficGraphNode, type TrafficItem } from "../trafficGraph.js"
+import type { ArcGenerator } from "../../../graph/arc/index.js"
+import { toId } from "../../../utils/Id.js"
 
 export const buildBusStopGraphGenerator = (
   generateArc: ArcGenerator<TrafficItem>
 ) => async (
   routes: BusRoute[],
 ): Promise<Map<RouteId, TrafficGraphNode[]>> => {
-  const fromNeighborsPoints = graphBuilder(generateArc)
+  const fromNeighborsPoints = buildGraphBuilder(generateArc)
 
   const busStops = routes.flatMap(b => b.stations)
   const routeById = new Map(routes.map(r => [r.id, r]))
@@ -50,7 +48,7 @@ export const buildBusStopGraphGenerator = (
 
   // [TODO] Spatial index
   const nodePositionIndex = Map.groupBy(
-    toStationNodes(nodeMap.values().toArray().flat()),
+    filterStationNodes(nodeMap.values().toArray().flat()),
     n => [n.item.station.name, ...n.item.station.position].join(',')
   )
 

@@ -4,7 +4,7 @@ import {
   serialize as serializedGraphNode
 } from '../../graph/serialize.js'
 import { Junction, junctionIdToString, type Route, type Station, stationIdToString } from '../transportation.js'
-import { toJunctionNodes, TrafficGraphNode, TrafficItem } from './trafficGraph.js'
+import { filterJunctionNodes, TrafficGraphNode, TrafficItem } from './trafficGraph.js'
 
 export type SerializedTrafficGraph = {
   arcs: SerializedArc[]
@@ -16,7 +16,7 @@ export const serialize = async (nodes: TrafficGraphNode[]): Promise<SerializedTr
 
   return {
     arcs: serialized.arcs,
-    junctions: toJunctionNodes(nodes).map(n => n.item.junction)
+    junctions: filterJunctionNodes(nodes).map(n => n.item.junction)
   }
 }
 

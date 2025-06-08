@@ -10,11 +10,11 @@ export type SerializedArc = {
   aNodeId: string,
   bNodeId: string,
   arcCost: string
-}
+} & Record<string, unknown>
 
 export type ArcDeserializer<I> = (
   serialized: SerializedArc,
-  resolvedNode: (arc: Arc<I>, node: GraphNode<I>) => void,
+  getResolvedNode: (arc: Arc<I>, node: GraphNode<I>) => void,
 ) => Arc<I> | undefined
 
 export const serialize = async <I>(
@@ -42,7 +42,7 @@ export const serialize = async <I>(
 
 export type GraphDeserializer<I> = ReturnType<typeof buildGraphDeserializer<I>>
 export const buildGraphDeserializer = <I>(
-  buildDeserializeArc: (getter: (id: NodeId) => GraphNode<I> | undefined) => ArcDeserializer<I>
+  buildDeserializeArc: (getNode: (id: NodeId) => GraphNode<I> | undefined) => ArcDeserializer<I>
 ) => <InputItems extends {id: NodeId}>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
@@ -57,10 +57,10 @@ export const buildGraphDeserializer = <I>(
   
   const weakRefArcDeserializer = buildWeakRefArcDeserializer(id => nodeMap.get(id))
   const arcResolvedHandler = <IH>(arc: Arc<IH>, node: GraphNode<IH>) => setArc(node, arc)
-  const deserializeArc = buildDeserializeArc && buildDeserializeArc(id => nodeMap.get(id))
+  const deserializeArc = buildDeserializeArc(id => nodeMap.get(id))
 
   for (const serializedArc of serialized.arcs) {
-    const arc = (deserializeArc && deserializeArc(serializedArc, arcResolvedHandler)) ||
+    const arc = deserializeArc(serializedArc, arcResolvedHandler) ||
       weakRefArcDeserializer(serializedArc, arcResolvedHandler)
 
     if (!arc) {

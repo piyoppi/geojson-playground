@@ -1,12 +1,12 @@
 import { join as pathJoin } from 'node:path'
 import { readFile } from 'node:fs/promises'
 import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
-import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
-import { buildRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/externalRepositoryArc.js'
-import { TrafficItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
+import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
+import { buildRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/PartitionedRepositoryArc.js'
+import { TrafficItem, filterStationNodes } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const shortest = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {
-  const repository = buildRepository(
+  const repository = buildRepository<TrafficItem>(
     async (partitionKey) => {
       const { graph } = await loadPartialFile(inputGraphDir, partitionKey)
 
@@ -34,8 +34,9 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
     repository.register(node, toPk)
   }
 
-  const shortest = await findShortestPath(startNode, endNode)
+  const shortest = filterStationNodes(await findShortestPath(startNode, endNode))
 
+  // Exclude same stations
   const grouped = shortest.reduce((acc, n, i, a) => {
     const next = a[i + 1]
     if (next === undefined) return acc

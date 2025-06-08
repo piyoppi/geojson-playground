@@ -1,10 +1,10 @@
-import { findNearestPoint, type Position2D } from "../geometry/index.js"
-import { arcExists, connect, type GraphNode, type NodeId } from "./graph.js"
-import type { ArcGenerator } from "./arc/index.js"
+import { findNearestPoint, type Position2D } from "../../geometry/index.js"
+import { arcExists, connect, type GraphNode, type NodeId } from "../graph.js"
+import type { ArcGenerator } from "../arc/index.js"
 
 type CallbackGenerated<I> = [NodeId, I]
 
-export const graphBuilder = <I>(
+export const buildGraphBuilder = <I>(
   generateArc: ArcGenerator<I>
 ) => async <T>(
   point: T[],

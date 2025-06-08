@@ -1,5 +1,5 @@
-import { connect, type NodeId, type GraphNode } from "./graph.js"
-import { pathChainWalk, type BranchId } from "../geometry/path/walk.js"
+import { connect, type NodeId, type GraphNode } from "../graph.js"
+import { pathChainWalk, type BranchId } from "../../geometry/path/walk.js"
 import {
   findPointOnPathChain,
   distanceBetweenVisitedPointOnPathChain,
@@ -9,9 +9,9 @@ import {
   type PathChain,
   type PointOnPathchain,
   PathChainVisited
-} from "../geometry/path/pathchain.js"
-import type { Position2D } from "../geometry/index.js"
-import type { ArcGenerator } from "./arc/index.js"
+} from "../../geometry/path/pathchain.js"
+import type { Position2D } from "../../geometry/index.js"
+import type { ArcGenerator } from "../arc/index.js"
 
 type Point = { position: Position2D }
 type CreateNodeCallbackFn<T, I> = (item: T, found: PointOnPathchain) => Promise<[NodeId, I]>

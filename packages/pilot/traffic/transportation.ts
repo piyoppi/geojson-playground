@@ -1,4 +1,4 @@
-import type { Position2D } from "../geojson.js"
+import type { Position2D } from "../geometry/index.js"
 import { toId, idToString, stringToId, type Id } from "../utils/Id.js"
 
 export type RouteId = Id & { readonly __brand: unique symbol }
@@ -14,7 +14,6 @@ const stringToStationId = (str: string) => StationId(stringToId(str))
 export type JunctionId = Id & { readonly __brand: unique symbol }
 export const JunctionId = (junctionId: Id): JunctionId => junctionId as JunctionId
 export const junctionIdToString = (id: JunctionId) => idToString(id)
-const stringToJunctionId = (str: string) => JunctionId(stringToId(str))
 
 export type CompanyId = Id & { readonly __brand: unique symbol }
 export const CompanyId = (companyId: Id): CompanyId => companyId as CompanyId

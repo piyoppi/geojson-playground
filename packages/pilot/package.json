@@ -3,13 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
+  "main": "dist/main.js",
   "scripts": {
-    "test": "tsx --test **/*.ts",
+    "test": "tsx --test **/*.test.ts",
     "dev": "tsc --watch",
     "check": "tsc --noEmit",
     "build": "tsc"
   },
   "exports": {
+    ".": {
+      "import": "./dist/main.js",
+      "types": "./dist/main.d.ts"
+    },
     "./*": {
       "import": "./dist/*.js",
       "types": "./dist/*.d.ts"

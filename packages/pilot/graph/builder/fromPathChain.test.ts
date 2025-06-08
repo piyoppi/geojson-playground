@@ -1,10 +1,10 @@
 import { describe, it, type TestContext } from 'node:test'
-import { buildGraphBuilder } from './fromPathChain'
-import { to } from './graph'
-import { buildPathchain, ends } from '../geometry/path/pathchain'
-import type { Position2D } from '../geojson'
-import type { Path } from '../geometry/path/index'
-import { ArcGenerator } from './arc/index'
+import { buildGraphBuilder } from 'fromPathChain'
+import { to } from '../graph'
+import { buildPathchain, ends } from '../../geometry/path/pathchain'
+import type { Position2D } from '../../geometry/index'
+import type { Path } from '../../geometry/path/index'
+import { ArcGenerator } from '../arc/index'
 
 type TestDataPoint = {position: Position2D, id: string }
 type TestDataNode = TestDataPoint & { type: 'Node' }

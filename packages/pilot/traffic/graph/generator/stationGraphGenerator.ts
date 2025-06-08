@@ -1,16 +1,14 @@
-import { buildGraphBuilder } from "../../graph/fromPathChain.js"
-import { ends, buildPathchain } from '../../geometry/path/pathchain.js'
-import { arcExists, connect, type GraphNode, type DuplicateNodesMarger } from "../../graph/graph.js"
-import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
-import type { Railroad, RailroadStation } from "../railroad.js"
-import { toJunctionId, type RouteId } from "../transportation.js"
-import { toStationNodes, type TrafficItem } from "./trafficGraph.js"
+import { buildGraphBuilder } from "../../../graph/builder/fromPathChain.js"
+import { ends, buildPathchain } from '../../../geometry/path/pathchain.js'
+import { arcExists, connect, type GraphNode, type DuplicateNodesMarger } from "../../../graph/graph.js"
+import type { ArcGenerator } from "../../../graph/arc/index.js"
+import type { Railroad } from "../../railroad.js"
+import { toJunctionId, type RouteId } from "../../transportation.js"
+import { filterStationNodes, type TrafficItem } from "../trafficGraph.js"
 
 type TransferCostGenerator = (aNode: RailroadStationNode, bNode: RailroadStationNode) => number
-
-export type RailroadStationNode = GraphNode<RailroadStationNodeItem>
-export type RailroadStationNodeItem = TrafficItem
-export type RailroadArc = Arc<RailroadStation>
+type RailroadStationNode = GraphNode<RailroadStationNodeItem>
+type RailroadStationNodeItem = TrafficItem
 
 export const buildStationGraphGenerator = (
   generateArc: ArcGenerator<TrafficItem>,
@@ -68,7 +66,7 @@ export const buildStationGraphGenerator = (
     .toArray()
 
   // Isolated pathchains may have same station
-  const mergedStationNodes = toStationNodes((await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat())
+  const mergedStationNodes = filterStationNodes((await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat())
   const nodesByGroup = Map.groupBy(mergedStationNodes, n => n.item.station.groupId ?? '')
 
   // Connect each transit station nodes

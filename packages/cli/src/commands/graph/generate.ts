@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/MLITGisTypes/busRoute.js'
 import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
 import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
-import { connectBusToStation } from '@piyoppi/sansaku-pilot/traffic/graph/merge'
+import { mergeGraphNodes } from '@piyoppi/sansaku-pilot/traffic/graph/merge'
 
 type Option = {
   overrideRailroadInputFilename?: string
@@ -26,7 +26,7 @@ export const execute = async (
     await loadBusStopGraph(inputBusStopFilename) :
     { busNodes: [], busCompanies: [], busRoutes: [] }
 
-  connectBusToStation(stationNodes, busNodes)
+  mergeGraphNodes(stationNodes, busNodes)
 
   const output = JSON.stringify(
     await toTrafficGraphFile(

@@ -2,19 +2,23 @@ import { Arc, ArcGenerator } from "./index.js"
 import type { GraphNode, NodeId } from "../graph.js"
 import type { ArcDeserializer } from "../serialize.js"
 
+export type PartitionedRepositoryArc<I> = Arc<I> & {
+  aPk: string,
+  bPk: string
+}
+
 export type PartitionedRepository<I> = {
   register: (node: GraphNode<I>, partitionKey: string) => Promise<void>,
   get: (id: NodeId, partitionKey: string) => Promise<GraphNode<I> | undefined>
-  getInMemory: (id: NodeId, partitionKey: string) => GraphNode<I> | undefined
 }
 
-export type NodeRepositoryGetter<I> = (id: NodeId, partitionKey: string) => Promise<I | undefined>
+export type PartitionedRepositoryGetter<I> = (id: NodeId, partitionKey: string) => Promise<I | undefined>
 
-export const buildRepositoryArcGenerator = <I>(
-  getFromRepository: NodeRepositoryGetter<GraphNode<I>>,
+export const buildPartitionedRepositoryArcGenerator = <I>(
+  getFromRepository: PartitionedRepositoryGetter<GraphNode<I>>,
   partitionKeyGetter: (node: GraphNode<I>) => string
 ): ArcGenerator<I> => (a, b, cost) => {
-  const getter = async (id: NodeId, partitionKey: string) => {
+  const lazyResolver = async (id: NodeId, partitionKey: string) => {
     const fromRepo = await getFromRepository(id, partitionKey)
 
     if (!fromRepo) {
@@ -25,17 +29,16 @@ export const buildRepositoryArcGenerator = <I>(
   }
 
   return {
-    a: () => getter(a.id, partitionKeyGetter(a)),
-    b: () => getter(b.id, partitionKeyGetter(b)),
+    a: () => lazyResolver(a.id, partitionKeyGetter(a)),
+    b: () => lazyResolver(b.id, partitionKeyGetter(b)),
     aPk: partitionKeyGetter(a),
     bPk: partitionKeyGetter(b),
     cost
   }
 }
 
-export const buildRepositoryArcDeserializer = <I>(
-  repository: PartitionedRepository<I>,
-  getter: (id: NodeId) => GraphNode<I> | undefined
+export const buildPartitionedRepositoryArcDeserializer = <I>(
+  getNode: PartitionedRepositoryGetter<GraphNode<I>>
 ): ArcDeserializer<I> => (
   serializedArc,
   resolvedCallback,
@@ -51,16 +54,11 @@ export const buildRepositoryArcDeserializer = <I>(
     return undefined
   }
 
-  const lazyResolveHandler = (nodeId: NodeId, pk: string, resolvedCallback: (node: GraphNode<I>) => void) => {
-    const initial = getter(nodeId)
-    if (initial) {
-      resolvedCallback(initial)
-    }
-
+  const lazyResolver = (nodeId: NodeId, pk: string, resolvedCallback: (node: GraphNode<I>) => void) => {
     let resolved: GraphNode<I> | undefined = undefined
     return async () => {
       if (!resolved) {
-        resolved = initial || await repository.get(nodeId, pk)
+        resolved = await getNode(nodeId, pk)
 
         if (resolved) {
           resolvedCallback(resolved)
@@ -71,25 +69,27 @@ export const buildRepositoryArcDeserializer = <I>(
     }
   }
 
-  const arc: Arc<I> = {
+  const arc: PartitionedRepositoryArc<I> = {
     a: () => Promise.resolve(undefined),
     b: () => Promise.resolve(undefined),
+    aPk,
+    bPk,
     cost: Number(serializedArc.arcCost)
   }
 
-  arc.a = lazyResolveHandler(serializedArc.aNodeId, aPk, (node) => resolvedCallback(arc, node))
-  arc.b = lazyResolveHandler(serializedArc.bNodeId, bPk, (node) => resolvedCallback(arc, node))
+  arc.a = lazyResolver(serializedArc.aNodeId, aPk, (node) => resolvedCallback(arc, node))
+  arc.b = lazyResolver(serializedArc.bNodeId, bPk, (node) => resolvedCallback(arc, node))
 
   return arc
 }
 
-export const buildRepository = <I>(
-  fetchNodes: (partitionKey: string) => Promise<GraphNode<I>[]>,
-  storeNodes: (partitionKey: string, nodes: GraphNode<I>[]) => Promise<void>
+export const buildPartitionedRepository = <I>(
+  fetchPartitionedNodes: (partitionKey: string) => Promise<GraphNode<I>[]>,
+  storePartitionedNodes: (partitionKey: string, nodes: GraphNode<I>[]) => Promise<void>
 ) => {
   const repositoryByPartition = new Map<string, Map<NodeId, GraphNode<I>>>
 
-  const getPartitionByRepository = (partitionKey: string) => repositoryByPartition.get(partitionKey) || (() => {
+  const getRepositoryFromPartition = (partitionKey: string) => repositoryByPartition.get(partitionKey) || (() => {
     const partition = new Map<NodeId, GraphNode<I>>()
     repositoryByPartition.set(partitionKey, partition)
 
@@ -98,7 +98,7 @@ export const buildRepository = <I>(
 
   return {
     register(node: GraphNode<I>, partitionKey: string) {
-      getPartitionByRepository(partitionKey).set(node.id, node)
+      getRepositoryFromPartition(partitionKey).set(node.id, node)
       return Promise.resolve()
     },
     get: async (id: NodeId, partitionKey: string) => {
@@ -106,9 +106,9 @@ export const buildRepository = <I>(
 
       if (inMemoryItem) return inMemoryItem
 
-      const nodes = await fetchNodes(partitionKey)
+      const nodes = await fetchPartitionedNodes(partitionKey)
 
-      const repository = getPartitionByRepository(partitionKey)
+      const repository = getRepositoryFromPartition(partitionKey)
 
       for (const node of nodes) {
         repository.set(node.id, node)
@@ -116,12 +116,9 @@ export const buildRepository = <I>(
 
       return repository.get(id)
     },
-    getInMemory: (id: NodeId, partitionKey: string) => {
-      return repositoryByPartition.get(partitionKey)?.get(id)
-    },
     store: async () => {
       for (const [partitionKey, repository] of repositoryByPartition.entries()) {
-        storeNodes(partitionKey, repository.values().toArray())
+        storePartitionedNodes(partitionKey, repository.values().toArray())
       }
     }
   }

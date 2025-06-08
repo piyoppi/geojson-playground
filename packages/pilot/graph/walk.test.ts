@@ -1,5 +1,5 @@
 import { describe, it, type TestContext } from 'node:test'
-import { walk } from './graphwalk'
+import { walk } from './walk'
 import type { GraphNode } from './graph'
 import type { Arc } from './arc/index'
 

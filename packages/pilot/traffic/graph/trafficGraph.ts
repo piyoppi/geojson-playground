@@ -2,7 +2,7 @@ import { buildWeakRefArc } from "../../graph/arc/weakRefArc.js"
 import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { GraphNode } from "../../graph/graph.js"
 import type { CompanyId, Junction, Station } from "../transportation.js"
-import { Position2D } from "../../geojson.js"
+import { Position2D } from "../../geometry/index.js"
 
 export type TrafficGraphNode = GraphNode<TrafficItem>
 export type StationNode = GraphNode<StationNodeItem>
@@ -24,9 +24,9 @@ type StationNodeItem = NodeItem & {
 
 export type TrafficItem = JunctionNodeItem | StationNodeItem
 
-export const toStationNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<StationNodeItem>[]
+export const filterStationNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<StationNodeItem>[]
 
-export const toJunctionNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Junction') as GraphNode<JunctionNodeItem>[]
+export const filterJunctionNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Junction') as GraphNode<JunctionNodeItem>[]
 
 export interface TransferOwnLineArc extends Arc<TrafficItem> {
   type: 'TransferOwnLine'

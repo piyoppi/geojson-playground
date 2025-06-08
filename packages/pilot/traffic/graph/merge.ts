@@ -1,7 +1,7 @@
 import type { TrafficGraphNode } from './trafficGraph.js';
 import { connect } from '../../graph/graph.js';
 import { generateTransferOtherLineArc } from './trafficGraph.js';
-import type { Position2D } from '../../geojson.js';
+import type { Position2D } from '../../geometry/index.js';
 
 /**
  * Connects bus nodes to their nearest station nodes within maximum distance
@@ -9,7 +9,7 @@ import type { Position2D } from '../../geojson.js';
  * @param busNodes - Array of bus stop graph nodes
  * @param maxDistance - Maximum connection distance threshold
  */
-export function connectBusToStation(
+export function mergeGraphNodes(
   stationNodes: TrafficGraphNode[], 
   busNodes: TrafficGraphNode[], 
   maxDistance: number = 0.0012868993

@@ -1,6 +1,6 @@
 import { Company, Route, Station } from "@piyoppi/sansaku-pilot/traffic/transportation"
 import { DatabaseHandler } from "../../database.js"
-import { getTrafficGraphPartitionKey } from "@piyoppi/sansaku-pilot/traffic/graph/separate"
+import { getTrafficGraphPartitionKey } from "@piyoppi/sansaku-pilot/traffic/graph/partition"
 import { StationKind } from "./model.js"
 import { transaction } from "../../helpers/query.js"
 

@@ -2,7 +2,6 @@ import { describe, it, TestContext } from 'node:test'
 import { buildFromInternal, buildPathchain, distanceBetweenVisitedPointOnPathChain, mergeTIntersection, PathChainVisited, PathInternal, PointOnPathchain } from './pathchain'
 import { type Path } from './index'
 import { pathChainWalk } from './walk'
-import path from 'path'
 
 describe('buildPathchain tests', () => {
   it('should return empty array when paths is empty', async (t) => {
