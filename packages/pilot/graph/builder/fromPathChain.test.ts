@@ -1,5 +1,5 @@
 import { describe, it, type TestContext } from 'node:test'
-import { buildGraphBuilder } from 'fromPathChain'
+import { buildGraphBuilder } from './fromPathChain'
 import { to } from '../graph'
 import { buildPathchain, ends } from '../../geometry/path/pathchain'
 import type { Position2D } from '../../geometry/index'
@@ -65,7 +65,7 @@ describe('buildGraphBuilder', () => {
     if (!nodeA) t.assert.fail('nodeA should not be null')
 
     t.assert.strictEqual(nodeA.arcs.length, 1)
-    //t.assert.strictEqual(1, nodeA.arcs[0].cost)
+    t.assert.strictEqual(1, nodeA.arcs[0].cost)
 
     const junction = await to(nodeA, nodeA.arcs[0])
     if (!junction) t.assert.fail('junction should not be null')
