@@ -211,6 +211,8 @@ export const distanceBetweenVisitedPointOnPathChain = (
   toPointOnPathchain?: PointOnPathchain
 ) => {
 
+  //  (Path: Position2D[])
+  //
   //   |<------------------------- visitedPathChains ------------------------------>|
   //   |                                                                            |
   //   |    |<---------------------- Paths ---------------------->|                 |

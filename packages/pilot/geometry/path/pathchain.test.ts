@@ -228,34 +228,34 @@ describe('distanceBetweenVisitedPointOnPathChain', () => {
     },
     {
       name: 'should calculate distance between multiple paths',
-      // Layout: Single path with two points
-      //     0         2                            10
+      //     0         2                             10    12
       //   0 *---------*
-      //          1 |  |
-      //            ･･･x
-      //        (1) |  |              6    7.5
-      //   2        ･･･+--------------x-----x-------*
-      //               :              |     :
-      //               :<------------>|<--->:
-      //                      4         1.5
+      //               |
+      //               x
+      //               |                                  
+      //   2           +-----------------------------x-----*
+      //               :                             |   :
+      //               :<--------------------------->|<->:
+      //                             8                1.5
       //
       paths: [
         [[0, 0], [1, 0], [2, 0]],
         [[2, 0], [2, 1], [2, 2]],
         [[2, 2], [6, 2], [10, 2]],
+        [[10, 2], [12, 2]] 
       ] satisfies Path[],
       from: {
-        distance: 1,
-        pathIndex: 1,
-        startIndex: 0
+        distance: 0.4,
+        pathIndex: 0,
+        startIndex: 1
       },
       to: {
         distance: 1.5,
-        pathIndex: 2,
+        pathIndex: 3,
         startIndex: 1
       },
-      expected: 6.5
-    },
+      expected: 13.1  // = (2.0 - 0.4) + 2 + 8 + 1.5
+    }
   ].forEach(({ name, paths, from, to, expected }) => {
     it(name, async (t: TestContext) => {
       const pathChains = await buildPathchain(paths)
