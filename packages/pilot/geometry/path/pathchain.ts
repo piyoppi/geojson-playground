@@ -232,6 +232,7 @@ export const distanceBetweenVisitedPointOnPathChain = (
       visitedPathChains.findIndex(({pathChain}) => fromPointOnPathchain.targetPathChain.deref()?.path === pathChain.path),
     ].sort()
 
+
   if (range[0] === 0 && range[1] === 0) {
     const visited = visitedPathChains.at(0)
     if (!visited) return 0

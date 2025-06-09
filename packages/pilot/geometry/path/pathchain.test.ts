@@ -149,61 +149,137 @@ describe('distanceBetweenVisitedPointOnPathChain', () => {
   [
     {
       name: 'should calculate distance between two points on the same path',
+      // Layout: Single path with two points
+      //     0     2     8    10     x-coordinate
+      //   0 *-----A-----B-----*
+      //
+      // Path: [0,0] → [10,0] (length: 10)
+      // Point A at distance 2, Point B at distance 8
+      // Expected distance: 8 - 2 = 6
       paths: [
         [[0, 0], [10, 0]]
       ] satisfies Path[],
-      fromDistance: 2,
-      toDistance: 8,
-      fromPathIndex: 0,
-      toPathIndex: 0,
+      from: {
+        distance: 2,
+        pathIndex: 0,
+        startIndex: 0
+      },
+      to: {
+        distance: 8,
+        pathIndex: 0,
+        startIndex: 0
+      },
       expected: 6
     },
     {
       name: 'should calculate distance between two points on 2 paths',
+      // Layout: Two connected paths with points on different paths
+      //     0     4    10       18  20
+      //   0 *-----A-----*--------B--*
+      //       Path0     |   Path1
+      //              [10,0]
+      //
+      // Path0: [0,0] → [10,0] (length: 10)
+      // Path1: [10,0] → [20,0] (length: 10)
+      // Point A at distance 4 on Path0, Point B at distance 8 on Path1
+      // Expected distance: (10 - 4) + 8 = 6 + 8 = 14
       paths: [
         [[0, 0], [10, 0]], [[10, 0], [20, 0]]
       ] satisfies Path[],
-      fromDistance: 4,
-      toDistance: 8,
-      fromPathIndex: 0,
-      toPathIndex: 1,
+      from: {
+        distance: 4,
+        pathIndex: 0,
+        startIndex: 0
+      },
+      to: {
+        distance: 8,
+        pathIndex: 1,
+        startIndex: 0
+      },
       expected: 14
     },
     {
       name: 'should calculate distance between two points on 3 paths',
+      // Layout: Three connected paths with points on first and last paths
+      //     0     4    10         20      28   30
+      //   0 *-----A-----*----------*-------B-----*
+      //         Path0   |  Path1   |    Path2
+      //              [10,0]      [20,0]
+      //
+      // Path0: [0,0] → [10,0] (length: 10)
+      // Path1: [10,0] → [20,0] (length: 10)
+      // Path2: [20,0] → [30,0] (length: 10)
+      // Point A at distance 4 on Path0, Point B at distance 8 on Path2
+      // Expected distance: (10 - 4) + 10 + 8 = 6 + 10 + 8 = 24
       paths: [
         [[0, 0], [10, 0]], [[10, 0], [20, 0]], [[20, 0], [30, 0]]
       ] satisfies Path[],
-      fromDistance: 4,
-      toDistance: 8,
-      fromPathIndex: 0,
-      toPathIndex: 2,
+      from: {
+        distance: 4,
+        pathIndex: 0,
+        startIndex: 0
+      },
+      to: {
+        distance: 8,
+        pathIndex: 2,
+        startIndex: 0
+      },
       expected: 24
-    }
-  ].forEach(({ name, paths, fromDistance, toDistance, fromPathIndex, toPathIndex, expected }) => {
+    },
+    {
+      name: 'should calculate distance between multiple paths',
+      // Layout: Single path with two points
+      //     0         2                            10
+      //   0 *---------*
+      //          1 |  |
+      //            ･･･x
+      //        (1) |  |              6    7.5
+      //   2        ･･･+--------------x-----x-------*
+      //               :              |     :
+      //               :<------------>|<--->:
+      //                      4         1.5
+      //
+      paths: [
+        [[0, 0], [1, 0], [2, 0]],
+        [[2, 0], [2, 1], [2, 2]],
+        [[2, 2], [6, 2], [10, 2]],
+      ] satisfies Path[],
+      from: {
+        distance: 1,
+        pathIndex: 1,
+        startIndex: 0
+      },
+      to: {
+        distance: 1.5,
+        pathIndex: 2,
+        startIndex: 1
+      },
+      expected: 6.5
+    },
+  ].forEach(({ name, paths, from, to, expected }) => {
     it(name, async (t: TestContext) => {
       const pathChains = await buildPathchain(paths)
       const pathChainList = pathChains[0]
 
-      const fromPathChain = pathChainList.find(p => p.path === paths[fromPathIndex])
-      const toPathChain = pathChainList.find(p => p.path === paths[toPathIndex])
+      const fromPathChain = pathChainList.find(p => p.path === paths[from.pathIndex])
+      const toPathChain = pathChainList.find(p => p.path === paths[to.pathIndex])
 
       if (!fromPathChain || !toPathChain) return t.assert.fail('')
 
       const fromPoint: PointOnPathchain = {
         pointOnPath: {
-          startIndex: 0,
-          path: new WeakRef(paths[fromPathIndex]),
-          distance: () => fromDistance
+          startIndex: from.startIndex,
+          path: new WeakRef(paths[from.pathIndex]),
+          distance: () => from.distance
         },
         targetPathChain: new WeakRef(fromPathChain)
       }
 
       const toPoint: PointOnPathchain = {
         pointOnPath: {
-          startIndex: 0,
-          path: new WeakRef(paths[toPathIndex]),
-          distance: () => toDistance
+          startIndex: to.startIndex,
+          path: new WeakRef(paths[to.pathIndex]),
+          distance: () => to.distance
         },
         targetPathChain: new WeakRef(toPathChain)
       }

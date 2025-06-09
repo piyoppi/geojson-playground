@@ -125,10 +125,10 @@ export const buildGraphBuilder = <IG, JG>(
             const [junctionId, junctionAttributes] = await createJunctionNodeCallback(position)
             if (!nodes.has(junctionId)) {
               const junctionNode = {id: junctionId, arcs: [], item: junctionAttributes}
+              previousContext.founds.push([junctionNode, pointOnPathChain])
 
               connect(previousNode, junctionNode, generateArc(previousNode, junctionNode, distanceBetweenNodes(previousContext)))
 
-              previousContext.founds.push([junctionNode, pointOnPathChain])
               nodes.set(junctionId, junctionNode)
 
               previousNode = junctionNode

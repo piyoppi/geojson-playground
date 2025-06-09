@@ -1,6 +1,6 @@
 import { describe, it, type TestContext } from 'node:test'
 import { buildGraphBuilder } from './fromPathChain'
-import { to } from '../graph'
+import { to, type GraphNode } from '../graph'
 import { buildPathchain, ends } from '../../geometry/path/pathchain'
 import type { Position2D } from '../../geometry/index'
 import type { Path } from '../../geometry/path/index'
@@ -15,6 +15,21 @@ const arcGenerator: ArcGenerator<TestDataNode | TestDataJunctionNode> = (a, b, c
   b: () => Promise.resolve(b),
   cost
 })
+
+// Helper function to find arc between two specific nodes
+const findArcBetween = async (fromNode: GraphNode<TestDataNode | TestDataJunctionNode>, toNodeId: string) => {
+  for (const arc of fromNode.arcs) {
+    const targetNode = await arc.b()
+    if (targetNode?.id === toNodeId) {
+      return arc
+    }
+    const sourceNode = await arc.a()
+    if (sourceNode?.id === toNodeId) {
+      return arc
+    }
+  }
+  throw new Error(`No arc found between ${fromNode.id} and ${toNodeId}`)
+}
 
 describe('buildGraphBuilder', () => {
   it('Should return nodes', async (t: TestContext) => {
@@ -62,13 +77,13 @@ describe('buildGraphBuilder', () => {
     const nodeById = new Map(nodeByGroup.get('group')?.map(n => [n.id, n]))
 
     const nodeA = nodeById.get('A')
-    if (!nodeA) t.assert.fail('nodeA should not be null')
+    t.assert.ok(nodeA, 'nodeA should exist')
 
     t.assert.strictEqual(nodeA.arcs.length, 1)
     t.assert.strictEqual(1, nodeA.arcs[0].cost)
 
     const junction = await to(nodeA, nodeA.arcs[0])
-    if (!junction) t.assert.fail('junction should not be null')
+    t.assert.ok(junction, 'junction should exist')
 
     t.assert.strictEqual(3, junction.arcs.length)
 
@@ -78,7 +93,9 @@ describe('buildGraphBuilder', () => {
       await to(junction, junction.arcs[2])
     ].sort((a, b) => (a?.id.charCodeAt(0) || 0) - (b?.id.charCodeAt(0) || 0))
 
-    if (a === null || b === null || c === null) t.assert.fail('Next should not be null')
+    t.assert.ok(a, 'Node a should exist')
+    t.assert.ok(b, 'Node b should exist')
+    t.assert.ok(c, 'Node c should exist')
 
     t.assert.equal('A', a.id)
     t.assert.equal('B', b.id)
@@ -87,5 +104,18 @@ describe('buildGraphBuilder', () => {
     t.assert.strictEqual(a.arcs.length, 1)
     t.assert.strictEqual(b.arcs.length, 1)
     t.assert.strictEqual(c.arcs.length, 1)
+
+    // A at [1, 0] → Junction at [2, 0]: distance = 1
+    // Junction at [2, 0] → B at [5, 0]: distance = 3
+    // Junction at [2, 0] → C at [2, 2]: distance = 2
+    
+    const junctionId = junction.id
+    const arcAToJunction = await findArcBetween(a, junctionId)
+    const arcJunctionToB = await findArcBetween(junction, b.id)
+    const arcJunctionToC = await findArcBetween(junction, c.id)
+
+    t.assert.equal(arcAToJunction.cost, 1, 'A to Junction arc cost should be 1')
+    t.assert.equal(arcJunctionToB.cost, 3, 'Junction to B arc cost should be 3') 
+    t.assert.equal(arcJunctionToC.cost, 2, 'Junction to C arc cost should be 2')
   })
 })

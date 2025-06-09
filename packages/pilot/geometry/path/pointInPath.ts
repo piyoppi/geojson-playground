@@ -1,6 +1,22 @@
 import { subtract, length, innerProduction, type Position2D } from "../index.js"
 import { Path, pathLength } from "./index.js"
 
+/**
+ * Point on Path
+ *
+ *      ･････x----0----x
+ *      |    :         |
+ *   d0 |    :         1                 
+ *      |    :         |     
+ *      ･････:･････････x----o--2------x-----3-----x path
+ *           :         :    :  ^
+ *           :         :    :  startIndex
+ *           :<------->:<-->:
+ *               d1      d2
+ *
+ *  distance = distance0 + distance1 + distance2
+ *
+ */
 export type PointOnPath = {
   path: WeakRef<Path>
   startIndex: number,
