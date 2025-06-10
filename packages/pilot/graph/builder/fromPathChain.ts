@@ -170,7 +170,7 @@ const distanceBetweenNodes = <I, J>(ctx: MappingContext<I, J>, [to, from] = [0, 
 
   if (!fromPointInPathchain) return 0
 
-  return distanceBetweenVisitedPointOnPathChain(contexts.map(c => c.visitedPaths).flat(), fromPointInPathchain, toPointInPathchain)
+  return distanceBetweenVisitedPointOnPathChain(contexts.map(c => c.visitedPaths).flat().toReversed(), fromPointInPathchain, toPointInPathchain)
 }
 
 const findPreviousContexts = <I, J>(ctx: MappingContext<I, J>) => {

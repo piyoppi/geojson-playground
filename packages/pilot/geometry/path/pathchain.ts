@@ -20,12 +20,25 @@ type PathChainState = {
 
 export type PathChain = PathChainState & PathChainOperator
 
+/**
+ * Internal representation of a path with neighbor connectivity information.
+ */
 export type PathInternal = {
   path: Path,
   index: number,
+  /**
+   * Neighbor path indices corresponding to the path endpoints.
+   * - neighbors[0]: indices of paths connected to the start point (path[0])
+   * - neighbors[1]: indices of paths connected to the end point (path[path.length - 1])
+   */
   neighbors: [number[], number[]],
 }
 
+/**
+ * Direction of path traversal
+ * - 'forward': following the path in its natural order (start to end)
+ * - 'backward': following the path in reverse order (end to start)
+ */
 export type PathDirection = 'forward' | 'backward'
 
 export type PathChainVisited = { pathChain: PathChain, pathDirection: PathDirection }
@@ -110,9 +123,10 @@ const generateStep = (
   const generateVisit = (visitedIndexes: Set<number>, current: number, previous?: number): VisitFn => (): Current => {
     const pathDirection = (() => {
       const currentPathInternal = pathInternals[current]
-      if (previous) {
+      if (previous !== undefined) {
         return currentPathInternal.neighbors[0].includes(previous) ? 'forward' : 'backward'
       } else {
+        // Choose direction that leads to non-dead-end as forward
         return currentPathInternal.neighbors[1].length > 0 ? 'forward' : 'backward'
       }
     })()

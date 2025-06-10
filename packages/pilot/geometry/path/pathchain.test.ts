@@ -343,3 +343,84 @@ describe('distanceBetweenVisitedPointOnPathChain', () => {
     t.assert.equal(distance, 23)
   })
 })
+
+describe('generateStep - forward/backward direction logic', () => {
+  const directionTestCases = [
+    {
+      name: 'linear chain starting from left end',
+      paths: [
+        [[0, 0], [1, 0]],
+        [[1, 0], [2, 0]],
+        [[2, 0], [3, 0]]
+      ] satisfies Path[],
+      expectedDirections: ['forward', 'forward', 'forward']
+    },
+    {
+      name: 'linear chain starting from right end',
+      paths: [
+        [[3, 0], [2, 0]],
+        [[2, 0], [1, 0]],
+        [[1, 0], [0, 0]]
+      ] satisfies Path[],
+      expectedDirections: ['forward', 'forward', 'forward']
+    },
+    {
+      name: 'T-intersection from main line start',
+      paths: [
+        [[0, 0], [5, 0]],
+        [[5, 0], [10, 0]],
+        [[5, 0], [5, 5]]
+      ] satisfies Path[],
+      expectedDirections: ['forward', 'backward', 'backward']
+    },
+    {
+      name: 'T-intersection from branch end',
+      paths: [
+        [[0, 0], [5, 0]],
+        [[5, 0], [10, 0]],
+        [[5, 5], [5, 0]]
+      ] satisfies Path[],
+      expectedDirections: ['forward', 'backward', 'forward']
+    },
+    {
+      name: 'Y-shaped junction from one branch',
+      paths: [
+        [[0, 0], [2, 0]],
+        [[2, 0], [3, 1]],
+        [[2, 0], [3, -1]]
+      ] satisfies Path[],
+      expectedDirections: ['forward', 'backward', 'backward']
+    },
+    {
+      name: 'complex network with mixed directions',
+      paths: [
+        [[1, 0], [0, 0]],
+        [[1, 0], [2, 0]],
+        [[2, 0], [3, 0]],
+        [[2, 0], [2, 1]]
+      ] satisfies Path[],
+      expectedDirections: ['backward', 'forward', 'forward', 'forward']
+    }
+  ] as const
+
+  directionTestCases.forEach(({ name, paths, expectedDirections }) => {
+    it(name, async (t: TestContext) => {
+      const pathChains = await buildPathchain(paths)
+      const pathChainList = pathChains[0]
+
+      const startChain = pathChainList.find(chain => chain.isEnded)
+      if (!startChain) return t.assert.fail('No start chain found')
+
+      const visitedDirections: string[] = []
+      await pathChainWalk(
+        startChain.from(),
+        ({ pathDirection }) => {
+          visitedDirections.push(pathDirection)
+          return Promise.resolve()
+        }
+      )
+
+      t.assert.deepEqual(visitedDirections, expectedDirections)
+    })
+  })
+})
