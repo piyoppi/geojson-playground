@@ -2,8 +2,8 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { partition } from '@piyoppi/sansaku-pilot/traffic/graph/partition.js'
 import { buildPartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
 import { join as pathJoin } from 'node:path'
-import { toTrafficGraphFile, TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
-import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
+import { toTrafficGraphFile, TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/trafficGraphFile.js'
+import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/main.js'
 import type { TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const execute = async (

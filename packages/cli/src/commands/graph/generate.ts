@@ -1,10 +1,10 @@
 import { writeFileSync } from 'node:fs'
-import { toTrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
-import { buildDefaultStationGrpahGenerator, buildDefaultBusStopGraphGenerator } from '@piyoppi/sansaku-pilot/traffic/graph/combined.js'
+import { toTrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/trafficGraphFile.js'
+import { buildDefaultStationGrpahGenerator, buildDefaultBusStopGraphGenerator } from '@piyoppi/sansaku-pilot/main.js'
 import { readFileSync } from 'node:fs'
-import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/MLITGisTypes/busRoute.js'
-import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
-import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/MLITGisTypes/railroad.js'
+import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/busRoute.js'
+import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/railroad.js'
+import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/railroad.js'
 import { mergeGraphNodes } from '@piyoppi/sansaku-pilot/traffic/graph/merge'
 
 type Option = {
