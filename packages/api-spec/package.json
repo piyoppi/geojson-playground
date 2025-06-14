@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "tsp compile . && openapi-typescript ./tsp-output/schema/openapi.json -o dist/openapi.d.ts"
   },
   "exports": {

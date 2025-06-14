@@ -6,7 +6,8 @@
   "scripts": {
     "test": "nx run-many --target=test --all",
     "build": "nx run-many --target=build --all",
-    "dev": "nx run-many --target=dev --all"
+    "dev": "nx run-many --target=dev --all",
+    "clean": "nx run-many --target=clean --all"
   },
   "repository": {
     "type": "git",

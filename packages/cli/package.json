@@ -8,6 +8,7 @@
     "sansaku": "./dist/main.js"
   },
   "scripts": {
+    "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "build": "tsc"
   },

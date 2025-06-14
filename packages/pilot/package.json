@@ -6,6 +6,7 @@
   "main": "dist/main.js",
   "scripts": {
     "test": "tsx --test **/*.test.ts",
+    "clean": "rm -rf dist",
     "dev": "tsc --watch",
     "check": "tsc --noEmit",
     "build": "tsc"
