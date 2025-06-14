@@ -10,8 +10,8 @@ import {
 import { ArcGenerator } from './arc/index'
 
 const generateArc: ArcGenerator<{}> = (a, b, cost) => ({
-  a: () => Promise.resolve(a),
-  b: () => Promise.resolve(b),
+  a: () => Promise.resolve((new WeakRef(a)).deref()),
+  b: () => Promise.resolve((new WeakRef(b)).deref()),
   cost
 })
 
@@ -97,7 +97,7 @@ describe('buildNodeMerger', () => {
     t.assert.deepEqual(mergedNode.arcs[0].cost, 15)
   })
 
-  it('should merge nodes and connect arcs properly', async (t: TestContext) => {
+  it('should merge nodes and connect arcs properly with multiple connections', async (t: TestContext) => {
     const node1 = { id: 'node1', item: {}, arcs: [] }
     const node2 = { id: 'node2', item: {}, arcs: [] }
     const node3 = { id: 'node3', item: {}, arcs: [] }
@@ -134,10 +134,18 @@ describe('buildNodeMerger', () => {
     const mergeNodes = buildNodeMerger(generateArc)
     const mergedNode = await mergeNodes(node2, node3)
     t.assert.equal(mergedNode.arcs.length, 2)
-    t.assert.ok([node1, mergedNode].includes(await (mergedNode.arcs[1].a()) as any))
-    t.assert.ok([node1, mergedNode].includes(await (mergedNode.arcs[1].b()) as any))
-    t.assert.ok([node4, mergedNode].includes(await (mergedNode.arcs[0].a()) as any))
-    t.assert.ok([node4, mergedNode].includes(await (mergedNode.arcs[0].b()) as any))
+
+    // NOTE: hasNodeInArcA を ok assertion で直接利用するとハングアップする
+    //       node - arc 間の参照が循環しているため？
+    const mergedNodeArc1HasNode1 = [node1, mergedNode].includes(await (mergedNode.arcs[1].a()) as any)
+    t.assert.ok(mergedNodeArc1HasNode1)
+    const mergedNodeArc1HasOwn = [node1, mergedNode].includes(await (mergedNode.arcs[1].b()) as any)
+    t.assert.ok(mergedNodeArc1HasOwn)
+    const mergedNodeArc0HasNode4 = [node4, mergedNode].includes(await (mergedNode.arcs[0].a()) as any)
+    t.assert.ok(mergedNodeArc0HasNode4)
+    const mergedNodeArc0HasOwn = [node4, mergedNode].includes(await (mergedNode.arcs[0].b()) as any)
+    t.assert.ok(mergedNodeArc0HasOwn)
+
     t.assert.equal(node1.arcs.length, 3)
     t.assert.equal(node4.arcs.length, 3)
   })

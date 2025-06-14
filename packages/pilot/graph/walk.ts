@@ -34,10 +34,15 @@ const _walkDepthFirst = async <I>(node: GraphNode<I>, callback: WalkCallback<I>,
   while(true) {
     if (currentNode.arcs.length === 0) break
 
-    const firstArcWithTarget = currentNode.arcs.find(arc => {
-      const to = visit(arc, currentNode)
-      return to !== null
-    })
+    let firstArcWithTarget = null
+
+    for (const arc of currentNode.arcs) {
+      const to = await visit(arc, currentNode)
+      if (to !== null) {
+        firstArcWithTarget = arc
+        break
+      }
+    }
 
     const firstVisited = firstArcWithTarget
       ? await toNode(currentNode, firstArcWithTarget)
