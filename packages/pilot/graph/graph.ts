@@ -10,6 +10,9 @@ export interface GraphNode<T> {
   item: T
   arcs: Arc<T>[]
 }
+export const createNode = <T>(id: NodeId, item: T, arcs: Arc<T>[] = []): GraphNode<T> => ({
+  id, item, arcs
+})
 
 export const connect = <T>(a: GraphNode<T>, b: GraphNode<T>, arc: Arc<T>): void => {
   setArc(a, arc)
@@ -18,6 +21,11 @@ export const connect = <T>(a: GraphNode<T>, b: GraphNode<T>, arc: Arc<T>): void 
 
 export const setArc = <T>(node: GraphNode<T>, arc: Arc<T>): void => {
   node.arcs.push(arc)
+}
+
+export const buildConnector = <T>(generator: ArcGenerator<T>) => (a: GraphNode<T>, b: GraphNode<T>, cost: number): void => {
+  const arc = generator(a, b, cost)
+  connect(a, b, arc)
 }
 
 export const disconnect = async <T>(a: GraphNode<T>, b: GraphNode<T>) => {

@@ -4,16 +4,16 @@ import { arcExists, connect, type GraphNode, type DuplicateNodesMarger } from ".
 import type { ArcGenerator } from "../../../graph/arc/index.js"
 import type { Railroad } from "../../railroad.js"
 import { toJunctionId, type RouteId } from "../../transportation.js"
-import { filterStationNodes, type TrafficItem } from "../trafficGraph.js"
+import { createJunctionNodeItem, createStationNodeItem, filterStationNodes, type TrafficNodeItem } from "../trafficGraph.js"
 
 type TransferCostGenerator = (aNode: RailroadStationNode, bNode: RailroadStationNode) => number
 type RailroadStationNode = GraphNode<RailroadStationNodeItem>
-type RailroadStationNodeItem = TrafficItem
+type RailroadStationNodeItem = TrafficNodeItem
 
 export const buildStationGraphGenerator = (
-  generateArc: ArcGenerator<TrafficItem>,
+  generateArc: ArcGenerator<TrafficNodeItem>,
   generateTransferCost: TransferCostGenerator,
-  nodeMerger: DuplicateNodesMarger<TrafficItem>
+  nodeMerger: DuplicateNodesMarger<TrafficNodeItem>
 ) => async (
   railroads: Railroad[]
 ): Promise<RailroadStationNode[]> => {
@@ -31,23 +31,14 @@ export const buildStationGraphGenerator = (
               end.from,
               s => Promise.resolve([
                 s.id,
-                {
-                  type: 'Station',
-                  station: s,
-                  companyId: railroad.companyId,
-                  position: () => s.position
-                }
+                createStationNodeItem(s, railroad.companyId)
               ]),
               async (p) => {
                 const id = await toJunctionId(`${p[0]}-${p[0]}`)
                 return [
                   id,
-                  {
-                    type: 'Junction',
-                    junction: { id, position: p },
-                    companyId: railroad.companyId,
-                    position: () => p
-                  }]
+                  createJunctionNodeItem({ id, position: p }, railroad.companyId)
+                ]
               },
               s => s.routeId,
             )
@@ -61,7 +52,7 @@ export const buildStationGraphGenerator = (
         acc.set(k, [...cur, ...v])
       })
       return acc
-    }, new Map<RouteId, (GraphNode<TrafficItem & {station: {groupId: string}}>)[]>())
+    }, new Map<RouteId, (GraphNode<TrafficNodeItem & {station: {groupId: string}}>)[]>())
     .values()
     .toArray()
 

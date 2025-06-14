@@ -4,7 +4,7 @@ import { ArcDeserializer, buildGraphDeserializer } from "graph/serialize.js"
 import { buildBusStopGraphGenerator } from "traffic/graph/generator/busStopGraphGenerator.js"
 import { buildStationGraphGenerator } from "traffic/graph/generator/stationGraphGenerator.js"
 import { buildTrafficGraphDeserializer } from "traffic/graph/serialize.js"
-import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficItem } from "traffic/graph/trafficGraph.js"
+import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficNodeItem } from "traffic/graph/trafficGraph.js"
 import { buildTrafficGraphFromFile } from "traffic/trafficGraphFile.js"
 import { buildPartitionedRepositoryArcDeserializer, PartitionedRepositoryGetter, type PartitionedRepository } from "graph/arc/partitionedRepositoryArc.js"
 import type { ArcGenerator } from "graph/arc/index.js"
@@ -25,7 +25,7 @@ export const buildDefaultBusStopGraphGenerator = () => buildBusStopGraphGenerato
 
 const defaultArcGenerator = buildWeakRefArc
 
-const defaultTrafficArcGenerator: ArcGenerator<TrafficItem> = (a, b, cost) => {
+const defaultTrafficArcGenerator: ArcGenerator<TrafficNodeItem> = (a, b, cost) => {
   if (a.item.type === 'Station' && b.item.type === 'Station') {
     if (a.item.companyId !== b.item.companyId) {
       return generateTransferOtherLineArc(a, b, cost)
@@ -38,7 +38,7 @@ const defaultTrafficArcGenerator: ArcGenerator<TrafficItem> = (a, b, cost) => {
 }
 
 type DefaultTrafficFromFileOptions = {
-  repository?: PartitionedRepository<TrafficItem>
+  repository?: PartitionedRepository<TrafficNodeItem>
 }
 
 export const buildDefaultTrafficGraphFromFile = (
@@ -46,7 +46,7 @@ export const buildDefaultTrafficGraphFromFile = (
 ) => buildTrafficGraphFromFile(
   buildTrafficGraphDeserializer(
     buildGraphDeserializer(
-      getNode => buildDefaultArcDeserializer<TrafficItem>(
+      getNode => buildDefaultArcDeserializer<TrafficNodeItem>(
         async (nodeId, pk) => getNode(nodeId) || await options.repository?.get(nodeId, pk),
       )
     )

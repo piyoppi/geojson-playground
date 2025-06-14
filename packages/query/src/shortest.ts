@@ -2,11 +2,11 @@ import { join as pathJoin } from 'node:path'
 import { readFile } from 'node:fs/promises'
 import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
-import { buildRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/PartitionedRepositoryArc.js'
+import { buildPartitionedRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
 import { TrafficItem, filterStationNodes } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const shortest = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {
-  const repository = buildRepository<TrafficItem>(
+  const repository = buildPartitionedRepository<TrafficItem>(
     async (partitionKey) => {
       const { graph } = await loadPartialFile(inputGraphDir, partitionKey)
 
