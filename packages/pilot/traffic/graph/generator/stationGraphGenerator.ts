@@ -57,12 +57,12 @@ export const buildStationGraphGenerator = (
     .toArray()
 
   // Isolated pathchains may have same station
-  const mergedStationNodes = filterStationNodes((await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat())
-  const nodesByGroup = Map.groupBy(mergedStationNodes, n => n.item.station.groupId ?? '')
+  const mergedStationNodes = (await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat()
+  const nodesByGroup = Map.groupBy(mergedStationNodes, n => ('station' in n.item && n.item.station.groupId) ?? '')
 
   // Connect each transit station nodes
-  for (const node of mergedStationNodes) {
-    const sameGroupNodes = (node.item.station.groupId && nodesByGroup.get(node.item.station.groupId)) || []
+  for (const node of filterStationNodes(mergedStationNodes)) {
+    const sameGroupNodes = filterStationNodes((node.item.station.groupId && nodesByGroup.get(node.item.station.groupId)) || [])
     for (const current of sameGroupNodes) {
       if (node.id !== current.id && !(await arcExists(node, current)) && node.item.station.routeId !== current.item.station.routeId) {
         const arc = generateArc(node, current, generateTransferCost(node, current))

@@ -12,6 +12,7 @@ import {
 } from "../../geometry/path/pathchain.js"
 import type { Position2D } from "../../geometry/index.js"
 import type { ArcGenerator } from "../arc/index.js"
+import { filterJunctionNodes } from "../../traffic/graph/trafficGraph.js"
 
 type Point = { position: Position2D }
 type CreateNodeCallbackFn<T, I> = (item: T, found: PointOnPathchain) => Promise<[NodeId, I]>

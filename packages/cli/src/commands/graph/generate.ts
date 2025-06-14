@@ -6,6 +6,7 @@ import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/geojson/ML
 import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/railroad.js'
 import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/railroad.js'
 import { mergeGraphNodes } from '@piyoppi/sansaku-pilot/traffic/graph/merge'
+import { filterJunctionNodes } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
 
 type Option = {
   overrideRailroadInputFilename?: string
@@ -21,6 +22,8 @@ export const execute = async (
   const { stationNodes, railroads, railroadCompanies } = inputRailroadFilename && inputStationFilename ?
     await loadStationGraph(inputRailroadFilename, inputStationFilename, option?.overrideRailroadInputFilename) :
     { stationNodes: [], railroads: [], railroadCompanies: [] }
+
+  console.log('stationNodeJunction', filterJunctionNodes(stationNodes).length)
 
   const { busNodes, busCompanies, busRoutes } = inputBusStopFilename ?
     await loadBusStopGraph(inputBusStopFilename) :
