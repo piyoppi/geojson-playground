@@ -3,10 +3,10 @@ import { readFile } from 'node:fs/promises'
 import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
 import { buildPartitionedRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
-import { TrafficItem, filterStationNodes } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
+import { TrafficNodeItem, filterStationNodes } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const shortest = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {
-  const repository = buildPartitionedRepository<TrafficItem>(
+  const repository = buildPartitionedRepository<TrafficNodeItem>(
     async (partitionKey) => {
       const { graph } = await loadPartialFile(inputGraphDir, partitionKey)
 
@@ -60,7 +60,7 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
   return shortest.slice(firstRange, lastRange + 1)
 }
 
-const buildPartialFileLoader = (repository: PartitionedRepository<TrafficItem>) => {
+const buildPartialFileLoader = (repository: PartitionedRepository<TrafficNodeItem>) => {
   const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile({
     repository
   })

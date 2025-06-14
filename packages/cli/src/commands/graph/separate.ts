@@ -1,10 +1,10 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { separate } from '@piyoppi/sansaku-pilot/traffic/graph/separate.js'
-import { buildRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
+import { partition } from '@piyoppi/sansaku-pilot/traffic/graph/partition.js'
+import { buildPartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
 import { join as pathJoin } from 'node:path'
 import { toTrafficGraphFile, TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
-import type { TrafficItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
+import type { TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const execute = async (
   inputGraphFilename: string,
@@ -15,9 +15,9 @@ export const execute = async (
 
   const { graph, railroads, busRoutes, companies } = buildTrafficGraphFromFile(railroadJson)
 
-  const repository = buildRepository<TrafficItem>(
-    partitionKey => Promise.reject(new Error(`Node is not found (partitionKey: ${partitionKey})`)),
-    async (partitionKey, nodes) => {
+  const repository = buildPartitionedRepository<TrafficNodeItem>(
+    (partitionKey: string) => Promise.reject(new Error(`Node is not found (partitionKey: ${partitionKey})`)),
+    async (partitionKey: string, nodes: any[]) => {
       const file = await toTrafficGraphFile(
         nodes,
         companies.filter(c => c.id === partitionKey),
@@ -28,7 +28,7 @@ export const execute = async (
     }
   )
 
-  await separate(repository, graph)
+  await partition(repository, graph)
 
   await repository.store()
 }

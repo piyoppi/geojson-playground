@@ -1,13 +1,13 @@
-import { buildWeakRefArc } from "graph/arc/weakRefArc.js"
-import { buildDuplicateNodesMarger, buildNodeMerger, GraphNode } from "graph/graph.js"
-import { ArcDeserializer, buildGraphDeserializer } from "graph/serialize.js"
-import { buildBusStopGraphGenerator } from "traffic/graph/generator/busStopGraphGenerator.js"
-import { buildStationGraphGenerator } from "traffic/graph/generator/stationGraphGenerator.js"
-import { buildTrafficGraphDeserializer } from "traffic/graph/serialize.js"
-import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficNodeItem } from "traffic/graph/trafficGraph.js"
-import { buildTrafficGraphFromFile } from "traffic/trafficGraphFile.js"
-import { buildPartitionedRepositoryArcDeserializer, PartitionedRepositoryGetter, type PartitionedRepository } from "graph/arc/partitionedRepositoryArc.js"
-import type { ArcGenerator } from "graph/arc/index.js"
+import { buildWeakRefArc } from "./graph/arc/weakRefArc.js"
+import { buildDuplicateNodesMarger, buildNodeMerger, GraphNode } from "./graph/graph.js"
+import { ArcDeserializer, buildGraphDeserializer } from "./graph/serialize.js"
+import { buildBusStopGraphGenerator } from "./traffic/graph/generator/busStopGraphGenerator.js"
+import { buildStationGraphGenerator } from "./traffic/graph/generator/stationGraphGenerator.js"
+import { buildTrafficGraphDeserializer } from "./traffic/graph/serialize.js"
+import { generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficNodeItem } from "./traffic/graph/trafficGraph.js"
+import { buildTrafficGraphFromFile } from "./traffic/trafficGraphFile.js"
+import { buildPartitionedRepositoryArcDeserializer, PartitionedRepositoryGetter, type PartitionedRepository } from "./graph/arc/partitionedRepositoryArc.js"
+import type { ArcGenerator } from "./graph/arc/index.js"
 
 export const buildDefaultStationGrpahGenerator = () => buildStationGraphGenerator(
   defaultTrafficArcGenerator,
