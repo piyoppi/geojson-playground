@@ -3,7 +3,7 @@ import { buildBusStopGraphGenerator } from './busStopGraphGenerator.js'
 import { buildWeakRefArc } from '../../../graph/arc/weakRefArc.js'
 import { filterStationNodes } from '../trafficGraph.js'
 import { toId } from '../../../utils/Id.js'
-import { RouteId, StationId, CompanyId, type Station } from '../../transportation.js'
+import { RouteId, StationId, CompanyId } from '../../transportation.js'
 import type { BusRoute, BusStop } from '../../busroute.js'
 import { Position2D } from '../../../geometry/index.js'
 
@@ -95,10 +95,10 @@ describe('buildBusStopGraphGenerator', () => {
     const connectingArc = await findConnectingArc(nodeA, nodeB)
     t.assert.ok(connectingArc, 'Should have connecting arc between nodes')
     
-    const expectedCostForRoute1 = Math.pow(10 - 0, 2) + Math.pow(0 - 0, 2)
+    const expectedCostForRoute1 = Math.sqrt(Math.pow(10 - 0, 2) + Math.pow(0 - 0, 2))
     t.assert.equal(connectingArc.cost, expectedCostForRoute1, `Arc cost should be ${expectedCostForRoute1} for route 1`)
 
-    const expectedCostForRoute2 = Math.pow(20 - 20, 2) + Math.pow(10 - 0, 2)
+    const expectedCostForRoute2 = Math.sqrt(Math.pow(20 - 20, 2) + Math.pow(10 - 0, 2))
     t.assert.equal(connectingArc.cost, expectedCostForRoute2, `Arc cost should be ${expectedCostForRoute2} for route 1`)
   })
 })

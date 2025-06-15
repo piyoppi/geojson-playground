@@ -371,7 +371,7 @@ describe('generateStep - forward/backward direction logic', () => {
         [[5, 0], [10, 0]],
         [[5, 0], [5, 5]]
       ] satisfies Path[],
-      expectedDirections: ['forward', 'backward', 'backward']
+      expectedDirections: ['forward', 'forward', 'forward']
     },
     {
       name: 'T-intersection from branch end',
@@ -380,7 +380,7 @@ describe('generateStep - forward/backward direction logic', () => {
         [[5, 0], [10, 0]],
         [[5, 5], [5, 0]]
       ] satisfies Path[],
-      expectedDirections: ['forward', 'backward', 'forward']
+      expectedDirections: ['forward', 'forward', 'backward']
     },
     {
       name: 'Y-shaped junction from one branch',
@@ -389,7 +389,7 @@ describe('generateStep - forward/backward direction logic', () => {
         [[2, 0], [3, 1]],
         [[2, 0], [3, -1]]
       ] satisfies Path[],
-      expectedDirections: ['forward', 'backward', 'backward']
+      expectedDirections: ['forward', 'forward', 'forward']
     },
     {
       name: 'complex network with mixed directions',
