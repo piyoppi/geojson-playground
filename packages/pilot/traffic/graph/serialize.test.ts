@@ -2,7 +2,7 @@ import { describe, it, type TestContext } from 'node:test'
 import { serialize, buildTrafficGraphDeserializer } from './serialize'
 import { createJunctionNode, createJunctionNodeItem, createStationNode, createStationNodeItem, TrafficGraphNode, TrafficNodeItem } from './trafficGraph'
 import { CompanyId, Junction, JunctionId, RouteId, Station, StationId, Route } from '../transportation'
-import { buildWeakRefArc } from '../../graph/arc/weakRefArc'
+import { buildWeakRefArc, buildWeakRefArcDeserializer } from '../../graph/arc/weakRefArc'
 import { buildConnector, createNode, NodeId } from '../../graph/graph'
 import { buildGraphDeserializer } from '../../graph/serialize'
 
@@ -72,11 +72,6 @@ describe('buildTrafficGraphDeserializer', () => {
       id: JunctionId('AB'),
       position: [1, 0]
     }
-    const nodeIdMap = new Map<NodeId, TrafficGraphNode>([
-      [stationA.id, createStationNode(stationA, companyId)],
-      [stationB.id, createStationNode(stationB, companyId)],
-      [junctionAB.id, createJunctionNode(junctionAB, companyId)]
-    ])
     const route: Route<Station> = {
       id: routeId,
       name: 'Test Route',
@@ -85,9 +80,11 @@ describe('buildTrafficGraphDeserializer', () => {
       stations: [stationA, stationB]
     }
     
-    const deserializer = buildTrafficGraphDeserializer(buildGraphDeserializer(resolver => {
-
-    }))
+    const deserializer = buildTrafficGraphDeserializer(
+      buildGraphDeserializer(
+        ctx => buildWeakRefArcDeserializer(ctx.getResolvedNode)
+      )
+    )
     
     const serialized = {
       arcs: [
