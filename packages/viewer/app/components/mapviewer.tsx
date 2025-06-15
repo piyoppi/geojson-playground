@@ -19,17 +19,32 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   useEffect(() => {
     const nodes = nodeSet.filter(rendered => !renderedNodeSet.some(nodes => rendered === nodes)).flat()
 
-    nodes.map(node => {
+    nodes.forEach(node => {
+      if (node.item.type !== 'Station' && node.item.type !== 'Junction') return
+      
+      const { label, routeId, position } = node.item.type === 'Station' 
+        ? {
+            label: `${node.item.station.name}(${node.item.station.routeId})`,
+            routeId: node.item.station.routeId,
+            position: node.item.station.position
+          }
+        : {
+            label: `Junction(${node.item.junction.id})`,
+            routeId: node.item.junction.id,
+            position: node.item.junction.position
+          }
+      
       graph.addNode(
         node.id,
         {
-          label: `${node.item.station.name}(${node.item.station.routeId})`,
-          routeId: node.item.station.routeId,
+          label,
+          routeId,
           size: 0.45,
-          x: node.item.station.position[0],
-          y: node.item.station.position[1],
+          x: position[0],
+          y: position[1],
           color: "blue"
-        })
+        }
+      )
     })
 
     for (const node of nodes) {

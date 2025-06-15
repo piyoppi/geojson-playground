@@ -1,6 +1,6 @@
 import { describe, it, type TestContext } from 'node:test'
 import { serialize, buildTrafficGraphDeserializer } from './serialize'
-import { createJunctionNode, createJunctionNodeItem, createStationNode, createStationNodeItem, TrafficGraphNode, TrafficNodeItem } from './trafficGraph'
+import { createJunctionNode, createJunctionNodeItem, createStationNode, createStationNodeItem, filterJunctionNodes, filterStationNodes, TrafficGraphNode, TrafficNodeItem } from './trafficGraph'
 import { CompanyId, Junction, JunctionId, RouteId, Station, StationId, Route } from '../transportation'
 import { buildWeakRefArc, buildWeakRefArcDeserializer } from '../../graph/arc/weakRefArc'
 import { buildConnector, createNode, NodeId } from '../../graph/graph'
@@ -98,8 +98,8 @@ describe('buildTrafficGraphDeserializer', () => {
     
     t.assert.equal(nodes.length, 3)
     
-    const stationNodes = nodes.filter(n => n.item.type === 'Station')
-    const junctionNodes = nodes.filter(n => n.item.type === 'Junction')
+    const stationNodes = filterStationNodes(nodes)
+    const junctionNodes = filterJunctionNodes(nodes)
     
     t.assert.equal(stationNodes.length, 2)
     t.assert.equal(junctionNodes.length, 1)

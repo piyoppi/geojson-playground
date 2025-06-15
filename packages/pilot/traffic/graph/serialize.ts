@@ -32,6 +32,7 @@ export const buildTrafficGraphDeserializer = (
   const stationsById = new Map(stations.map(station => [stationIdToString(station.id), station]))
   const junctionsById = new Map(junctions.map(junction => [junctionIdToString(junction.id), junction]))
   const routeByStationId = new Map(routes.flatMap(r => r.stations.map(s => [stationIdToString(s.id), r])))
+  const routeByJunctionId = new Map(routes.flatMap(r => junctions.map(j => [junctionIdToString(j.id), r])))
 
   return deserializeGraphNode(
     [...stations, ...junctions],
@@ -39,12 +40,12 @@ export const buildTrafficGraphDeserializer = (
     (item, stringId) => {
       const station = stationsById.get(stringId)
 
-      const route = routeByStationId.get(stringId)
-      if (!route) {
-        throw new Error(`Route for station not found for id: ${stringId}`)
-      }
-
       if (station) {
+        const route = routeByStationId.get(stringId)
+        if (!route) {
+          throw new Error(`Route for station not found for id: ${stringId}`)
+        }
+
         return {
           id: item.id,
           arcs: [],
@@ -55,6 +56,11 @@ export const buildTrafficGraphDeserializer = (
       const junction = junctionsById.get(stringId)
 
       if (junction) {
+        const route = routeByJunctionId.get(stringId)
+        if (!route) {
+          throw new Error(`Route for station not found for id: ${stringId}`)
+        }
+
         return {
           id: item.id,
           arcs: [],

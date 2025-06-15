@@ -1,6 +1,6 @@
 import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraph"
-import type { TrafficGraphFile } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraphFile"
-import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot/traffic/graph/combined'
+import type { TrafficGraphFile } from "@piyoppi/sansaku-pilot/traffic/trafficGraphFile"
+import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
 import { JsonFileReader } from "./jsonFileReader";
 import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"

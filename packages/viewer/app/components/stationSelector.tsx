@@ -1,6 +1,6 @@
 import type { Route, Station } from "@piyoppi/sansaku-pilot/traffic/transportation"
 import { Combobox } from "./ui/combobox"
-import type { Railroad, Station as RailroadStation } from "@piyoppi/sansaku-pilot/traffic/railroad"
+import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
 import type { BusStop } from "@piyoppi/sansaku-pilot/traffic/busroute"
 import { useState } from "react"
@@ -15,7 +15,7 @@ type TransportationType = 'Railroad' | 'BusRoute'
 
 export function StationSelector({ railroads, busRoutes, onStationSelected }: PropTypes) {
   const [transportationType, setTransportationType] = useState<TransportationType | null>(null)
-  const [route, setRoute] = useState<Route<RailroadStation | BusStop> | null>(null)
+  const [route, setRoute] = useState<Route<Station | BusStop> | null>(null)
 
   const transportationTypes = [
     ...railroads.length > 0 ? [['鉄道', 'Railroad', 'Railroad'] as const]: [],
@@ -30,7 +30,7 @@ export function StationSelector({ railroads, busRoutes, onStationSelected }: Pro
     transportationType === 'BusRoute' ? busRoutes :
     []
 
-  const handleRouteSelected = (route: Route<RailroadStation | BusStop>) => {
+  const handleRouteSelected = (route: Route<Station | BusStop>) => {
     setRoute(route)
   }
 
