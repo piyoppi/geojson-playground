@@ -17,7 +17,7 @@ describe('walk function', () => {
     b.arcs.push(arcAB)
   }
 
-  it('visits all nodes in a simple graph', (t: TestContext) => {
+  it('visits all nodes in a simple graph', async (t: TestContext) => {
     //    A
     //   /
     //  B---C
@@ -37,7 +37,7 @@ describe('walk function', () => {
     const visited: string[] = []
     const paths: Array<{from: string, to: string}> = []
     
-    walk(nodeA, (current, from) => {
+    await walk(nodeA, (current, from) => {
       visited.push(current.id)
       paths.push({from: from.id, to: current.id})
     })
@@ -49,7 +49,7 @@ describe('walk function', () => {
     t.assert.ok(visited.includes('E'))
   })
 
-  it('handles cycles properly', (t: TestContext) => {
+  it('handles cycles properly', async (t: TestContext) => {
     //  A -- B
     //  |    |
     //  C -- D
@@ -65,13 +65,13 @@ describe('walk function', () => {
     
     const visited: string[] = []
     
-    walk(nodeA, (current) => visited.push(current.id))
+    await walk(nodeA, (current) => visited.push(current.id))
 
     t.assert.ok(visited.includes('B'))
     t.assert.ok(visited.includes('C'))
     t.assert.ok(visited.includes('D'))
     t.assert.equal(visited.length, 4)
-    t.assert.equal(visited.filter(v => v === 'B').length, 2)
+    t.assert.equal(visited.filter(v => v === 'B').length, 1)
   })
 
   it('handles empty graph', (t) => {

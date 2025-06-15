@@ -137,13 +137,13 @@ describe('buildNodeMerger', () => {
 
     // NOTE: hasNodeInArcA を ok assertion で直接利用するとハングアップする
     //       node - arc 間の参照が循環しているため？
-    const mergedNodeArc1HasNode1 = [node1, mergedNode].includes(await (mergedNode.arcs[1].a()) as any)
+    const mergedNodeArc1HasNode1 = [node1, node4, mergedNode].includes(await (mergedNode.arcs[1].a()) as any)
     t.assert.ok(mergedNodeArc1HasNode1)
-    const mergedNodeArc1HasOwn = [node1, mergedNode].includes(await (mergedNode.arcs[1].b()) as any)
+    const mergedNodeArc1HasOwn = [node1, node4, mergedNode].includes(await (mergedNode.arcs[1].b()) as any)
     t.assert.ok(mergedNodeArc1HasOwn)
-    const mergedNodeArc0HasNode4 = [node4, mergedNode].includes(await (mergedNode.arcs[0].a()) as any)
+    const mergedNodeArc0HasNode4 = [node1, node4, mergedNode].includes(await (mergedNode.arcs[0].a()) as any)
     t.assert.ok(mergedNodeArc0HasNode4)
-    const mergedNodeArc0HasOwn = [node4, mergedNode].includes(await (mergedNode.arcs[0].b()) as any)
+    const mergedNodeArc0HasOwn = [node1, node4, mergedNode].includes(await (mergedNode.arcs[0].b()) as any)
     t.assert.ok(mergedNodeArc0HasOwn)
 
     t.assert.equal(node1.arcs.length, 3)

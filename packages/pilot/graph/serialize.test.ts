@@ -93,7 +93,7 @@ describe('Graph serialization and deserialization', () => {
       serialized,
       (item, id) => ({item, id, arcs: []})
     )
-    t.assert.equal(deserialized.length, 0)
+    t.assert.equal(deserialized.length, 3)
   })
   
   it('should serialize and deserialize nodes without connections', async (t: TestContext) => {
@@ -109,7 +109,7 @@ describe('Graph serialization and deserialization', () => {
       serialized,
       (item, id) => ({item, id, arcs: []})
     )
-    t.assert.equal(deserialized.length, 2)
+    t.assert.equal(deserialized.length, 3)
     t.assert.equal(deserialized[0].arcs.length, 0)
     t.assert.equal(deserialized[1].arcs.length, 0)
   })

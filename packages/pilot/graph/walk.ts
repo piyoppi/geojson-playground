@@ -6,7 +6,7 @@ type WalkCallback<I> = (current: GraphNode<I>, from: GraphNode<I>, arc: Arc<I>) 
 export const walk = <I>(node: GraphNode<I>, callback: WalkCallback<I>) => {
   const visited = new WeakSet<Arc<I>>
 
-  _walkDepthFirst(node, callback, visited)
+  return _walkDepthFirst(node, callback, visited)
 }
 
 const toNode = async <I>(fromNode: GraphNode<I>, arc: Arc<I>): Promise<GraphNode<I> | null> => {
