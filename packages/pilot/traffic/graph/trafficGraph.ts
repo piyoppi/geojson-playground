@@ -10,6 +10,9 @@ export type TrafficGraphNode = GraphNode<TrafficNodeItem>
 /** Graph node specifically representing a station */
 export type StationNode = GraphNode<StationNodeItem>
 
+/** Graph node specifically representing a junction */
+export type JunctionNode = GraphNode<JunctionNodeItem>
+
 /** Base interface for node items containing position and company information */
 type NodeItem = {
   /** Function returning the 2D position of the node */
@@ -25,6 +28,18 @@ type JunctionNodeItem = NodeItem & {
   /** The junction data */
   junction: Junction
 }
+/**
+ * Creates a station node
+ * @param station - The station data
+ * @param companyId - The ID of the company that owns the station
+ * @param arcs      - The arcs
+ * @returns A station node
+ */
+export const createJunctionNode = (junction: Junction, companyId: CompanyId, arcs: Arc<JunctionNodeItem>[] = []): JunctionNode => ({
+  id: junction.id,
+  item: createJunctionNodeItem(junction, companyId),
+  arcs
+})
 /**
  * Creates a junction node item from junction data and company ID
  * @param junction - The junction data
@@ -46,7 +61,19 @@ type StationNodeItem = NodeItem & {
   station: Station
 }
 /**
- * Creates a station node item from station data and company ID
+ * Creates a station node
+ * @param station - The station data
+ * @param companyId - The ID of the company that owns the station
+ * @param arcs      - The arcs
+ * @returns A station node
+ */
+export const createStationNode = (station: Station, companyId: CompanyId, arcs: Arc<StationNodeItem>[] = []): StationNode => ({
+  id: station.id,
+  item: createStationNodeItem(station, companyId),
+  arcs
+})
+/**
+ * Creates a station node item
  * @param station - The station data
  * @param companyId - The ID of the company that owns the station
  * @returns A station node item

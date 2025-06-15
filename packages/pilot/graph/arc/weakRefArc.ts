@@ -18,13 +18,13 @@ export const buildWeakRefArc = <I>(
 }
 
 export const buildWeakRefArcDeserializer = <I>(
-  nodeGetter: (id: NodeId) => GraphNode<I> | undefined,
+  getResolvedNode: (id: NodeId) => GraphNode<I> | undefined,
 ): ArcDeserializer<I> => (
   serializedArc,
   resolved
 ) => {
-  const nodeA = nodeGetter(serializedArc.aNodeId)
-  const nodeB = nodeGetter(serializedArc.bNodeId)
+  const nodeA = getResolvedNode(serializedArc.aNodeId)
+  const nodeB = getResolvedNode(serializedArc.bNodeId)
 
   if (!nodeA || !nodeB) {
     return undefined
