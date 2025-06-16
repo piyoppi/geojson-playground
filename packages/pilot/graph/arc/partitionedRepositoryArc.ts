@@ -39,7 +39,7 @@ export const buildPartitionedRepositoryArcGenerator = <I>(
 
 export const buildPartitionedRepositoryArcDeserializer = <I>(
   getNode: PartitionedRepositoryGetter<GraphNode<I>>
-): ArcDeserializer<I> => (
+): ArcDeserializer<I> => async (
   serializedArc,
   resolvedCallback,
 ) => {
@@ -54,8 +54,13 @@ export const buildPartitionedRepositoryArcDeserializer = <I>(
     return undefined
   }
 
-  const lazyResolver = (nodeId: NodeId, pk: string, resolvedCallback: (node: GraphNode<I>) => void) => {
-    let resolved: GraphNode<I> | undefined = undefined
+  const lazyResolver = async (nodeId: NodeId, pk: string, resolvedCallback: (node: GraphNode<I>) => void) => {
+    const initial = await getNode(nodeId, pk)
+    if (initial) {
+      resolvedCallback(initial)
+    }
+
+    let resolved: GraphNode<I> | undefined = initial
     return async () => {
       if (!resolved) {
         resolved = await getNode(nodeId, pk)
@@ -77,8 +82,8 @@ export const buildPartitionedRepositoryArcDeserializer = <I>(
     cost: Number(serializedArc.arcCost)
   }
 
-  arc.a = lazyResolver(serializedArc.aNodeId, aPk, (node) => resolvedCallback(arc, node))
-  arc.b = lazyResolver(serializedArc.bNodeId, bPk, (node) => resolvedCallback(arc, node))
+  arc.a = await lazyResolver(serializedArc.aNodeId, aPk, (node) => resolvedCallback(arc, node))
+  arc.b = await lazyResolver(serializedArc.bNodeId, bPk, (node) => resolvedCallback(arc, node))
 
   return arc
 }

@@ -29,20 +29,20 @@ export const toTrafficGraphFile = async (
 
 export const buildTrafficGraphFromFile = (
   deserialize: TrafficGraphDeserializer
-) => (
+) => async (
   data: TrafficGraphFile
-): {
+): Promise<{
   graph: TrafficGraphNode[],
   companies: Company[],
   railroads: Railroad[],
   busRoutes: BusRoute[]
-} => {
+}> => {
   const railroads = data.railroads.map(r => deserializeRailroad(r))
   const busRoutes = data.busRoutes.map(b => deserializeBusRoute(b))
   const routes = [...railroads, ...busRoutes]
 
   return {
-    graph: deserialize(data.graph, routes),
+    graph: await deserialize(data.graph, routes),
     companies: data.companies.map(c => deserializeCompany(c)),
     railroads: data.railroads.map(r => deserializeRailroad(r)),
     busRoutes: data.busRoutes.map(b => deserializeBusRoute(b))

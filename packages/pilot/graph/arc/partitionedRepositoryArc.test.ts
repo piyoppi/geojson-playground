@@ -64,11 +64,11 @@ describe('buildPartitionedRepositoryArcGenerator', () => {
 })
 
 describe('buildPartitionedRepositoryArcDeserializer', () => {
-  it('should return undefined for invalid serialized arc without partition keys', (t: TestContext) => {
+  it('should return undefined for invalid serialized arc without partition keys', async (t: TestContext) => {
     const getNode: PartitionedRepositoryGetter<GraphNode<TestItem>> = async () => undefined
     
     const deserializer = buildPartitionedRepositoryArcDeserializer(getNode)
-    const result = deserializer({ aNodeId: 'A', bNodeId: 'B', arcCost: '10' }, () => {})
+    const result = await deserializer({ aNodeId: 'A', bNodeId: 'B', arcCost: '10' }, () => {})
     
     t.assert.equal(result, undefined)
   })
@@ -80,11 +80,11 @@ describe('buildPartitionedRepositoryArcDeserializer', () => {
   ]
 
   for (const { name, serializedArc } of invalidPartitionKeyCases) {
-    it(`should return undefined for ${name}`, (t: TestContext) => {
+    it(`should return undefined for ${name}`, async (t: TestContext) => {
       const getNode: PartitionedRepositoryGetter<GraphNode<TestItem>> = async () => undefined
       
       const deserializer = buildPartitionedRepositoryArcDeserializer(getNode)
-      const result = deserializer(serializedArc, () => {})
+      const result = await deserializer(serializedArc, () => {})
       
       t.assert.equal(result, undefined)
     })
@@ -104,7 +104,7 @@ describe('buildPartitionedRepositoryArcDeserializer', () => {
     }
     
     const deserializer = buildPartitionedRepositoryArcDeserializer(getNode)
-    const arc = deserializer({
+    const arc = await deserializer({
       aNodeId: 'A',
       bNodeId: 'B',
       arcCost: '15',
@@ -114,7 +114,7 @@ describe('buildPartitionedRepositoryArcDeserializer', () => {
     
     t.assert.ok(arc !== undefined)
     t.assert.equal(arc!.cost, 15)
-    t.assert.equal(resolvedCallbackCount, 0) // Not called initially
+    t.assert.equal(resolvedCallbackCount, 2) // Called during deserialization
     
     const resolvedA = await arc!.a()
     const resolvedB = await arc!.b()
@@ -133,7 +133,7 @@ describe('buildPartitionedRepositoryArcDeserializer', () => {
     const getNode: PartitionedRepositoryGetter<GraphNode<TestItem>> = async () => undefined
     
     const deserializer = buildPartitionedRepositoryArcDeserializer(getNode)
-    const arc = deserializer({
+    const arc = await deserializer({
       aNodeId: 'A',
       bNodeId: 'B',
       arcCost: '20',
@@ -165,7 +165,7 @@ describe('buildPartitionedRepositoryArcDeserializer', () => {
     }
     
     const deserializer = buildPartitionedRepositoryArcDeserializer(getNode)
-    const arc = deserializer({
+    const arc = await deserializer({
       aNodeId: 'A',
       bNodeId: 'B',
       arcCost: '25',
@@ -176,13 +176,13 @@ describe('buildPartitionedRepositoryArcDeserializer', () => {
     // First resolution
     const resolvedA1 = await arc!.a()
     t.assert.equal(resolvedA1?.id, 'A')
-    t.assert.equal(getNodeCallCount, 1)
-    t.assert.equal(resolvedCallbackCount, 1)
+    t.assert.equal(getNodeCallCount, 2) // Called for both A and B during deserialization
+    t.assert.equal(resolvedCallbackCount, 1) // Only A was found
     
     // Second resolution should use cached value
     const resolvedA2 = await arc!.a()
     t.assert.equal(resolvedA2?.id, 'A')
-    t.assert.equal(getNodeCallCount, 1) // Should not increase
+    t.assert.equal(getNodeCallCount, 2) // Should not increase
     t.assert.equal(resolvedCallbackCount, 1) // Should not increase
   })
 })

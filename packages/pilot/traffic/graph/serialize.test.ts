@@ -52,7 +52,7 @@ describe('serialize', () => {
 })
 
 describe('buildTrafficGraphDeserializer', () => {
-  it('Should deserialize traffic graph with stations and junctions', (t: TestContext) => {
+  it('Should deserialize traffic graph with stations and junctions', async (t: TestContext) => {
     const companyId = CompanyId('companyA')
     const routeId = RouteId('Route1')
     
@@ -94,7 +94,7 @@ describe('buildTrafficGraphDeserializer', () => {
       junctions: [junctionAB]
     }
     
-    const nodes = deserializer(serialized, [route])
+    const nodes = await deserializer(serialized, [route])
     
     t.assert.equal(nodes.length, 3)
     

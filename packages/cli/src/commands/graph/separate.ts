@@ -13,7 +13,7 @@ export const execute = async (
   const railroadJson = JSON.parse(readFileSync(inputGraphFilename, "utf-8")) as TrafficGraphFile
   const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile()
 
-  const { graph, railroads, busRoutes, companies } = buildTrafficGraphFromFile(railroadJson)
+  const { graph, railroads, busRoutes, companies } = await buildTrafficGraphFromFile(railroadJson)
 
   const repository = buildPartitionedRepository<TrafficNodeItem>(
     (partitionKey: string) => Promise.reject(new Error(`Node is not found (partitionKey: ${partitionKey})`)),

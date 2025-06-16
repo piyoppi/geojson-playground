@@ -15,7 +15,7 @@ export type SerializedArc = {
 export type ArcDeserializer<I> = (
   serialized: SerializedArc,
   resolvedCallback: (arc: Arc<I>, node: GraphNode<I>) => void,
-) => Arc<I> | undefined
+) => Promise<Arc<I> | undefined>
 
 export const serialize = async <I>(
   nodes: GraphNode<I>[]
@@ -47,11 +47,11 @@ type DeserializeGraphContext<I> = {
 export type GraphDeserializer<I> = ReturnType<typeof buildGraphDeserializer<I>>
 export const buildGraphDeserializer = <I>(
   buildDeserializeArc: (ctx: DeserializeGraphContext<I>) => ArcDeserializer<I>
-) => <InputItems extends {id: NodeId}>(
+) => async <InputItems extends {id: NodeId}>(
   items: InputItems[],
   serialized: { arcs: SerializedArc[] },
   generateNode: (item: InputItems, id: string) => GraphNode<I>
-): GraphNode<I>[] => {
+): Promise<GraphNode<I>[]> => {
   const resolvedNodeMap = new Map<string, GraphNode<I>>()
   const getResolvedNode = (nodeId: NodeId) => resolvedNodeMap.get(nodeId)
   for (const item of items) {
@@ -65,8 +65,8 @@ export const buildGraphDeserializer = <I>(
 
   for (const serializedArc of serialized.arcs) {
     const arc =
-      deserializeArc(serializedArc, arcResolvedHandler) ||
-      weakRefArcDeserializer(serializedArc, arcResolvedHandler)
+      (await deserializeArc(serializedArc, arcResolvedHandler)) ||
+      (await weakRefArcDeserializer(serializedArc, arcResolvedHandler))
 
     if (!arc) {
       throw new Error(`Arc deserialization failed for nodes`)

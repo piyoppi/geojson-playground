@@ -19,7 +19,7 @@ export const buildWeakRefArc = <I>(
 
 export const buildWeakRefArcDeserializer = <I>(
   getResolvedNode: (id: NodeId) => GraphNode<I> | undefined,
-): ArcDeserializer<I> => (
+): ArcDeserializer<I> => async (
   serializedArc,
   resolved
 ) => {

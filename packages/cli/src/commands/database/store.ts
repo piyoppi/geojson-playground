@@ -10,7 +10,7 @@ export const execute = async (
   const railroadJson = JSON.parse(readFileSync(inputGraphFilename, "utf-8")) as TrafficGraphFile
   const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile()
 
-  const { railroads, busRoutes, companies } = buildTrafficGraphFromFile(railroadJson)
+  const { railroads, busRoutes, companies } = await buildTrafficGraphFromFile(railroadJson)
 
   const database = createHandlerFromFile(outFilename)
 

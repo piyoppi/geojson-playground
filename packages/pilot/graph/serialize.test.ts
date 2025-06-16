@@ -49,8 +49,8 @@ describe('Graph serialization and deserialization', () => {
     t.assert.equal(arcBCSerialized?.arcCost, '20')
     t.assert.equal(arcCASerialized?.arcCost, '30')
 
-    const deserialize = buildGraphDeserializer(() => () => undefined)
-    const deserialized = deserialize(
+    const deserialize = buildGraphDeserializer(() => async () => undefined)
+    const deserialized = await deserialize(
       [itemA, itemB, itemC],
       serialized,
       (item, id) => ({item, id, arcs: []})
@@ -87,8 +87,8 @@ describe('Graph serialization and deserialization', () => {
     const serialized = await serialize([])
     t.assert.equal(serialized.arcs.length, 0)
     
-    const deserialize = buildGraphDeserializer(() => () => undefined)
-    const deserialized = deserialize(
+    const deserialize = buildGraphDeserializer(() => async () => undefined)
+    const deserialized = await deserialize(
       [itemA, itemB, itemC],
       serialized,
       (item, id) => ({item, id, arcs: []})
@@ -103,8 +103,8 @@ describe('Graph serialization and deserialization', () => {
     const serialized = await serialize([nodeA, nodeB])
     t.assert.equal(serialized.arcs.length, 0)
     
-    const deserialize = buildGraphDeserializer(() => () => undefined)
-    const deserialized = deserialize(
+    const deserialize = buildGraphDeserializer(() => async () => undefined)
+    const deserialized = await deserialize(
       [itemA, itemB, itemC],
       serialized,
       (item, id) => ({item, id, arcs: []})
