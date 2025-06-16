@@ -48,14 +48,8 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
     return acc
   }, [] as number[])
 
-  console.log(shortest.map(n => n.item.station.name))
-  console.log(grouped)
-
   const firstRange = grouped.at(0) ?? 0
   const lastRange = (grouped.at(-1) ?? shortest.length - 1) + 1
-
-  console.log(firstRange, lastRange)
-  console.log(shortest.slice(firstRange, lastRange).map(s => s.item.station.name))
 
   return shortest.slice(firstRange, lastRange + 1)
 }

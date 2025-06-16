@@ -13,6 +13,7 @@ export type PartitionedRepository<I> = {
 }
 
 export type PartitionedRepositoryGetter<I> = (id: NodeId, partitionKey: string) => Promise<I | undefined>
+export type ResolvedNodeGetter<I> = (id: NodeId) => Promise<I | undefined>
 
 export const buildPartitionedRepositoryArcGenerator = <I>(
   getFromRepository: PartitionedRepositoryGetter<GraphNode<I>>,
@@ -38,7 +39,8 @@ export const buildPartitionedRepositoryArcGenerator = <I>(
 }
 
 export const buildPartitionedRepositoryArcDeserializer = <I>(
-  getNode: PartitionedRepositoryGetter<GraphNode<I>>
+  getResolvedNode: ResolvedNodeGetter<GraphNode<I>>,
+  getNodeFromRepository: PartitionedRepositoryGetter<GraphNode<I>>
 ): ArcDeserializer<I> => async (
   serializedArc,
   resolvedCallback,
@@ -55,7 +57,7 @@ export const buildPartitionedRepositoryArcDeserializer = <I>(
   }
 
   const lazyResolver = async (nodeId: NodeId, pk: string, resolvedCallback: (node: GraphNode<I>) => void) => {
-    const initial = await getNode(nodeId, pk)
+    const initial = await getResolvedNode(nodeId)
     if (initial) {
       resolvedCallback(initial)
     }
@@ -63,7 +65,7 @@ export const buildPartitionedRepositoryArcDeserializer = <I>(
     let resolved: GraphNode<I> | undefined = initial
     return async () => {
       if (!resolved) {
-        resolved = await getNode(nodeId, pk)
+        resolved = await getNodeFromRepository(nodeId, pk)
 
         if (resolved) {
           resolvedCallback(resolved)

@@ -46,13 +46,10 @@ export const buildDefaultTrafficGraphFromFile = (
 ) => buildTrafficGraphFromFile(
   buildTrafficGraphDeserializer(
     buildGraphDeserializer(
-      ctx => buildDefaultArcDeserializer<TrafficNodeItem>(
-        async (nodeId, pk) => ctx.getResolvedNode(nodeId) || await options.repository?.get(nodeId, pk),
+      ctx => buildPartitionedRepositoryArcDeserializer<TrafficNodeItem>(
+        nodeId => Promise.resolve(ctx.getResolvedNode(nodeId)),
+        async (nodeId, pk) => await options.repository?.get(nodeId, pk),
       )
     )
   )
 )
-
-export const buildDefaultArcDeserializer = <I>(
-  getNode: PartitionedRepositoryGetter<GraphNode<I>>
-): ArcDeserializer<I> => buildPartitionedRepositoryArcDeserializer(getNode)
