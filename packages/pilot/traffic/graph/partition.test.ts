@@ -1,7 +1,7 @@
 import { describe, it, type TestContext } from 'node:test'
 import { partition, getTrafficGraphPartitionKey } from './partition.js'
 import { buildPartitionedRepository } from '../../graph/arc/partitionedRepositoryArc.js'
-import type { TrafficGraphNode, TrafficNodeItem } from './trafficGraph.js'
+import type { TrafficNode, TrafficNodeItem } from './trafficGraph.js'
 import { CompanyId, StationId, RouteId, JunctionId, type Route, type Station } from '../transportation.js'
 import { toId } from '../../utils/Id.js'
 
@@ -33,7 +33,7 @@ const createMockTrafficItem = async (type: 'Station' | 'Junction', companyIdStr:
   }
 }
 
-const createTestTrafficNode = async (id: string, companyIdStr: string, type: 'Station' | 'Junction' = 'Station'): Promise<TrafficGraphNode> => {
+const createTestTrafficNode = async (id: string, companyIdStr: string, type: 'Station' | 'Junction' = 'Station'): Promise<TrafficNode> => {
   const item = await createMockTrafficItem(type, companyIdStr)
   return {
     id,
@@ -53,7 +53,7 @@ const createMockRoute = async (companyIdStr: string): Promise<Route<Station>> =>
 }
 
 const buildTestRepository = async () => {
-  const nodes = new Map<string, TrafficGraphNode[]>()
+  const nodes = new Map<string, TrafficNode[]>()
 
   return buildPartitionedRepository<TrafficNodeItem>(
     (pk) => Promise.resolve(nodes.get(pk) ?? []),

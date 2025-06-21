@@ -1,7 +1,7 @@
 import { TrafficFileReader } from "../components/trafficFileReader"
 import type { Route } from "./+types/home"
 import { MapViewer } from "~/components/mapviewer"
-import type { TrafficGraphNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraph"
+import type { TrafficNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGraph"
 import { useCallback, useState } from "react"
 import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
@@ -18,14 +18,14 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const [nodes, setNodes] = useState<TrafficGraphNode[][]>([])
+  const [nodes, setNodes] = useState<TrafficNode[][]>([])
   const [railroads, setRailroads] = useState<Railroad[]>([])
   const [busRoutes, setBusRoutes] = useState<BusRoute[]>([])
   const [activeRouteId, setActiveRouteId] = useState<RouteId | undefined>()
 
   const handleFileLoaded = useCallback(
     (
-      data: TrafficGraphNode[],
+      data: TrafficNode[],
       railroads: Railroad[],
       busRoutes: BusRoute[]
     ) => {

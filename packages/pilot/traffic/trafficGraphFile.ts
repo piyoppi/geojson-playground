@@ -2,7 +2,7 @@ import { TrafficGraphDeserializer, serialize, type SerializedTrafficGraph } from
 import { deserializeRailroad, serializeRailroad, type Railroad, type SerializedRailroad } from "./railroad.js"
 import { deserializeBusRoute, serializedBusRoute, type BusRoute, type SerializedBusRoute } from "./busroute.js"
 import { deserializeCompany, serializeCompany, type Company, type SerializedCompany } from "./transportation.js"
-import type { TrafficGraphNode } from "./graph/trafficGraph.js"
+import type { TrafficNode } from "./graph/trafficGraph.js"
 
 export type TrafficGraphFile = {
   graph: SerializedTrafficGraph,
@@ -12,7 +12,7 @@ export type TrafficGraphFile = {
 }
 
 export const toTrafficGraphFile = async (
-  nodes: TrafficGraphNode[],
+  nodes: TrafficNode[],
   companies: Company[],
   railroads: Railroad[],
   busRoutes: BusRoute[]
@@ -32,7 +32,7 @@ export const buildTrafficGraphFromFile = (
 ) => async (
   data: TrafficGraphFile
 ): Promise<{
-  graph: TrafficGraphNode[],
+  graph: TrafficNode[],
   companies: Company[],
   railroads: Railroad[],
   busRoutes: BusRoute[]

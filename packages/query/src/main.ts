@@ -1,3 +1,3 @@
 export {
   shortest
-} from './shortest.js'
+} from './shortest/index.js'

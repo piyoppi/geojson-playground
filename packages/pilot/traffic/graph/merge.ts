@@ -1,4 +1,4 @@
-import type { TrafficGraphNode } from './trafficGraph.js';
+import type { TrafficNode } from './trafficGraph.js';
 import { connect } from '../../graph/graph.js';
 import { generateTransferOtherLineArc } from './trafficGraph.js';
 import type { Position2D } from '../../geometry/index.js';
@@ -10,8 +10,8 @@ import type { Position2D } from '../../geometry/index.js';
  * @param maxDistance - Maximum connection distance threshold
  */
 export function mergeGraphNodes(
-  stationNodes: TrafficGraphNode[], 
-  busNodes: TrafficGraphNode[], 
+  stationNodes: TrafficNode[], 
+  busNodes: TrafficNode[], 
   maxDistance: number = 0.0012868993
 ): void {
   const { grid, cellSize } = buildSpatialIndex(stationNodes, maxDistance);
@@ -28,7 +28,7 @@ export function mergeGraphNodes(
 }
 
 type SpatialGrid = {
-  grid: Map<string, TrafficGraphNode[]>;
+  grid: Map<string, TrafficNode[]>;
   cellSize: number;
 }
 
@@ -39,10 +39,10 @@ type SpatialGrid = {
  * @returns Spatial grid data structure
  */
 function buildSpatialIndex(
-  nodes: TrafficGraphNode[], 
+  nodes: TrafficNode[], 
   maxDistance: number
 ): SpatialGrid {
-  const grid = new Map<string, TrafficGraphNode[]>();
+  const grid = new Map<string, TrafficNode[]>();
   const cellSize = maxDistance * 2;
   
   // Index all nodes
@@ -71,14 +71,14 @@ function buildSpatialIndex(
 function findNearest(
   position: Position2D, 
   maxDistance: number,
-  grid: Map<string, TrafficGraphNode[]>,
+  grid: Map<string, TrafficNode[]>,
   cellSize: number
-): TrafficGraphNode | null {
+): TrafficNode | null {
   const cellKey = getCellKey(position, cellSize);
   
   const cellsToCheck = getAdjacentCellKeys(cellKey);
   
-  let nearestNode: TrafficGraphNode | null = null;
+  let nearestNode: TrafficNode | null = null;
   let minDistance = maxDistance;
  
   for (const key of cellsToCheck) {

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
 import Sigma from "sigma"
 import Graph from "graphology"
-import type { TrafficGraphNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
+import type { TrafficNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
 import type { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
 
 type PropTypes = {
-  nodeSet: TrafficGraphNode[][],
+  nodeSet: TrafficNode[][],
   activeRouteId?: RouteId,
 }
 
@@ -13,7 +13,7 @@ export function MapViewer({ nodeSet, activeRouteId }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
   const sigmaRef = useRef<Sigma | null>(null)
 
-  const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficGraphNode[][]>([])
+  const [renderedNodeSet, setRenderedNodeSet] = useState<TrafficNode[][]>([])
   const graph = useMemo(() => new Graph({ multi: true }), [])
 
   useEffect(() => {

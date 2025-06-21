@@ -1,10 +1,10 @@
 import type { Arc } from '@piyoppi/sansaku-pilot/graph/arc/index.js'
-import type { TrafficGraphNode, TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
+import type { TrafficNode, TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
 
-export const costGenerator = (startNode: TrafficGraphNode) => (
+export const costGenerator = (startNode: TrafficNode) => (
   arc: Arc<TrafficNodeItem>, 
-  a: TrafficGraphNode, 
-  b: TrafficGraphNode
+  a: TrafficNode, 
+  b: TrafficNode
 ): number => {
   if (a.item.type === 'Station' && 
       b.item.type === 'Station' && 

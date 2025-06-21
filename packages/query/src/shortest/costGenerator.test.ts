@@ -4,7 +4,7 @@ import { toId } from '@piyoppi/sansaku-pilot/utils/Id.js'
 import { CompanyId, StationId, RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation.js'
 import { createStationNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 import type { Arc } from '@piyoppi/sansaku-pilot/graph/arc/index.js'
-import type { TrafficGraphNode, TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
+import type { TrafficNode, TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 describe('costGenerator', () => {
   it('should return 0 for same-group station transfers involving start node', async (t: TestContext) => {
@@ -19,7 +19,7 @@ describe('costGenerator', () => {
       groupId: 'group-a'
     }, companyId)
     
-    const startNode: TrafficGraphNode = {
+    const startNode: TrafficNode = {
       id: await toId('start-node'),
       item: startStationItem,
       arcs: []
@@ -33,7 +33,7 @@ describe('costGenerator', () => {
       groupId: 'group-a'
     }, companyId)
     
-    const sameGroupNode: TrafficGraphNode = {
+    const sameGroupNode: TrafficNode = {
       id: await toId('same-group-node'),
       item: sameGroupStationItem,
       arcs: []
@@ -63,7 +63,7 @@ describe('costGenerator', () => {
       groupId: 'group-b'
     }, companyId)
     
-    const startNode: TrafficGraphNode = {
+    const startNode: TrafficNode = {
       id: await toId('start-node'),
       item: startStationItem,
       arcs: []
@@ -77,7 +77,7 @@ describe('costGenerator', () => {
       groupId: 'group-b'
     }, companyId)
     
-    const sameGroupNode: TrafficGraphNode = {
+    const sameGroupNode: TrafficNode = {
       id: await toId('same-group-node'),
       item: sameGroupStationItem,
       arcs: []
@@ -107,7 +107,7 @@ describe('costGenerator', () => {
       groupId: 'group-start'
     }, companyId)
     
-    const startNode: TrafficGraphNode = {
+    const startNode: TrafficNode = {
       id: await toId('start-node'),
       item: startStationItem,
       arcs: []
@@ -121,7 +121,7 @@ describe('costGenerator', () => {
       groupId: 'group-other'
     }, companyId)
     
-    const station1Node: TrafficGraphNode = {
+    const station1Node: TrafficNode = {
       id: await toId('station-1-node'),
       item: station1Item,
       arcs: []
@@ -135,7 +135,7 @@ describe('costGenerator', () => {
       groupId: 'group-other'
     }, companyId)
     
-    const station2Node: TrafficGraphNode = {
+    const station2Node: TrafficNode = {
       id: await toId('station-2-node'),
       item: station2Item,
       arcs: []
@@ -166,7 +166,7 @@ describe('costGenerator', () => {
       groupId: 'group-start'
     }, companyId)
     
-    const startNode: TrafficGraphNode = {
+    const startNode: TrafficNode = {
       id: await toId('start-node'),
       item: startStationItem,
       arcs: []
@@ -180,7 +180,7 @@ describe('costGenerator', () => {
       groupId: 'group-different'
     }, companyId)
     
-    const differentGroupNode: TrafficGraphNode = {
+    const differentGroupNode: TrafficNode = {
       id: await toId('different-group-node'),
       item: differentGroupStationItem,
       arcs: []
@@ -211,7 +211,7 @@ describe('costGenerator', () => {
       groupId: 'group-start'
     }, companyId)
     
-    const startNode: TrafficGraphNode = {
+    const startNode: TrafficNode = {
       id: await toId('start-node'),
       item: startStationItem,
       arcs: []
@@ -224,7 +224,7 @@ describe('costGenerator', () => {
       position: [10, 10]
     }, companyId)
     
-    const noGroupNode: TrafficGraphNode = {
+    const noGroupNode: TrafficNode = {
       id: await toId('no-group-node'),
       item: noGroupStationItem,
       arcs: []

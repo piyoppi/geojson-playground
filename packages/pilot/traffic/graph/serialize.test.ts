@@ -1,6 +1,6 @@
 import { describe, it, type TestContext } from 'node:test'
 import { serialize, buildTrafficGraphDeserializer } from './serialize'
-import { createJunctionNode, createJunctionNodeItem, createStationNode, createStationNodeItem, filterJunctionNodes, filterStationNodes, TrafficGraphNode, TrafficNodeItem } from './trafficGraph'
+import { createJunctionNode, createJunctionNodeItem, createStationNode, createStationNodeItem, filterJunctionNodes, filterStationNodes, TrafficNode, TrafficNodeItem } from './trafficGraph'
 import { CompanyId, Junction, JunctionId, RouteId, Station, StationId, Route } from '../transportation'
 import { buildWeakRefArc, buildWeakRefArcDeserializer } from '../../graph/arc/weakRefArc'
 import { buildConnector, createNode, NodeId } from '../../graph/graph'

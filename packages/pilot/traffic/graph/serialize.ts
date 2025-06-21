@@ -4,14 +4,14 @@ import {
   serialize as serializedGraphNode
 } from '../../graph/serialize.js'
 import { Junction, junctionIdToString, type Route, type Station, stationIdToString } from '../transportation.js'
-import { createJunctionNodeItem, createStationNodeItem, filterJunctionNodes, TrafficGraphNode, TrafficNodeItem } from './trafficGraph.js'
+import { createJunctionNodeItem, createStationNodeItem, filterJunctionNodes, TrafficNode, TrafficNodeItem } from './trafficGraph.js'
 
 export type SerializedTrafficGraph = {
   arcs: SerializedArc[]
   junctions: Junction[]
 }
 
-export const serialize = async (nodes: TrafficGraphNode[]): Promise<SerializedTrafficGraph> => {
+export const serialize = async (nodes: TrafficNode[]): Promise<SerializedTrafficGraph> => {
   const serialized = await serializedGraphNode(nodes)
 
   return {
@@ -26,7 +26,7 @@ export const buildTrafficGraphDeserializer = (
 ) => async (
   serialized: SerializedTrafficGraph,
   routes: Route<Station>[],
-): Promise<TrafficGraphNode[]> => {
+): Promise<TrafficNode[]> => {
   const stations = routes.flatMap(r => r.stations)
   const junctions = serialized.junctions
   const stationsById = new Map(stations.map(station => [stationIdToString(station.id), station]))

@@ -5,7 +5,7 @@ import type { CompanyId, Junction, Station } from "../transportation.js"
 import { Position2D } from "../../geometry/index.js"
 
 /** Graph node representing a traffic element (station or junction) */
-export type TrafficGraphNode = GraphNode<TrafficNodeItem>
+export type TrafficNode = GraphNode<TrafficNodeItem>
 
 /** Graph node specifically representing a station */
 export type StationNode = GraphNode<StationNodeItem>
@@ -93,14 +93,14 @@ export type TrafficNodeItem = JunctionNodeItem | StationNodeItem
  * @param nodes - Array of traffic graph nodes to filter
  * @returns Array of station nodes
  */
-export const filterStationNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<StationNodeItem>[]
+export const filterStationNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<StationNodeItem>[]
 
 /**
  * Filters an array of traffic nodes to return only junction nodes
  * @param nodes - Array of traffic graph nodes to filter
  * @returns Array of junction nodes
  */
-export const filterJunctionNodes = (nodes: TrafficGraphNode[]) => nodes.filter(n => n.item.type === 'Junction') as GraphNode<JunctionNodeItem>[]
+export const filterJunctionNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'Junction') as GraphNode<JunctionNodeItem>[]
 
 /** Arc representing a transfer within the same transportation line */
 export interface TransferOwnLineArc extends Arc<TrafficNodeItem> {
