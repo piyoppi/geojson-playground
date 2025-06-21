@@ -139,7 +139,8 @@ export const buildDuplicateNodesMarger = <IG>(
 
 export const findShortestPath = async <I>(
   startNode: GraphNode<I>,
-  endNode: GraphNode<I>
+  endNode: GraphNode<I>,
+  getCost: (arc: Arc<I>, a: GraphNode<I>, b: GraphNode<I>) => number = (arc) => arc.cost
 ): Promise<GraphNode<I>[]> => {
   const visited = new Set<NodeId>()
 
@@ -173,7 +174,7 @@ export const findShortestPath = async <I>(
 
       if (visited.has(nextNode.id)) continue
 
-      const newCost = currentCost + arc.cost
+      const newCost = currentCost + getCost(arc, nodeA, nodeB)
       const existingCost = distances.get(nextNode.id) ?? Infinity
 
       if (newCost < existingCost) {
