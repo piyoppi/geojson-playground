@@ -4,12 +4,19 @@ import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
 import { buildPartitionedRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
 import { filterStationNodes, type TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
-import { costGenerator } from './costGenerator.js'
+import { buildCostGenerator } from './costGenerator.js'
+import { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
+import { BusRoute } from '@piyoppi/sansaku-pilot/traffic/busroute'
 
 export const shortest = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {
+  const loadedBusRoutes = new Map<RouteId, BusRoute>()
   const repository = buildPartitionedRepository<TrafficNodeItem>(
     async (partitionKey) => {
-      const { graph } = await loadPartialFile(inputGraphDir, partitionKey)
+      const { busRoutes, graph } = await loadPartialFile(inputGraphDir, partitionKey)
+
+      for (const busRoute of busRoutes) {
+        loadedBusRoutes.set(busRoute.id, busRoute)
+      }
 
       return graph
     },
@@ -35,7 +42,12 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
     repository.register(node, toPk)
   }
 
-  const shortest = filterStationNodes(await findShortestPath(startNode, endNode, costGenerator(startNode)))
+  const costGenerator = buildCostGenerator(
+    id => loadedBusRoutes.get(id),
+    startNode
+  )
+
+  const shortest = filterStationNodes(await findShortestPath(startNode, endNode, costGenerator))
 
   // Exclude same stations
   const grouped = shortest.reduce((acc, n, i, a) => {
