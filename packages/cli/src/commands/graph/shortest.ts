@@ -9,7 +9,7 @@ export const execute = async (
 ) => {
   console.log(
     (await shortest(inputGraphDir, fromId, fromPk, toId, toPk))
-      .map(node => `${node.item.station.name}(${node.id}) \n ↓ ${node.item.station.routeId} \n`)
+      .map(node => `${node.item.station.name}(${node.id}) \n ↓ ${node.item.station.routeIds[0]} \n`)
       .join('')
   )
 }

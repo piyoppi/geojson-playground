@@ -12,19 +12,19 @@ describe('serialize', () => {
     const stationA: Station = {
       id: StationId('A'),
       name: 'Station A',
-      routeId: RouteId('Route1'),
+      routeIds: [RouteId('Route1')],
       position: [0, 0]
     }
     const stationB: Station = {
       id: StationId('B'),
       name: 'Station B',
-      routeId: RouteId('Route1'),
+      routeIds: [RouteId('Route1')],
       position: [2, 0]
     }
     const stationC: Station = {
       id: StationId('C'),
       name: 'Station C',
-      routeId: RouteId('Route1'),
+      routeIds: [RouteId('Route1')],
       position: [1, 1]
     }
     const junctionABC: Junction = {
@@ -59,13 +59,13 @@ describe('buildTrafficGraphDeserializer', () => {
     const stationA: Station = {
       id: StationId('A'),
       name: 'Station A',
-      routeId,
+      routeIds: [routeId],
       position: [0, 0]
     }
     const stationB: Station = {
       id: StationId('B'),
       name: 'Station B',
-      routeId,
+      routeIds: [routeId],
       position: [2, 0]
     }
     const junctionAB: Junction = {

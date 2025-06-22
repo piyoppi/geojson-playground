@@ -2,12 +2,12 @@ import type { Position2D } from "../geometry/index.js"
 import { toId, idToString, stringToId, type Id } from "../utils/Id.js"
 
 export type RouteId = Id & { readonly __brand: unique symbol }
-export const RouteId = (routeId: Id): RouteId => routeId as RouteId 
+export const RouteId = (routeId: Id): RouteId => routeId as RouteId
 export const routeIdToString = (id: RouteId) => idToString(id)
 const stringToRouteId = (str: string) => RouteId(stringToId(str))
 
 export type StationId = Id & { readonly __brand: unique symbol }
-export const StationId = (stationId: Id): StationId => stationId as StationId 
+export const StationId = (stationId: Id): StationId => stationId as StationId
 export const stationIdToString = (id: StationId) => idToString(id)
 const stringToStationId = (str: string) => StationId(stringToId(str))
 
@@ -49,7 +49,7 @@ export type Junction = {
 export type Station = {
   id: StationId,
   name: string,
-  routeId: RouteId,
+  routeIds: RouteId[],
   position: Position2D,
   groupId?: string,
 }
@@ -110,7 +110,7 @@ export const serializeStation = (station: Station) => ({
 export const deserializeStation = (station: SerializedStation, routeId: RouteId) => ({
   ...station,
   id: stringToStationId(station.id),
-  routeId
+  routeIds: [routeId]
 })
 
 export const serializeCompany = (company: Company) => ({

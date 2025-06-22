@@ -24,7 +24,7 @@ const createDefaultStationGraphGenerator = () => {
 const createTestStation = async (name: string, routeId: RouteId, position: Position2D, groupId?: string): Promise<Station> => ({
   id: StationId(await toId(`station-${name}`)),
   name: `Station ${name}`,
-  routeId,
+  routeIds: [routeId],
   position,
   groupId: groupId || `group-${name}`
 })
@@ -149,7 +149,7 @@ describe('buildStationGraphGenerator', () => {
     t.assert.equal(resultTransferStation1!.item.station.groupId, sharedGroupId, 'Transfer station 1 should have shared group ID')
     t.assert.equal(resultTransferStation2!.item.station.groupId, sharedGroupId, 'Transfer station 2 should have shared group ID')
 
-    t.assert.notEqual(resultTransferStation1!.item.station.routeId, resultTransferStation2!.item.station.routeId, 'Transfer stations should have different route IDs')
+    t.assert.notEqual(resultTransferStation1!.item.station.routeIds[0], resultTransferStation2!.item.station.routeIds[0], 'Transfer stations should have different route IDs')
 
     const hasTransferConnection = await arcExists(resultTransferStation1!, resultTransferStation2!)
     t.assert.ok(hasTransferConnection, 'Should have transfer arc between stations with same groupId but different routeId')
@@ -180,7 +180,7 @@ describe('buildStationGraphGenerator', () => {
 
     t.assert.equal(station1!.item.station.groupId, sharedGroupId, 'Both stations should have the same group ID')
     t.assert.equal(station2!.item.station.groupId, sharedGroupId, 'Both stations should have the same group ID')
-    t.assert.equal(station1!.item.station.routeId, station2!.item.station.routeId, 'Both stations should have the same route ID')
+    t.assert.equal(station1!.item.station.routeIds[0], station2!.item.station.routeIds[0], 'Both stations should have the same route ID')
 
     // Use arcExists function for cleaner connection verification
     const hasTransferConnection = await arcExists(station1!, station2!)

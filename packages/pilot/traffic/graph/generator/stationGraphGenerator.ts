@@ -40,7 +40,7 @@ export const buildStationGraphGenerator = (
                   createJunctionNodeItem({ id, position: p }, railroad.companyId)
                 ]
               },
-              s => s.routeId,
+              s => s.routeIds[0],
             )
           })
         })
@@ -64,7 +64,7 @@ export const buildStationGraphGenerator = (
   for (const node of filterStationNodes(mergedStationNodes)) {
     const sameGroupNodes = filterStationNodes((node.item.station.groupId && nodesByGroup.get(node.item.station.groupId)) || [])
     for (const current of sameGroupNodes) {
-      if (node.id !== current.id && !(await arcExists(node, current)) && node.item.station.routeId !== current.item.station.routeId) {
+      if (node.id !== current.id && !(await arcExists(node, current)) && !node.item.station.routeIds.some(rid => current.item.station.routeIds.includes(rid))) {
         const arc = generateArc(node, current, generateTransferCost(node, current))
         connect(node, current, arc)
       }

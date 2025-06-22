@@ -29,8 +29,12 @@ const defaultTrafficArcGenerator: ArcGenerator<TrafficNodeItem> = (a, b, cost) =
   if (a.item.type === 'Station' && b.item.type === 'Station') {
     if (a.item.companyId !== b.item.companyId) {
       return generateTransferOtherLineArc(a, b, cost)
-    } else if (a.item.station.routeId !== b.item.station.routeId) {
-      return generateTransferOwnLineArc(a, b, cost)
+    } else {
+      const aStation = a.item
+      const bStation = b.item
+      if (!aStation.station.routeIds.some(rid => bStation.station.routeIds.includes(rid))) {
+        return generateTransferOwnLineArc(a, b, cost)
+      }
     }
   }
 

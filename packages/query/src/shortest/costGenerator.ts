@@ -25,7 +25,7 @@ export const buildCostGenerator = (
       return 0
     }
 
-    if (getBusRoute(a.item.station.routeId) && getBusRoute(b.item.station.routeId)) {
+    if (a.item.station.routeIds.some(rid => getBusRoute(rid)) && b.item.station.routeIds.some(rid => getBusRoute(rid))) {
       return arc.cost * option.busRouteWeight
     }
   }

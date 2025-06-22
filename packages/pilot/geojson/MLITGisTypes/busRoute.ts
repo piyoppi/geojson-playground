@@ -53,7 +53,7 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
           b.map(async ([name, _company, _routeName, geometry])=> ({
             id: await toStationId(`${companyName}-${routeName}-${name}-${geometry.coordinates[0]}-${geometry.coordinates[1]}`),
             name,
-            routeId,
+            routeIds: [routeId],
             position: geometry.coordinates
           }))
         ),

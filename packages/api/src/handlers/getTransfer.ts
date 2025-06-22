@@ -25,7 +25,7 @@ export const createGetTransferHandler = (
     toStationSummary.partitionKey
   )
 
-  const routeIds = Array.from(new Set(results.map(node => node.item.station.routeId)))
+  const routeIds = Array.from(new Set(results.flatMap(node => node.item.station.routeIds)))
   const routeSummaries = new Map(
     findRouteSummariesFromId(databaseHandler, routeIds)
       .map(r => [r.id, r.name])
@@ -35,7 +35,7 @@ export const createGetTransferHandler = (
     items: results.map(node => ({
       id: node.item.station.id,
       name: node.item.station.name,
-      routeName: routeSummaries.get(node.item.station.routeId) || '',
+      routeName: routeSummaries.get(node.item.station.routeIds[0]) || '',
     })),
   }
 }

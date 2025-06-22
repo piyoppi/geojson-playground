@@ -14,7 +14,7 @@ describe('costGenerator', () => {
     const startStationItem = createStationNodeItem({
       id: StationId(await toId('start-station')),
       name: 'Start Station',
-      routeId,
+      routeIds: [routeId],
       position: [0, 0],
       groupId: 'group-a'
     }, companyId)
@@ -28,7 +28,7 @@ describe('costGenerator', () => {
     const sameGroupStationItem = createStationNodeItem({
       id: StationId(await toId('same-group-station')),
       name: 'Same Group Station',
-      routeId,
+      routeIds: [routeId],
       position: [10, 10],
       groupId: 'group-a'
     }, companyId)
@@ -58,7 +58,7 @@ describe('costGenerator', () => {
     const startStationItem = createStationNodeItem({
       id: StationId(await toId('start-station')),
       name: 'Start Station',
-      routeId,
+      routeIds: [routeId],
       position: [0, 0],
       groupId: 'group-b'
     }, companyId)
@@ -72,7 +72,7 @@ describe('costGenerator', () => {
     const sameGroupStationItem = createStationNodeItem({
       id: StationId(await toId('same-group-station')),
       name: 'Same Group Station',
-      routeId,
+      routeIds: [routeId],
       position: [10, 10],
       groupId: 'group-b'
     }, companyId)
@@ -102,7 +102,7 @@ describe('costGenerator', () => {
     const startStationItem = createStationNodeItem({
       id: StationId(await toId('start-station')),
       name: 'Start Station',
-      routeId,
+      routeIds: [routeId],
       position: [0, 0],
       groupId: 'group-start'
     }, companyId)
@@ -116,7 +116,7 @@ describe('costGenerator', () => {
     const station1Item = createStationNodeItem({
       id: StationId(await toId('station-1')),
       name: 'Station 1',
-      routeId,
+      routeIds: [routeId],
       position: [10, 10],
       groupId: 'group-other'
     }, companyId)
@@ -130,7 +130,7 @@ describe('costGenerator', () => {
     const station2Item = createStationNodeItem({
       id: StationId(await toId('station-2')),
       name: 'Station 2',
-      routeId,
+      routeIds: [routeId],
       position: [20, 20],
       groupId: 'group-other'
     }, companyId)
@@ -161,7 +161,7 @@ describe('costGenerator', () => {
     const startStationItem = createStationNodeItem({
       id: StationId(await toId('start-station')),
       name: 'Start Station',
-      routeId,
+      routeIds: [routeId],
       position: [0, 0],
       groupId: 'group-start'
     }, companyId)
@@ -175,7 +175,7 @@ describe('costGenerator', () => {
     const differentGroupStationItem = createStationNodeItem({
       id: StationId(await toId('different-group-station')),
       name: 'Different Group Station',
-      routeId,
+      routeIds: [routeId],
       position: [10, 10],
       groupId: 'group-different'
     }, companyId)
@@ -206,7 +206,7 @@ describe('costGenerator', () => {
     const startStationItem = createStationNodeItem({
       id: StationId(await toId('start-station')),
       name: 'Start Station',
-      routeId,
+      routeIds: [routeId],
       position: [0, 0],
       groupId: 'group-start'
     }, companyId)
@@ -220,7 +220,7 @@ describe('costGenerator', () => {
     const noGroupStationItem = createStationNodeItem({
       id: StationId(await toId('no-group-station')),
       name: 'No Group Station',
-      routeId,
+      routeIds: [routeId],
       position: [10, 10]
     }, companyId)
     

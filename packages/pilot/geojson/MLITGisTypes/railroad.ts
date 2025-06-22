@@ -83,7 +83,7 @@ const createStations = async (stationFeatures: StationFeature[], routeId: RouteI
   const stationPromises = stationFeatures.map(async s => ({
     name: s.properties.N02_005,
     id: await toStationId(s.properties.N02_005c),
-    routeId,
+    routeIds: [routeId],
     groupId: s.properties.N02_005g,
     position: center([s.geometry.coordinates[0], s.geometry.coordinates[1]])
   }))

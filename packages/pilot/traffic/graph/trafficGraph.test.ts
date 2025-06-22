@@ -17,7 +17,7 @@ const createTestStationNode = async (nodeId: string, stationName: string, compan
   const stationItem = createStationNodeItem({
     id: stationId,
     name: stationName,
-    routeId: routeId,
+    routeIds: [routeId],
     position: [0, 0]
   }, companyId)
   

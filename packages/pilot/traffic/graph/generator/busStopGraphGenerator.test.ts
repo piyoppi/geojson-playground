@@ -31,7 +31,7 @@ const findConnectingArc = async (nodeA: any, nodeB: any) => {
 const createTestBusStop = async (name: string, routeId: RouteId, position: Position2D, groupId?: string): Promise<BusStop> => ({
   id: StationId(await toId(`bus-stop-${name}`)),
   name: `Bus Stop ${name}`,
-  routeId,
+  routeIds: [routeId],
   position,
   groupId: groupId || `group-${name}`
 })
