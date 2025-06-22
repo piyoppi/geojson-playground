@@ -12,7 +12,7 @@ export function JsonFileReader ({ onFileLoaded }: JsonFileSelectorProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     setError(null)
-    
+
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {

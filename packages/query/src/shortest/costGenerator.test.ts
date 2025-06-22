@@ -1,5 +1,5 @@
 import { describe, it, type TestContext } from 'node:test'
-import { costGenerator } from './costGenerator.js'
+import { buildCostGenerator } from './costGenerator.js'
 import { toId } from '@piyoppi/sansaku-pilot/utils/Id.js'
 import { CompanyId, StationId, RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation.js'
 import { createStationNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
@@ -45,7 +45,7 @@ describe('costGenerator', () => {
       b: () => Promise.resolve(sameGroupNode)
     }
     
-    const generator = costGenerator(startNode)
+    const generator = buildCostGenerator(() => undefined, startNode)
     const cost = generator(mockArc, startNode, sameGroupNode)
     
     t.assert.strictEqual(cost, 0, 'Cost should be 0 for same-group transfer involving start node')
@@ -89,7 +89,7 @@ describe('costGenerator', () => {
       b: () => Promise.resolve(startNode)
     }
     
-    const generator = costGenerator(startNode)
+    const generator = buildCostGenerator(() => undefined, startNode)
     const cost = generator(mockArc, sameGroupNode, startNode)
     
     t.assert.strictEqual(cost, 0, 'Cost should be 0 for same-group transfer to start node')
@@ -148,7 +148,7 @@ describe('costGenerator', () => {
       b: () => Promise.resolve(station2Node)
     }
     
-    const generator = costGenerator(startNode)
+    const generator = buildCostGenerator(() => undefined, startNode)
     const cost = generator(mockArc, station1Node, station2Node)
     
     t.assert.strictEqual(cost, expectedCost, 'Cost should be arc cost for same-group stations not involving start node')
@@ -193,7 +193,7 @@ describe('costGenerator', () => {
       b: () => Promise.resolve(differentGroupNode)
     }
     
-    const generator = costGenerator(startNode)
+    const generator = buildCostGenerator(() => undefined, startNode)
     const cost = generator(mockArc, startNode, differentGroupNode)
     
     t.assert.strictEqual(cost, expectedCost, 'Cost should be arc cost for different-group stations')
@@ -237,7 +237,7 @@ describe('costGenerator', () => {
       b: () => Promise.resolve(noGroupNode)
     }
     
-    const generator = costGenerator(startNode)
+    const generator = buildCostGenerator(() => undefined, startNode)
     const cost = generator(mockArc, startNode, noGroupNode)
     
     t.assert.strictEqual(cost, expectedCost, 'Cost should be arc cost for stations without groupId')

@@ -12,8 +12,8 @@ type JsonFileSelectorProps = {
 }
 
 export function TrafficFileReader ({ onFileLoaded }: JsonFileSelectorProps) {
-  const handleFileLoad = (data: TrafficGraphFile) => {
-    const { graph, railroads, busRoutes } = trafficGraphFromFile(data)
+  const handleFileLoad = async (data: TrafficGraphFile) => {
+    const { graph, railroads, busRoutes } = await trafficGraphFromFile(data)
 
     onFileLoaded(graph, railroads, busRoutes)
   }
