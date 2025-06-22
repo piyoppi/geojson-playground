@@ -1,9 +1,8 @@
 import { buildGraphBuilder } from "../../../graph/builder/fromNeighborsNode.js"
 import type { BusRoute } from "../../busroute.js"
 import type { RouteId } from "../../transportation.js"
-import { filterStationNodes, type TrafficNode, type TrafficNodeItem } from "../trafficGraph.js"
+import { type TrafficNode, type TrafficNodeItem } from "../trafficGraph.js"
 import type { ArcGenerator } from "../../../graph/arc/index.js"
-import { toId } from "../../../utils/Id.js"
 
 export const buildBusStopGraphGenerator = (
   generateArc: ArcGenerator<TrafficNodeItem>
@@ -36,8 +35,10 @@ export const buildBusStopGraphGenerator = (
                   type: 'Station',
                   station: busStop,
                   companyId: route.companyId,
+                  groupId: busStop.groupId,
                   position: () => busStop.position
-                }],
+                }
+              ],
               busStop => busStop.position
             )
           ]
@@ -45,22 +46,6 @@ export const buildBusStopGraphGenerator = (
         .toArray()
     )
   )
-
-  // [TODO] Spatial index
-  const nodePositionIndex = Map.groupBy(
-    filterStationNodes(nodeMap.values().toArray().flat()),
-    n => [n.item.station.name, ...n.item.station.position].join(',')
-  )
-
-  for (const [key, nodes] of nodePositionIndex) {
-    if (nodes.length > 1) {
-      const positionIndex = await toId(key)
-      for (const node of nodes) {
-        node.item.station.groupId = positionIndex
-      }
-    }
-  }
-
 
   return nodeMap
 }
