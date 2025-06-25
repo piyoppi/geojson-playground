@@ -16,7 +16,7 @@ const createMockTrafficItem = async (type: 'Station' | 'Junction', companyIdStr:
       station: {
         id: StationId(await toId('station1')),
         name: 'Test Station',
-        routeIds: [RouteId(await toId('route1'))],
+        routeId: RouteId(await toId('route1')),
         position: [0, 0]
       }
     }

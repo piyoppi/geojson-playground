@@ -54,7 +54,7 @@ export const createJunctionNodeItem = (junction: Junction, companyId: CompanyId)
 })
 
 /** Node item representing a station in the transportation network */
-export type StationNodeItem = NodeItem & {
+type StationNodeItem = NodeItem & {
   /** Type discriminator for station nodes */
   type: 'Station'
   /** The station data */

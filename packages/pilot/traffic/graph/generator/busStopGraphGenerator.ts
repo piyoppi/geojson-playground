@@ -17,7 +17,7 @@ export const buildBusStopGraphGenerator = (
 
   const nodeMap = new Map(
     await Promise.all(
-      Map.groupBy(busStops, b => b.routeIds[0])
+      Map.groupBy(busStops, b => b.routeId)
         .entries()
         .map<Promise<[RouteId, TrafficNode[]]>>(async ([routeId, busStops]) => {
           const route = routeById.get(routeId)
