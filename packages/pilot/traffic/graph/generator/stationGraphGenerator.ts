@@ -57,10 +57,20 @@ export const buildStationGraphGenerator = (
     .toArray()
 
   // Isolated pathchains may have same station
+  //
+  //  [A] ----- [B]         [A] ----- [B]
+  //  [A] --+          =>    |
+  //        |                |
+  //        +-- [C]          +------- [C]
+  //
   const mergedStationNodes = (await Promise.all(stationNodes.map(n => nodeMerger(n)))).flat()
-  const nodesByGroup = Map.groupBy(mergedStationNodes, n => ('station' in n.item && n.item.station.groupId) ?? '')
 
   // Connect each transit station nodes
+  //
+  // [A(1)] ------ [B]      [A(1)] ------ [B]
+  //                    =>    |
+  // [A(2)] ------ [B]      [A(2)] ------ [B]
+  const nodesByGroup = Map.groupBy(mergedStationNodes, n => ('station' in n.item && n.item.station[0].groupId) ?? '')
   for (const node of filterStationNodes(mergedStationNodes)) {
     const sameGroupNodes = filterStationNodes((node.item.station.groupId && nodesByGroup.get(node.item.station.groupId)) || [])
     for (const current of sameGroupNodes) {
