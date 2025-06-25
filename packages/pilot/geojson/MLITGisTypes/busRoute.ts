@@ -2,7 +2,6 @@ import { type Company, toCompanyId, toRouteId, toStationId } from "../../traffic
 import type { Feature, LineString2D } from "../index.js"
 import type { BusRoute } from "../../traffic/busroute.js"
 import type { BusStopsGeoJson } from "./busStop.js"
-import { toId } from "../../utils/Id.js"
 
 export type BusRoutesGeoJson = {
   type: string
@@ -31,27 +30,14 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
     )
   )
 
-  const processedFeatures = await Promise.all(
-    busStopGeoJson.features.flatMap(f =>
-      f.properties.P11_003_01.split(',').map(async routeName => ({
-        name: f.properties.P11_001,
-        companyName: f.properties.P11_002,
-        routeName,
-        geometry: f.geometry,
-        groupId: await toId([f.properties.P11_001, f.properties.P11_002].join('-'))
-      }))
-    )
-  )
-
-  const busStops: BusRoute[] = await Promise.all(
-    Map.groupBy(
-      processedFeatures,
-      ({companyName, routeName}) => [companyName, routeName].join('-')
+  const busStops: BusRoute[] = await Promise.all(Map.groupBy(
+      busStopGeoJson.features.flatMap(f => f.properties.P11_003_01.split(',').map(r => [f.properties.P11_001, f.properties.P11_002, r, f.geometry] as const)),
+      ([_, companyName, routeName]) => [companyName, routeName].join('-')
     )
     .entries()
-    .map(async ([routeKey, b]): Promise<BusRoute> => {
-      const { companyName, routeName } = b[0]
-      const routeId = await toRouteId(routeKey)
+    .map(async ([k, b]): Promise<BusRoute> => {
+      const [_name, companyName, routeName] = b[0]
+      const routeId = await toRouteId(k)
 
       const company = companies.get(companyName)
       if (!company) {
@@ -64,11 +50,10 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
         companyId: company.id,
         kind: 'bus',
         stations: await Promise.all(
-          b.map(async ({name, geometry, groupId}) => ({
+          b.map(async ([name, _company, _routeName, geometry])=> ({
             id: await toStationId(`${companyName}-${routeName}-${name}-${geometry.coordinates[0]}-${geometry.coordinates[1]}`),
             name,
             routeIds: [routeId],
-            groupId,
             position: geometry.coordinates
           }))
         ),
