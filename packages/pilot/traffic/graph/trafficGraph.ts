@@ -10,6 +10,8 @@ export type TrafficNode = GraphNode<TrafficNodeItem>
 /** Graph node specifically representing a station */
 export type StationNode = GraphNode<StationNodeItem>
 
+export type StationNodeItem = RailroadStationNodeItem | BusStopNodeItem
+
 /** Graph node specifically representing a junction */
 export type JunctionNode = GraphNode<JunctionNodeItem>
 
@@ -54,24 +56,47 @@ export const createJunctionNodeItem = (junction: Junction, companyId: CompanyId)
 })
 
 /** Node item representing a station in the transportation network */
-type StationNodeItem = NodeItem & {
+type RailroadStationNodeItem = NodeItem & {
   /** Type discriminator for station nodes */
   type: 'Station'
   /** The station data */
   station: Station
 }
+
+/** Node item representing a busStop in the transportation network */
+type BusStopNodeItem = NodeItem & {
+  /** Type discriminator for station nodes */
+  type: 'BusStop'
+  /** The station data */
+  busStops: Station[]
+}
+
 /**
- * Creates a station node
+ * Creates a railroad station node
  * @param station - The station data
  * @param companyId - The ID of the company that owns the station
  * @param arcs      - The arcs
  * @returns A station node
  */
-export const createStationNode = (station: Station, companyId: CompanyId, arcs: Arc<StationNodeItem>[] = []): StationNode => ({
+export const createRailroadStationNode = (station: Station, companyId: CompanyId, arcs: Arc<StationNodeItem>[] = []): StationNode => ({
   id: station.id,
   item: createStationNodeItem(station, companyId),
   arcs
 })
+
+/**
+ * Creates a busstop node
+ * @param station - The station data
+ * @param companyId - The ID of the company that owns the station
+ * @param arcs      - The arcs
+ * @returns A station node
+ */
+export const createBusStopNode = (busStops: Station[], companyId: CompanyId, arcs: Arc<StationNodeItem>[] = []): StationNode => ({
+  id: busStops[0].id,
+  item: createBusStopNodeItem(busStops, companyId),
+  arcs
+})
+
 /**
  * Creates a station node item
  * @param station - The station data
@@ -85,6 +110,19 @@ export const createStationNodeItem  = (station: Station, companyId: CompanyId): 
   position: () => station.position
 })
 
+/**
+ * Creates a busstop node item
+ * @param busStops - The busStop data
+ * @param companyId - The ID of the company that owns the station
+ * @returns A station node item
+ */
+export const createBusStopNodeItem  = (busStops: Station[], companyId: CompanyId): BusStopNodeItem => ({
+  type: 'BusStop',
+  busStops,
+  companyId,
+  position: () => busStops[0].position
+})
+
 /** Union type representing either a junction or station node item */
 export type TrafficNodeItem = JunctionNodeItem | StationNodeItem
 
@@ -94,6 +132,13 @@ export type TrafficNodeItem = JunctionNodeItem | StationNodeItem
  * @returns Array of station nodes
  */
 export const filterStationNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<StationNodeItem>[]
+
+/**
+ * Filters an array of traffic nodes to return only busstop nodes
+ * @param nodes - Array of traffic graph nodes to filter
+ * @returns Array of station nodes
+ */
+export const filterBusStopNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'BusStop') as GraphNode<BusStopNodeItem>[]
 
 /**
  * Filters an array of traffic nodes to return only junction nodes
