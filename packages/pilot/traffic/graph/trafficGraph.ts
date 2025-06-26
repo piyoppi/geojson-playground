@@ -131,7 +131,7 @@ export type TrafficNodeItem = JunctionNodeItem | StationNodeItem
  * @param nodes - Array of traffic graph nodes to filter
  * @returns Array of station nodes
  */
-export const filterStationNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<StationNodeItem>[]
+export const filterStationNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<RailroadStationNodeItem>[]
 
 /**
  * Filters an array of traffic nodes to return only busstop nodes

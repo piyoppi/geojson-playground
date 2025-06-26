@@ -1,7 +1,8 @@
 import { type Company, toCompanyId, toRouteId, toStationId } from "../../traffic/transportation.js"
 import type { Feature, LineString2D } from "../index.js"
-import type { BusRoute } from "../../traffic/busroute.js"
+import type { BusRoute, BusStop } from "../../traffic/busroute.js"
 import type { BusStopsGeoJson } from "./busStop.js"
+import { toId } from "../../utils/Id.js"
 
 export type BusRoutesGeoJson = {
   type: string
@@ -12,6 +13,24 @@ export type BusRoutesGeoJson = {
 type Properties = {
   N07_001: string       // バス事業者名
   N07_002: string       // 備考
+}
+
+const assignBusStopGroupIds = async (busStops: BusStop[]): Promise<BusStop[]> => {
+  const nodePositionIndex = Map.groupBy(
+    busStops,
+    s => [s.name, ...s.position].join(',')
+  )
+
+  for (const [key, stations] of nodePositionIndex) {
+    if (stations.length > 1) {
+      const groupId = await toId(key)
+      for (const station of stations) {
+        station.groupId = groupId
+      }
+    }
+  }
+
+  return busStops
 }
 
 export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<[Company[], BusRoute[]]> => {
@@ -59,6 +78,10 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
         ),
       }
     }))
+
+  // 全ルートのすべての停留所を一度に処理してgroupIdを割り当て
+  const allStations = busStops.flatMap(route => route.stations)
+  await assignBusStopGroupIds(allStations)
 
   return [companies.values().toArray(), busStops]
 }

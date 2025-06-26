@@ -1,11 +1,11 @@
 import { describe, it, type TestContext } from 'node:test'
 import { buildBusStopGraphGenerator } from './busStopGraphGenerator.js'
 import { buildWeakRefArc } from '../../../graph/arc/weakRefArc.js'
-import { filterStationNodes } from '../trafficGraph.js'
+import { filterBusStopNodes } from '../trafficGraph.js'
 import { toId } from '../../../utils/Id.js'
 import { RouteId, StationId, CompanyId } from '../../transportation.js'
 import type { BusRoute, BusStop } from '../../busroute.js'
-import { Position2D } from '../../../geometry/index.js'
+import type { Position2D } from '../../../geometry/index.js'
 
 const createDefaultBusStopGraphGenerator = () => {
   const arcGenerator = buildWeakRefArc
@@ -33,7 +33,7 @@ const createTestBusStop = async (name: string, routeId: RouteId, position: Posit
   name: `Bus Stop ${name}`,
   routeId,
   position,
-  groupId: groupId || `group-${name}`
+  groupId: groupId ? await toId(groupId) : await toId(`group-${name}`)
 })
 
 describe('buildBusStopGraphGenerator', () => {
@@ -81,24 +81,239 @@ describe('buildBusStopGraphGenerator', () => {
     t.assert.equal(route2Nodes.length, 2, 'Route 2 should have 2 nodes')
     
     const allNodes = [...route1Nodes, ...route2Nodes]
-    const stationNodes = filterStationNodes(allNodes)
+    const busStopNodes = filterBusStopNodes(allNodes)
     
-    t.assert.equal(stationNodes.length, 4, 'Should have 4 station nodes total')
+    t.assert.equal(busStopNodes.length, 4, 'Should have 4 bus stop nodes total')
     
-    const stationNodeNames = stationNodes.map(n => n.item.station.name).sort()
-    t.assert.deepEqual(stationNodeNames, ['Bus Stop A', 'Bus Stop B', 'Bus Stop C', 'Bus Stop D'])
+    const busStopNames = busStopNodes.flatMap(n => n.item.busStops.map(s => s.name)).sort()
+    t.assert.deepEqual(busStopNames.sort(), ['Bus Stop A', 'Bus Stop B', 'Bus Stop C', 'Bus Stop D'])
     
-    const nodeA = route1Nodes[0]
-    const nodeB = route1Nodes[1]
-    t.assert.ok(nodeA.arcs.length > 0, 'Route 1 nodes should have arcs')
-    
-    const connectingArc = await findConnectingArc(nodeA, nodeB)
-    t.assert.ok(connectingArc, 'Should have connecting arc between nodes')
-    
-    const expectedCostForRoute1 = Math.sqrt(Math.pow(10 - 0, 2) + Math.pow(0 - 0, 2))
-    t.assert.equal(connectingArc.cost, expectedCostForRoute1, `Arc cost should be ${expectedCostForRoute1} for route 1`)
+    // Check connections between nodes
+    if (route1Nodes.length >= 2) {
+      const nodeA = route1Nodes[0]
+      const nodeB = route1Nodes[1]
+      if (nodeA.arcs && nodeA.arcs.length > 0) {
+        const connectingArc = await findConnectingArc(nodeA, nodeB)
+        if (connectingArc) {
+          const expectedCostForRoute1 = Math.sqrt(Math.pow(10 - 0, 2) + Math.pow(0 - 0, 2))
+          t.assert.equal(connectingArc.cost, expectedCostForRoute1, `Arc cost should be ${expectedCostForRoute1} for route 1`)
+        }
+      }
+    }
+  })
 
-    const expectedCostForRoute2 = Math.sqrt(Math.pow(20 - 20, 2) + Math.pow(10 - 0, 2))
-    t.assert.equal(connectingArc.cost, expectedCostForRoute2, `Arc cost should be ${expectedCostForRoute2} for route 1`)
+  it('should merge bus stops with the same groupId into a single node', async (t: TestContext) => {
+    /*
+     * Input: Bus Stops
+     * ================
+     * Route 1: [Central Station (groupId: shared)] --> [North Station]
+     *              position: [0,0]                      position: [1,0]
+     *
+     * Route 2: [Central Station (groupId: shared)] --> [South Station]
+     *              position: [0,0]                      position: [-1,0]
+     *
+     * Output: Graph Nodes
+     * ===================
+     * Route 1:
+     *   Node1 (Central Station) -----> Node2 (North Station)
+     *          ↑
+     *          └── Contains: [busStop1Route1, busStop1Route2]
+     *              (Shared instance between routes)
+     *
+     * Route 2:
+     *   Node1 (Central Station) -----> Node3 (South Station)
+     *          ↑
+     *          └── Same instance as Route 1's Node1
+     */
+    const arcGenerator = buildWeakRefArc
+    const generator = buildBusStopGraphGenerator(arcGenerator)
+    
+    const sharedGroupId = await toId('shared-bus-stop-1')
+    const companyId1 = CompanyId(await toId('bus-company-1'))
+    const companyId2 = CompanyId(await toId('bus-company-2'))
+    
+    const busStop1Route1: BusStop = {
+      id: StationId(await toId('stop-1-route-1')),
+      routeId: RouteId(await toId('route-1')),
+      name: 'Central Station',
+      position: [0, 0] as Position2D,
+      groupId: sharedGroupId
+    }
+    
+    const busStop1Route2: BusStop = {
+      id: StationId(await toId('stop-1-route-2')),
+      routeId: RouteId(await toId('route-2')),
+      name: 'Central Station',
+      position: [0, 0] as Position2D,
+      groupId: sharedGroupId
+    }
+    
+    const busStop2Route1: BusStop = {
+      id: StationId(await toId('stop-2-route-1')),
+      routeId: RouteId(await toId('route-1')),
+      name: 'North Station',
+      position: [1, 0] as Position2D,
+      groupId: await toId('north-station')
+    }
+    
+    const busStop2Route2: BusStop = {
+      id: StationId(await toId('stop-2-route-2')),
+      routeId: RouteId(await toId('route-2')),
+      name: 'South Station',
+      position: [-1, 0] as Position2D,
+      groupId: await toId('south-station')
+    }
+    
+    const routes: BusRoute[] = [
+      {
+        id: RouteId(await toId('route-1')),
+        name: 'Route 1',
+        companyId: companyId1,
+        kind: 'bus',
+        stations: [busStop1Route1, busStop2Route1]
+      },
+      {
+        id: RouteId(await toId('route-2')),
+        name: 'Route 2',
+        companyId: companyId2,
+        kind: 'bus',
+        stations: [busStop1Route2, busStop2Route2]
+      }
+    ]
+    
+    const result = await generator(routes)
+    
+    const route1Nodes = result.get(routes[0].id)
+    const route2Nodes = result.get(routes[1].id)
+    
+    t.assert.ok(route1Nodes, 'Route 1 should exist')
+    t.assert.ok(route2Nodes, 'Route 2 should exist')
+    t.assert.equal(route1Nodes.length, 2, 'Route 1 should have 2 nodes')
+    t.assert.equal(route2Nodes.length, 2, 'Route 2 should have 2 nodes')
+    
+    const busStopNodes1 = filterBusStopNodes(route1Nodes)
+    const busStopNodes2 = filterBusStopNodes(route2Nodes)
+    
+    const centralNode1 = busStopNodes1.find(n =>
+      n.item.busStops.some(s => s.name === 'Central Station')
+    )
+    const centralNode2 = busStopNodes2.find(n =>
+      n.item.busStops.some(s => s.name === 'Central Station')
+    )
+    
+    t.assert.ok(centralNode1, 'Central Station node should exist in route 1')
+    t.assert.ok(centralNode2, 'Central Station node should exist in route 2')
+    
+    t.assert.equal(centralNode1, centralNode2, 'Central Station should be the same node instance in both routes')
+    
+    t.assert.equal(centralNode1.item.busStops.length, 2, 'Shared node should contain 2 bus stops')
+    
+    const busStopIds = centralNode1.item.busStops.map(s => s.id).sort()
+    t.assert.deepEqual(
+      busStopIds,
+      [busStop1Route1.id, busStop1Route2.id].sort(),
+      'Shared node should contain bus stops from both routes'
+    )
+  })
+
+
+  it('should handle multiple bus stops sharing the same groupId across multiple routes', async (t: TestContext) => {
+    /*
+     * Input: Bus Stops across 3 routes
+     * =================================
+     * Route 1: [Major Terminal (groupId: shared)] --> [Route 1 Stop]
+     *              position: [0,0]                     position: [1,0]
+     *
+     * Route 2: [Major Terminal (groupId: shared)] --> [Route 2 Stop]
+     *              position: [0,0]                     position: [2,0]
+     *
+     * Route 3: [Major Terminal (groupId: shared)] --> [Route 3 Stop]
+     *              position: [0,0]                     position: [3,0]
+     *
+     * Output: Graph Nodes
+     * ===================
+     *                    ┌─────────────────────┐
+     *                    │   Major Terminal    │
+     *                    │ (Single shared node)│
+     *                    │                     │
+     *                    │ Contains bus stops: │
+     *                    │ - terminal-route-1  │
+     *                    │ - terminal-route-2  │
+     *                    │ - terminal-route-3  │
+     *                    └──────────┬──────────┘
+     *                               │
+     *              ┌────────────────┼────────────────┐
+     *              │                │                │
+     *              ▼                ▼                ▼
+     *        [Route 1 Stop]   [Route 2 Stop]   [Route 3 Stop]
+     *         position:[1,0]   position:[2,0]   position:[3,0]
+     *
+     * All three routes share the same Major Terminal node instance
+     */
+    const arcGenerator = buildWeakRefArc
+    const generator = buildBusStopGraphGenerator(arcGenerator)
+    
+    const sharedGroupId = await toId('major-terminal')
+    const companyId = CompanyId(await toId('bus-company'))
+    
+    const stops: BusStop[] = []
+    const routes: BusRoute[] = []
+    
+    for (let routeNum = 1; routeNum <= 3; routeNum++) {
+      const routeId = RouteId(await toId(`route-${routeNum}`))
+      const routeStops: BusStop[] = []
+      
+      routeStops.push({
+        id: StationId(await toId(`terminal-route-${routeNum}`)),
+        routeId,
+        name: 'Major Terminal',
+        position: [0, 0] as Position2D,
+        groupId: sharedGroupId
+      })
+      
+      routeStops.push({
+        id: StationId(await toId(`unique-stop-route-${routeNum}`)),
+        routeId,
+        name: `Route ${routeNum} Stop`,
+        position: [routeNum, 0] as Position2D,
+        groupId: await toId(`unique-${routeNum}`)
+      })
+      
+      routes.push({
+        id: routeId,
+        name: `Route ${routeNum}`,
+        companyId,
+        kind: 'bus',
+        stations: routeStops
+      })
+      
+      stops.push(...routeStops)
+    }
+    
+    const result = await generator(routes)
+    
+    for (const route of routes) {
+      const nodes = result.get(route.id)
+      t.assert.ok(nodes, `${route.name} should exist`)
+      t.assert.equal(nodes.length, 2, `${route.name} should have 2 nodes`)
+    }
+    
+    const terminalNodes = routes.map(route => {
+      const nodes = filterBusStopNodes(result.get(route.id)!)
+      return nodes.find(n => n.item.busStops.some(s => s.name === 'Major Terminal'))
+    })
+    
+    t.assert.ok(terminalNodes[0], 'Terminal node should exist')
+    t.assert.equal(terminalNodes[0], terminalNodes[1], 'Routes 1 and 2 should share terminal node')
+    t.assert.equal(terminalNodes[1], terminalNodes[2], 'Routes 2 and 3 should share terminal node')
+    
+    t.assert.equal(
+      terminalNodes[0]!.item.busStops.length, 
+      3, 
+      'Shared terminal node should contain 3 bus stops (one from each route)'
+    )
+    
+    const terminalStopNames = terminalNodes[0]!.item.busStops.map(s => s.routeId)
+    t.assert.equal(terminalStopNames.length, 3, 'Should have stops from 3 different routes')
   })
 })

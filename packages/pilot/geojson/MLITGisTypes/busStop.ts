@@ -6,7 +6,7 @@ export type BusStopsGeoJson = {
 }
 
 // ref: https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P11-2022.html
-type Properties = {
+export type Properties = {
   P11_001: string       // バス停留所名
   P11_002: string       // バス事業者名
   P11_003_01: string    // バス系統

@@ -1,9 +1,9 @@
 import { buildGraphBuilder } from "../../../graph/builder/fromNeighborsNode.js"
 import type { BusRoute } from "../../busroute.js"
-import type { RouteId } from "../../transportation.js"
+import type { RouteId, CompanyId } from "../../transportation.js"
+import { CompanyId as createCompanyId } from "../../transportation.js"
 import { createBusStopNodeItem, filterStationNodes, type TrafficNode, type TrafficNodeItem } from "../trafficGraph.js"
 import type { ArcGenerator } from "../../../graph/arc/index.js"
-import { toId } from "../../../utils/Id.js"
 
 export const buildBusStopGraphGenerator = (
   generateArc: ArcGenerator<TrafficNodeItem>
@@ -15,48 +15,55 @@ export const buildBusStopGraphGenerator = (
   const busStops = routes.flatMap(b => b.stations)
   const routeById = new Map(routes.map(r => [r.id, r]))
 
-  const nodeMap = new Map(
-    await Promise.all(
-      Map.groupBy(busStops, b => b.routeId)
-        .entries()
-        .map<Promise<[RouteId, TrafficNode[]]>>(async ([routeId, busStops]) => {
-          const route = routeById.get(routeId)
+  const busStopsByGroupId = Map.groupBy(busStops, s => s.groupId || s.id)
 
-          if (!route) {
-            throw new Error(`Route is not found (routeId: ${routeId})`)
-          }
+  const nodesByGroupId = new Map<string, TrafficNode>()
 
-          return [
-            routeId,
-            await fromNeighborsPoints(
-              busStops,
-              busStop => [
-                busStop.id,
-                createBusStopNodeItem([busStop], route.companyId)
-              ],
-              busStop => busStop.position
-            )
-          ]
-        })
-        .toArray()
-    )
-  )
-
-  // [TODO] Spatial index
-  const nodePositionIndex = Map.groupBy(
-    filterStationNodes(nodeMap.values().toArray().flat()),
-    n => [n.item.station.name, ...n.item.station.position].join(',')
-  )
-
-  for (const [key, nodes] of nodePositionIndex) {
-    if (nodes.length > 1) {
-      const positionIndex = await toId(key)
-      for (const node of nodes) {
-        node.item.station.groupId = positionIndex
+  for (const [groupId, stationsInGroup] of busStopsByGroupId) {
+    const companyIds = new Set<CompanyId>()
+    for (const station of stationsInGroup) {
+      const route = routeById.get(station.routeId)
+      if (route) {
+        companyIds.add(route.companyId)
       }
     }
+
+    const companyId = companyIds.values().next().value
+    if (!companyId) {
+      throw new Error(`No route found for stations in group ${groupId}`)
+    }
+
+    const node = await fromNeighborsPoints(
+      [stationsInGroup[0]],
+      _ => [
+        groupId,
+        createBusStopNodeItem(stationsInGroup, companyId)
+      ],
+      s => s.position
+    )
+
+    nodesByGroupId.set(groupId, node[0])
   }
 
+  const nodeMap = new Map<RouteId, TrafficNode[]>()
+
+  for (const [routeId, route] of routes.map(r => [r.id, r] as const)) {
+    const nodesForRoute: TrafficNode[] = []
+    const addedGroupIds = new Set<string>()
+
+    for (const station of route.stations) {
+      const groupId = station.groupId || station.id
+      if (!addedGroupIds.has(groupId)) {
+        const node = nodesByGroupId.get(groupId)
+        if (node) {
+          nodesForRoute.push(node)
+          addedGroupIds.add(groupId)
+        }
+      }
+    }
+
+    nodeMap.set(routeId, nodesForRoute)
+  }
 
   return nodeMap
 }
