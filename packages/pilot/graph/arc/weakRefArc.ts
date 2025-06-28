@@ -3,8 +3,8 @@ import type { ArcDeserializer } from "../serialize.js"
 import type { Arc } from "./index.js"
 
 export const buildWeakRefArc = <I>(
-  a: GraphNode<I>, 
-  b: GraphNode<I>, 
+  a: GraphNode<I>,
+  b: GraphNode<I>,
   cost: number
 ): Arc<I> => {
   const aRef = new WeakRef(a)

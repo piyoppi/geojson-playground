@@ -44,7 +44,7 @@ export const disconnect = async <T>(a: GraphNode<T>, b: GraphNode<T>) => {
 
 export const removeNode = async (node: GraphNode<unknown>) => {
   const connectedNodes: GraphNode<unknown>[] = []
-  
+
   for (const arc of node.arcs) {
     const nodeA = await arc.a()
     const nodeB = await arc.b()
@@ -53,7 +53,7 @@ export const removeNode = async (node: GraphNode<unknown>) => {
       connectedNodes.push(connectedNode)
     }
   }
-  
+
   connectedNodes.forEach(connectedNode => disconnect(node, connectedNode))
 }
 
@@ -66,14 +66,23 @@ export const to = async <T>(fromNode: GraphNode<T>, arc: Arc<T>): Promise<GraphN
   return null
 }
 
-export const arcExists = async <T>(a: GraphNode<T>, b: GraphNode<T>): Promise<boolean> => {
-  return Promise.all(
-    a.arcs.map(async arc => {
-      const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
+export const findConnectingArc = async <T>(
+  nodeA: GraphNode<T>,
+  nodeB: GraphNode<T>
+): Promise<Arc<T> | undefined> => {
+  for (const arc of nodeA.arcs) {
+    const [arcNodeA, arcNodeB] = await Promise.all([arc.a(), arc.b()])
+    if ((arcNodeA === nodeA && arcNodeB === nodeB) || (arcNodeA === nodeB && arcNodeB === nodeA)) {
+      return arc
+    }
+  }
 
-      return (nodeA === a && nodeB === b) || (nodeA === b && nodeB === a)
-    })
-  ).then(results => results.some(result => result))
+  return undefined
+}
+
+export const arcExists = async <T>(a: GraphNode<T>, b: GraphNode<T>): Promise<boolean> => {
+  const arc = await findConnectingArc(a, b)
+  return arc !== undefined
 }
 
 export const buildNodeMerger = <IG>(
@@ -83,19 +92,19 @@ export const buildNodeMerger = <IG>(
 ): Promise<GraphNode<I>> => {
   const mergedNode = {...nodes[0], arcs: []}
   const arcMap = new Map<GraphNode<I>, { totalCost: number, count: number }>()
-  
+
   for (const node of nodes) {
     for (const arc of node.arcs) {
       const nodeA = await arc.a()
       const nodeB = await arc.b()
-      
+
       if (!nodeA || !nodeB) continue
       if (nodes.includes(nodeA) && nodes.includes(nodeB)) continue
-      
+
       const otherNode = nodes.includes(nodeA) ? nodeB : nodeA
-      
+
       if (!otherNode) continue
-      
+
       if (!arcMap.has(otherNode)) {
         arcMap.set(otherNode, { totalCost: arc.cost, count: 1 })
       } else {
@@ -105,26 +114,34 @@ export const buildNodeMerger = <IG>(
       }
     }
   }
-  
+
   for (const [otherNode, { totalCost, count }] of arcMap.entries()) {
     const averageCost = totalCost / count
     const newArc = generateArc(mergedNode, otherNode, averageCost)
     connect(mergedNode, otherNode, newArc)
   }
-  
+
   return mergedNode
 }
 
 export type DuplicateNodesMarger<IG> = ReturnType<typeof buildDuplicateNodesMarger<IG>>
 export const buildDuplicateNodesMarger = <IG>(
-  mergeNodes: ReturnType<typeof buildNodeMerger<IG>>
-) => async <I extends IG>(targetNodes: GraphNode<I>[]): Promise<GraphNode<I>[]> => {
+  mergeNodes: ReturnType<typeof buildNodeMerger<IG>>,
+  getGroupKey: (n: GraphNode<IG>) => string | undefined = (n) => n.id,
+) => async <I extends IG>(
+  targetNodes: GraphNode<I>[],
+  mergedNodeHook: (merged: GraphNode<IG>, targetNodes: GraphNode<IG>[]) => void = () => {}
+): Promise<GraphNode<I>[]> => {
   const duplicatedNodes = new Set()
 
   await Promise.all(
-    Map.groupBy(targetNodes, n => n.id).values().map(async nodes => {
+    Map.groupBy(targetNodes, n => getGroupKey(n))
+    .entries()
+    .flatMap(([k, v]) => k ? [v] : [])
+    .map(async nodes => {
       if (nodes.length > 1) {
         const mergedNode = await mergeNodes(...nodes)
+        mergedNodeHook(mergedNode, nodes)
         targetNodes.push(mergedNode)
         nodes.forEach(node => {
           removeNode(node)

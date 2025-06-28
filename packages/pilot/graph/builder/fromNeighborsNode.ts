@@ -10,8 +10,8 @@ export const buildGraphBuilder = <I>(
   point: T[],
   createNodeCallback: (node: T) => CallbackGenerated<I>,
   getPointCallback: (node: T) => Position2D,
-) => {
-  const items: [GraphNode<I>, Position2D][] = 
+): Promise<GraphNode<I>[]> => {
+  const items: [GraphNode<I>, Position2D][] =
     point
       .map(n => [getPointCallback(n), createNodeCallback(n)] as const)
       .map(([p, [id, item]]) => [{id, item, arcs: []}, p])

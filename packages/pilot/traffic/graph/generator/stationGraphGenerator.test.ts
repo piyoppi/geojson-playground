@@ -2,7 +2,7 @@ import { describe, it, type TestContext } from 'node:test'
 import { buildStationGraphGenerator } from './stationGraphGenerator.js'
 import { buildWeakRefArc } from '../../../graph/arc/weakRefArc.js'
 import { buildDuplicateNodesMarger, buildNodeMerger, arcExists } from '../../../graph/graph.js'
-import { filterStationNodes, filterJunctionNodes } from '../trafficGraph.js'
+import { filterStationNodes, filterJunctionNodes, type TrafficNodeItem } from '../trafficGraph.js'
 import { toId } from '../../../utils/Id.js'
 import { RouteId, StationId, CompanyId, type Station } from '../../transportation.js'
 import type { Railroad } from '../../railroad.js'
@@ -12,7 +12,7 @@ import { Position2D } from '../../../geometry/index.js'
 const createDefaultStationGraphGenerator = () => {
   const arcGenerator = buildWeakRefArc
   const transferCostGenerator = () => 1
-  const nodeMerger = buildDuplicateNodesMarger(buildNodeMerger(arcGenerator))
+  const nodeMerger = buildDuplicateNodesMarger<TrafficNodeItem>(buildNodeMerger(arcGenerator))
   
   return buildStationGraphGenerator(
     arcGenerator,

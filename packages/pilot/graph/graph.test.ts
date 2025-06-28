@@ -1,7 +1,8 @@
 import { describe, it, type TestContext } from 'node:test'
-import { 
-  to, 
-  arcExists, 
+import {
+  to,
+  arcExists,
+  findConnectingArc,
   connect,
   disconnect,
   findShortestPath,
@@ -58,6 +59,62 @@ describe('arcExists', () => {
   })
 })
 
+describe('findConnectingArc', () => {
+  it('should return the arc object if an arc exists between nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const arc = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 1 }
+    connect(nodeA, nodeB, arc)
+
+    const foundArc = await findConnectingArc(nodeA, nodeB)
+    t.assert.strictEqual(foundArc, arc)
+  })
+
+  it('should return undefined if no arc exists between nodes', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
+    const arc = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 1 }
+    connect(nodeA, nodeB, arc)
+
+    const foundArc = await findConnectingArc(nodeA, nodeC)
+    t.assert.strictEqual(foundArc, undefined)
+  })
+
+  it('should find arc regardless of node order', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const arc = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 5 }
+    connect(nodeA, nodeB, arc)
+
+    const foundArcAB = await findConnectingArc(nodeA, nodeB)
+    const foundArcBA = await findConnectingArc(nodeB, nodeA)
+
+    t.assert.strictEqual(foundArcAB, arc)
+    t.assert.strictEqual(foundArcBA, arc)
+    t.assert.strictEqual(foundArcAB, foundArcBA)
+  })
+
+  it('should return the correct arc when multiple arcs exist from a node', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
+    const arcAB = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeB), cost: 10 }
+    const arcAC = { a: () => Promise.resolve(nodeA), b: () => Promise.resolve(nodeC), cost: 20 }
+
+    connect(nodeA, nodeB, arcAB)
+    connect(nodeA, nodeC, arcAC)
+
+    const foundArcAB = await findConnectingArc(nodeA, nodeB)
+    const foundArcAC = await findConnectingArc(nodeA, nodeC)
+    const foundArcBC = await findConnectingArc(nodeB, nodeC)
+
+    t.assert.strictEqual(foundArcAB, arcAB)
+    t.assert.strictEqual(foundArcAC, arcAC)
+    t.assert.strictEqual(foundArcBC, undefined)
+  })
+})
+
 describe('buildNodeMerger', () => {
   it('should merge nodes and connect arcs properly', async (t: TestContext) => {
     // Create test nodes
@@ -80,10 +137,10 @@ describe('buildNodeMerger', () => {
     connect(node1, node2, arc12)
 
     // Merge node1 and node2
-    // 
+    //
     //                [mergedNode]
-    //                     |   
-    //                    15  
+    //                     |
+    //                    15
     //           arc1      |      arc2
     // [node1] ---10--- [node3] ---20--- [node2]
     //    |                                 |
@@ -122,7 +179,7 @@ describe('buildNodeMerger', () => {
     connect(node3, node4, arc34)
 
     // Merge node2 and node3
-    // 
+    //
     //         arc1                arc2
     //    +-----10------[node2]-----20------+
     //    |                                 |
@@ -170,7 +227,7 @@ describe('buildNodeMerger', () => {
     connect(node1, node2, arc12)
 
     // Merge node1 and node2
-    // 
+    //
     //                [mergedNode]
     //                     |
     //                    10
@@ -200,48 +257,48 @@ describe('disconnect', () => {
     const nodeA = { id: 'A', item: {}, arcs: [] }
     const nodeB = { id: 'B', item: {}, arcs: [] }
     const arc = generateArc(nodeA, nodeB, 10)
-    
+
     connect(nodeA, nodeB, arc)
-    
+
     t.assert.strictEqual(nodeA.arcs.length, 1)
     t.assert.strictEqual(nodeB.arcs.length, 1)
     t.assert.strictEqual(await arcExists(nodeA, nodeB), true)
-    
+
     await disconnect(nodeA, nodeB)
-    
+
     t.assert.strictEqual(nodeA.arcs.length, 0)
     t.assert.strictEqual(nodeB.arcs.length, 0)
     t.assert.strictEqual(await arcExists(nodeA, nodeB), false)
   })
-  
+
   it('should not affect other connections when disconnecting specific nodes', async (t: TestContext) => {
     const nodeA = { id: 'A', item: {}, arcs: [] }
     const nodeB = { id: 'B', item: {}, arcs: [] }
     const nodeC = { id: 'C', item: {}, arcs: [] }
-    
+
     const arcAB = generateArc(nodeA, nodeB, 100)
     const arcAC = generateArc(nodeA, nodeC, 200)
-    
+
     connect(nodeA, nodeB, arcAB)
     connect(nodeA, nodeC, arcAC)
-    
+
     t.assert.strictEqual(nodeA.arcs.length, 2)
     t.assert.strictEqual(nodeB.arcs.length, 1)
     t.assert.strictEqual(nodeC.arcs.length, 1)
-    
+
     await disconnect(nodeA, nodeB)
-    
+
     t.assert.strictEqual(nodeA.arcs.length, 1)
     t.assert.strictEqual(nodeB.arcs.length, 0)
     t.assert.strictEqual(nodeC.arcs.length, 1)
     t.assert.strictEqual(await arcExists(nodeA, nodeB), false)
     t.assert.strictEqual(await arcExists(nodeA, nodeC), true)
   })
-  
+
   it('should handle case when nodes have no connection', (t: TestContext) => {
     const nodeA = { id: 'A', item: {}, arcs: [] }
     const nodeB = { id: 'B', item: {}, arcs: [] }
-    
+
     t.assert.strictEqual(nodeA.arcs.length, 0)
     t.assert.strictEqual(nodeB.arcs.length, 0)
   })

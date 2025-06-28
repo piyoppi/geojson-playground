@@ -70,7 +70,7 @@ export const buildStationGraphGenerator = (
   // [A(1)] ------ [B]      [A(1)] ------ [B]
   //                    =>    |
   // [A(2)] ------ [B]      [A(2)] ------ [B]
-  const nodesByGroup = Map.groupBy(mergedStationNodes, n => ('station' in n.item && n.item.station[0].groupId) ?? '')
+  const nodesByGroup = Map.groupBy(mergedStationNodes, n => ('station' in n.item && n.item.station.groupId) ?? '')
   for (const node of filterStationNodes(mergedStationNodes)) {
     const sameGroupNodes = filterStationNodes((node.item.station.groupId && nodesByGroup.get(node.item.station.groupId)) || [])
     for (const current of sameGroupNodes) {

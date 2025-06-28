@@ -10,16 +10,16 @@ import type { Position2D } from '../../geometry/index.js';
  * @param maxDistance - Maximum connection distance threshold
  */
 export function mergeGraphNodes(
-  stationNodes: TrafficNode[], 
-  busNodes: TrafficNode[], 
+  stationNodes: TrafficNode[],
+  busNodes: TrafficNode[],
   maxDistance: number = 0.0012868993
 ): void {
   const { grid, cellSize } = buildSpatialIndex(stationNodes, maxDistance);
-  
+
   for (const busNode of busNodes) {
     const position = busNode.item.position();
     const nearestStation = findNearest(position, maxDistance, grid, cellSize);
-    
+
     if (nearestStation) {
       const arc = generateTransferOtherLineArc(busNode, nearestStation, 1);
       connect(busNode, nearestStation, arc);
@@ -39,12 +39,12 @@ type SpatialGrid = {
  * @returns Spatial grid data structure
  */
 function buildSpatialIndex(
-  nodes: TrafficNode[], 
+  nodes: TrafficNode[],
   maxDistance: number
 ): SpatialGrid {
   const grid = new Map<string, TrafficNode[]>();
   const cellSize = maxDistance * 2;
-  
+
   // Index all nodes
   for (const node of nodes) {
     const position = node.item.position();
@@ -53,10 +53,10 @@ function buildSpatialIndex(
     if (!grid.has(cellKey)) {
       grid.set(cellKey, []);
     }
-    
+
     grid.get(cellKey)!.push(node);
   }
-  
+
   return { grid, cellSize };
 }
 
@@ -69,18 +69,18 @@ function buildSpatialIndex(
  * @returns The nearest node within the max distance, or null if none found
  */
 function findNearest(
-  position: Position2D, 
+  position: Position2D,
   maxDistance: number,
   grid: Map<string, TrafficNode[]>,
   cellSize: number
 ): TrafficNode | null {
   const cellKey = getCellKey(position, cellSize);
-  
+
   const cellsToCheck = getAdjacentCellKeys(cellKey);
-  
+
   let nearestNode: TrafficNode | null = null;
   let minDistance = maxDistance;
- 
+
   for (const key of cellsToCheck) {
     const nodesInCell = grid.get(key) || [];
 
@@ -94,7 +94,7 @@ function findNearest(
       }
     }
   }
-  
+
   return nearestNode;
 }
 
@@ -124,7 +124,7 @@ function getAdjacentCellKeys(cellKey: string): string[] {
       keys.push(`${x + i},${y + j}`);
     }
   }
-  
+
   return keys;
 }
 

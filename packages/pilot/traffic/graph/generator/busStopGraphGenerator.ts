@@ -1,69 +1,60 @@
 import { buildGraphBuilder } from "../../../graph/builder/fromNeighborsNode.js"
 import type { BusRoute } from "../../busroute.js"
-import type { RouteId, CompanyId } from "../../transportation.js"
-import { CompanyId as createCompanyId } from "../../transportation.js"
-import { createBusStopNodeItem, filterStationNodes, type TrafficNode, type TrafficNodeItem } from "../trafficGraph.js"
+import { BusStopNodeItem, createBusStopNodeItem, type TrafficNode } from "../trafficGraph.js"
 import type { ArcGenerator } from "../../../graph/arc/index.js"
+import { buildDuplicateNodesMarger, buildNodeMerger } from "../../../graph/graph.js"
 
 export const buildBusStopGraphGenerator = (
-  generateArc: ArcGenerator<TrafficNodeItem>
+  generateArc: ArcGenerator<BusStopNodeItem>,
 ) => async (
   routes: BusRoute[],
-): Promise<Map<RouteId, TrafficNode[]>> => {
+): Promise<TrafficNode[]> => {
   const fromNeighborsPoints = buildGraphBuilder(generateArc)
-
   const busStops = routes.flatMap(b => b.stations)
   const routeById = new Map(routes.map(r => [r.id, r]))
 
-  const busStopsByGroupId = Map.groupBy(busStops, s => s.groupId || s.id)
+  const busStopByRoute = Map.groupBy(busStops, b => b.routeId)
 
-  const nodesByGroupId = new Map<string, TrafficNode>()
+  const nodes = []
+  for (const [routeId, busStops] of busStopByRoute) {
+    const route = routeById.get(routeId)
 
-  for (const [groupId, stationsInGroup] of busStopsByGroupId) {
-    const companyIds = new Set<CompanyId>()
-    for (const station of stationsInGroup) {
-      const route = routeById.get(station.routeId)
-      if (route) {
-        companyIds.add(route.companyId)
-      }
+    if (!route) {
+      throw new Error(`Route is not found (routeId: ${routeId})`)
     }
 
-    const companyId = companyIds.values().next().value
-    if (!companyId) {
-      throw new Error(`No route found for stations in group ${groupId}`)
-    }
-
-    const node = await fromNeighborsPoints(
-      [stationsInGroup[0]],
-      _ => [
-        groupId,
-        createBusStopNodeItem(stationsInGroup, companyId)
+    const routeNodes = await fromNeighborsPoints(
+      busStops,
+      busStop => [
+        busStop.id,
+        createBusStopNodeItem([busStop], route.companyId)
       ],
-      s => s.position
+      busStop => busStop.position
     )
 
-    nodesByGroupId.set(groupId, node[0])
+    nodes.push(...routeNodes)
   }
 
-  const nodeMap = new Map<RouteId, TrafficNode[]>()
-
-  for (const [routeId, route] of routes.map(r => [r.id, r] as const)) {
-    const nodesForRoute: TrafficNode[] = []
-    const addedGroupIds = new Set<string>()
-
-    for (const station of route.stations) {
-      const groupId = station.groupId || station.id
-      if (!addedGroupIds.has(groupId)) {
-        const node = nodesByGroupId.get(groupId)
-        if (node) {
-          nodesForRoute.push(node)
-          addedGroupIds.add(groupId)
-        }
+  //
+  //  [A (Route 1)] ----- [B (Route 1)]         [A (Route1, Route2] ----- [B (Route 1)]
+  //  [A (Route 1)] --+                    =>            |
+  //                  |                                  |
+  //                  +-- [C (Route 2)]                  +--------------- [C (Route 2)]
+  //
+  const mergeDuplicateBusStopNode = buildDuplicateNodesMarger<BusStopNodeItem>(
+    buildNodeMerger(generateArc),
+    n => n.item.groupId()
+  )
+  const merged = await mergeDuplicateBusStopNode(
+    nodes,
+    (merged, targets) => {
+      const busStops = []
+      for (const target of targets) {
+        busStops.push(...target.item.busStops)
       }
+      merged.item.busStops = busStops
     }
+  )
 
-    nodeMap.set(routeId, nodesForRoute)
-  }
-
-  return nodeMap
+  return merged
 }

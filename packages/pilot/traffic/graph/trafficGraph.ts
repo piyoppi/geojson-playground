@@ -10,6 +10,9 @@ export type TrafficNode = GraphNode<TrafficNodeItem>
 /** Graph node specifically representing a station */
 export type StationNode = GraphNode<StationNodeItem>
 
+export type RailroadStationNode = GraphNode<RailroadStationNodeItem>
+export type BusStopNode = GraphNode<BusStopNodeItem>
+
 export type StationNodeItem = RailroadStationNodeItem | BusStopNodeItem
 
 /** Graph node specifically representing a junction */
@@ -56,7 +59,7 @@ export const createJunctionNodeItem = (junction: Junction, companyId: CompanyId)
 })
 
 /** Node item representing a station in the transportation network */
-type RailroadStationNodeItem = NodeItem & {
+export type RailroadStationNodeItem = NodeItem & {
   /** Type discriminator for station nodes */
   type: 'Station'
   /** The station data */
@@ -64,11 +67,12 @@ type RailroadStationNodeItem = NodeItem & {
 }
 
 /** Node item representing a busStop in the transportation network */
-type BusStopNodeItem = NodeItem & {
+export type BusStopNodeItem = NodeItem & {
   /** Type discriminator for station nodes */
   type: 'BusStop'
   /** The station data */
   busStops: Station[]
+  groupId: () => string | undefined
 }
 
 /**
@@ -120,7 +124,8 @@ export const createBusStopNodeItem  = (busStops: Station[], companyId: CompanyId
   type: 'BusStop',
   busStops,
   companyId,
-  position: () => busStops[0].position
+  position: () => busStops[0].position,
+  groupId: () => busStops[0].groupId
 })
 
 /** Union type representing either a junction or station node item */
