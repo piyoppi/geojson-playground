@@ -4,6 +4,7 @@ import type { Arc, ArcGenerator } from "./arc/index.js"
 export type NodeId = Id
 export const isEqualNodeId = (aNodeId: NodeId, bNodeId: NodeId): boolean => aNodeId === bNodeId
 export const nodeIdToString = (id: NodeId) => idToString(id)
+export const stringToNodeId = (str: string) => str
 
 export interface GraphNode<T> {
   id: NodeId

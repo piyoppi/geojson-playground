@@ -11,12 +11,25 @@ export type TrafficNode = GraphNode<TrafficNodeItem>
 export type StationNode = GraphNode<StationNodeItem>
 
 export type RailroadStationNode = GraphNode<RailroadStationNodeItem>
+
+export function isRailroadStationNode(node: GraphNode<unknown>): node is RailroadStationNode {
+  return isRailroadStationNodeItem(node.item)
+}
+
 export type BusStopNode = GraphNode<BusStopNodeItem>
+
+export function isBusStopNode(node: GraphNode<unknown>): node is BusStopNode {
+  return isBusStopNodeItem(node.item)
+}
 
 export type StationNodeItem = RailroadStationNodeItem | BusStopNodeItem
 
 /** Graph node specifically representing a junction */
 export type JunctionNode = GraphNode<JunctionNodeItem>
+
+export function isJunctionNode(node: GraphNode<unknown>): node is JunctionNode {
+  return isJunctionNodeItem(node.item)
+}
 
 /** Base interface for node items containing position and company information */
 type NodeItem = {
@@ -58,12 +71,20 @@ export const createJunctionNodeItem = (junction: Junction, companyId: CompanyId)
   position: () => junction.position
 })
 
+export function isJunctionNodeItem(item: unknown): item is JunctionNodeItem {
+  return (typeof item === 'object' && !!item && 'type' in item && item.type === 'Junction')
+}
+
 /** Node item representing a station in the transportation network */
 export type RailroadStationNodeItem = NodeItem & {
   /** Type discriminator for station nodes */
   type: 'Station'
   /** The station data */
   station: Station
+}
+
+export function isRailroadStationNodeItem(item: unknown): item is RailroadStationNodeItem {
+  return (typeof item === 'object' && !!item && 'type' in item && item.type === 'Station')
 }
 
 /** Node item representing a busStop in the transportation network */
@@ -73,6 +94,10 @@ export type BusStopNodeItem = NodeItem & {
   /** The station data */
   busStops: Station[]
   groupId: () => string | undefined
+}
+
+export function isBusStopNodeItem(item: unknown): item is BusStopNodeItem {
+  return (typeof item === 'object' && !!item && 'type' in item && item.type === 'BusStop')
 }
 
 /**

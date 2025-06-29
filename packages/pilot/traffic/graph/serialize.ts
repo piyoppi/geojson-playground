@@ -1,23 +1,18 @@
 import {
   type SerializedArc,
   type GraphDeserializer as GraphNodeDeserializer,
-  serialize as serializedGraphNode
+  serialize as serializedGraphNode,
+  SerializedGraph
 } from '../../graph/serialize.js'
 import { Junction, junctionIdToString, type Route, type Station, stationIdToString } from '../transportation.js'
 import { createJunctionNodeItem, createStationNodeItem, filterJunctionNodes, TrafficNode, TrafficNodeItem } from './trafficGraph.js'
 
-export type SerializedTrafficGraph = {
-  arcs: SerializedArc[]
-  junctions: Junction[]
-}
+export type SerializedTrafficGraph = SerializedGraph
 
 export const serialize = async (nodes: TrafficNode[]): Promise<SerializedTrafficGraph> => {
   const serialized = await serializedGraphNode(nodes)
 
-  return {
-    arcs: serialized.arcs,
-    junctions: filterJunctionNodes(nodes).map(n => n.item.junction)
-  }
+  return serialized
 }
 
 export type TrafficGraphDeserializer = ReturnType<typeof buildTrafficGraphDeserializer>
@@ -29,15 +24,11 @@ export const buildTrafficGraphDeserializer = (
 ): Promise<TrafficNode[]> => {
   const stations = routes.flatMap(r => r.stations)
   const junctions = serialized.junctions
-  const stationsById = new Map(stations.map(station => [stationIdToString(station.id), station]))
-  const junctionsById = new Map(junctions.map(junction => [junctionIdToString(junction.id), junction]))
-  const routeByStationId = new Map(routes.flatMap(r => r.stations.map(s => [stationIdToString(s.id), r])))
-  const routeByJunctionId = new Map(routes.flatMap(r => junctions.map(j => [junctionIdToString(j.id), r])))
+  const nodeIdItemMap = serialized.
 
   return deserializeGraphNode(
-    [...stations, ...junctions],
     serialized,
-    (item, stringId) => {
+    serializedNode => {
       const station = stationsById.get(stringId)
 
       if (station) {
