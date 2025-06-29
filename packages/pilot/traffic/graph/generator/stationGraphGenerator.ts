@@ -4,11 +4,11 @@ import { connect, type GraphNode, type DuplicateNodesMarger, arcExists } from ".
 import type { ArcGenerator } from "../../../graph/arc/index.js"
 import type { Railroad } from "../../railroad.js"
 import { Station, toJunctionId, type RouteId } from "../../transportation.js"
-import { createJunctionNodeItem, createStationNodeItem, isRailroadStationNode, type TrafficNodeItem } from "../trafficGraph.js"
+import { createJunctionNodeItem, createStationNodeItem, isRailroadStationNode, TrafficNode, type TrafficNodeItem } from "../trafficGraph.js"
 
 type TransferCostGenerator = (aStation: Station, bStation: Station) => number
-type RailroadStationNode = GraphNode<RailroadStationNodeItem>
-type RailroadStationNodeItem = TrafficNodeItem
+// type RailroadStationNode = GraphNode<RailroadStationNodeItem>
+// type RailroadStationNodeItem = TrafficNodeItem
 
 export const buildStationGraphGenerator = (
   generateArc: ArcGenerator<TrafficNodeItem>,
@@ -16,7 +16,7 @@ export const buildStationGraphGenerator = (
   nodeMerger: DuplicateNodesMarger<TrafficNodeItem>
 ) => async (
   railroads: Railroad[]
-): Promise<RailroadStationNode[]> => {
+): Promise<TrafficNode[]> => {
   const stationNodes = (await Promise.all(
         railroads.map(railroad => buildPathchain(railroad.rails).then(g => [railroad, g] as const))
       ).then(results => Promise.all(

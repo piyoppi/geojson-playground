@@ -5,8 +5,8 @@ import { readFileSync } from 'node:fs'
 import { fromMLITGeoJson as toBusStops } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/busRoute.js'
 import { fromMLITGeoJson as toRailRoads } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/railroad.js'
 import type { RailroadsGeoJson } from '@piyoppi/sansaku-pilot/geojson/MLITGisTypes/railroad.js'
-import { mergeGraphNodes } from '@piyoppi/sansaku-pilot/traffic/graph/merge'
-import { filterJunctionNodes } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
+import { mergeGraphNodes } from '@piyoppi/sansaku-pilot/traffic/graph/merge.js'
+import { filterBusStopNodes, filterJunctionNodes, filterStationNodes } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 type Option = {
   overrideRailroadInputFilename?: string
@@ -29,7 +29,15 @@ export const execute = async (
     await loadBusStopGraph(inputBusStopFilename) :
     { busNodes: [], busCompanies: [], busRoutes: [] }
 
-  mergeGraphNodes(stationNodes, busNodes)
+  const railroadStationById = new Map(railroads.flatMap(r => r.stations.map(s => [s.id, s])))
+  const busStopById = new Map(railroads.flatMap(r => r.stations.map(s => [s.id, s])))
+
+  mergeGraphNodes(
+    filterStationNodes(stationNodes),
+    filterBusStopNodes(busNodes),
+    id => railroadStationById.get(id),
+    id => busStopById.get(id)
+  )
 
   const output = JSON.stringify(
     await toTrafficGraphFile(
