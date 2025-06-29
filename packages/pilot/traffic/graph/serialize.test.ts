@@ -32,10 +32,10 @@ describe('serialize', () => {
       position: [1, 0]
     }
     const connect = buildConnector<TrafficNodeItem>(buildWeakRefArc)
-    const nodeA = createNode('A', createStationNodeItem(stationA, companyId))
-    const nodeB = createNode('B', createStationNodeItem(stationB, companyId))
-    const nodeC = createNode('C', createStationNodeItem(stationC, companyId))
-    const nodeABC = createNode('ABC', createJunctionNodeItem(junctionABC, companyId))
+    const nodeA = createNode('A', createStationNodeItem(stationA))
+    const nodeB = createNode('B', createStationNodeItem(stationB))
+    const nodeC = createNode('C', createStationNodeItem(stationC))
+    const nodeABC = createNode('ABC', createJunctionNodeItem(junctionABC))
     connect(nodeA, nodeABC, 1)
     connect(nodeABC, nodeB, 1)
     connect(nodeABC, nodeC, 1)
@@ -46,8 +46,8 @@ describe('serialize', () => {
     t.assert.ok(serialized.arcs.find(a => a.aNodeId === 'A' && a.bNodeId === 'ABC' && a.cost === 1))
     t.assert.ok(serialized.arcs.find(a => a.aNodeId === 'ABC' && a.bNodeId === 'B' && a.cost === 1))
     t.assert.ok(serialized.arcs.find(a => a.aNodeId === 'ABC' && a.bNodeId === 'C' && a.cost === 1))
-    t.assert.equal(serialized.junctions.length, 1)
-    t.assert.ok(serialized.junctions.find(j => j.id === 'ABC'))
+    t.assert.equal(serialized.nodes.length, 4)
+    t.assert.ok(serialized.nodes.find(n => n.id === 'ABC' && n.item.t === 'J'))
   })
 })
 
@@ -91,10 +91,14 @@ describe('buildTrafficGraphDeserializer', () => {
         { aNodeId: 'A', bNodeId: 'AB', arcCost: '1' },
         { aNodeId: 'AB', bNodeId: 'B', arcCost: '2' }
       ],
-      junctions: [junctionAB]
+      nodes: [
+        { id: 'A', item: { t: 'S' as const, id: 'A' } },
+        { id: 'B', item: { t: 'S' as const, id: 'B' } },
+        { id: 'AB', item: { t: 'J' as const, id: 'AB' } }
+      ]
     }
     
-    const nodes = await deserializer(serialized, [route])
+    const nodes = await deserializer(serialized)
     
     t.assert.equal(nodes.length, 3)
     
@@ -112,8 +116,8 @@ describe('buildTrafficGraphDeserializer', () => {
     t.assert.ok(nodeB)
     t.assert.ok(nodeAB)
     
-    t.assert.equal(nodeA!.item.station.name, 'Station A')
-    t.assert.equal(nodeB!.item.station.name, 'Station B')
-    t.assert.equal(nodeAB!.item.junction.id, 'AB')
+    t.assert.equal(nodeA!.item.stationId, 'A')
+    t.assert.equal(nodeB!.item.stationId, 'B')
+    t.assert.equal(nodeAB!.item.junctionId, 'AB')
   })
 })

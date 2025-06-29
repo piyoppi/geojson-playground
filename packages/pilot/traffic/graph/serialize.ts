@@ -60,7 +60,7 @@ export const buildTrafficGraphDeserializer = (
         return deserializeJunctionNodeItem(serializedItem)
       }
 
-      throw new Error(`Station or Junction is not found for id: ${stringId}`)
+      throw new Error(`Unknown node item type`)
     }
   )
 }

@@ -19,7 +19,7 @@ const createTestStationNode = async (nodeId: string, stationName: string, compan
     name: stationName,
     routeId: routeId,
     position: [0, 0]
-  }, companyId)
+  })
   
   return {
     id: nodeId,
@@ -35,7 +35,7 @@ const createTestJunctionNode = async (nodeId: string, junctionIdStr: string, com
   const junctionItem = createJunctionNodeItem({
     id: junctionId,
     position: [0, 0]
-  }, companyId)
+  })
   
   return {
     id: nodeId,

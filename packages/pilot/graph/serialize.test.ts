@@ -31,7 +31,7 @@ const graphs = () => {
 
 describe('Graph serialization and deserialization', () => {
   it('should serialize and deserialize a basic graph', async (t: TestContext) => {
-    const serialized = await serialize(graphs())
+    const serialized = await serialize(graphs(), item => item)
     
     t.assert.equal(serialized.arcs.length, 3)
     
@@ -51,9 +51,8 @@ describe('Graph serialization and deserialization', () => {
 
     const deserialize = buildGraphDeserializer(() => async () => undefined)
     const deserialized = await deserialize(
-      [itemA, itemB, itemC],
       serialized,
-      (item, id) => ({item, id, arcs: []})
+      item => item
     )
     t.assert.equal(deserialized.length, 3)
     
@@ -84,32 +83,30 @@ describe('Graph serialization and deserialization', () => {
   })
   
   it('should serialize and deserialize an empty graph', async (t: TestContext) => {
-    const serialized = await serialize([])
+    const serialized = await serialize([], item => item)
     t.assert.equal(serialized.arcs.length, 0)
     
     const deserialize = buildGraphDeserializer(() => async () => undefined)
     const deserialized = await deserialize(
-      [itemA, itemB, itemC],
       serialized,
-      (item, id) => ({item, id, arcs: []})
+      item => item
     )
-    t.assert.equal(deserialized.length, 3)
+    t.assert.equal(deserialized.length, 0)
   })
   
   it('should serialize and deserialize nodes without connections', async (t: TestContext) => {
     const nodeA: GraphNode<{}> = { id: 'A', arcs: [], item: {} }
     const nodeB: GraphNode<{}> = { id: 'B', arcs: [], item: {} }
     
-    const serialized = await serialize([nodeA, nodeB])
+    const serialized = await serialize([nodeA, nodeB], item => item)
     t.assert.equal(serialized.arcs.length, 0)
     
     const deserialize = buildGraphDeserializer(() => async () => undefined)
     const deserialized = await deserialize(
-      [itemA, itemB, itemC],
       serialized,
-      (item, id) => ({item, id, arcs: []})
+      item => item
     )
-    t.assert.equal(deserialized.length, 3)
+    t.assert.equal(deserialized.length, 2)
     t.assert.equal(deserialized[0].arcs.length, 0)
     t.assert.equal(deserialized[1].arcs.length, 0)
   })
