@@ -1,7 +1,7 @@
 import { buildWeakRefArc } from "../../graph/arc/weakRefArc.js"
 import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { GraphNode } from "../../graph/graph.js"
-import type { CompanyId, Junction, Station } from "../transportation.js"
+import type { CompanyId, Junction, JunctionId, Station, StationId } from "../transportation.js"
 import { Position2D } from "../../geometry/index.js"
 
 /** Graph node representing a traffic element (station or junction) */
@@ -31,20 +31,10 @@ export function isJunctionNode(node: GraphNode<unknown>): node is JunctionNode {
   return isJunctionNodeItem(node.item)
 }
 
-/** Base interface for node items containing position and company information */
-type NodeItem = {
-  /** Function returning the 2D position of the node */
-  position: () => Position2D
-  /** Identifier of the company that owns this node */
-  companyId: CompanyId
-}
-
 /** Node item representing a junction in the transportation network */
-type JunctionNodeItem = NodeItem & {
-  /** Type discriminator for junction nodes */
+type JunctionNodeItem = {
   type: 'Junction'
-  /** The junction data */
-  junction: Junction
+  junctionId: JunctionId
 }
 /**
  * Creates a station node
@@ -53,9 +43,9 @@ type JunctionNodeItem = NodeItem & {
  * @param arcs      - The arcs
  * @returns A station node
  */
-export const createJunctionNode = (junction: Junction, companyId: CompanyId, arcs: Arc<JunctionNodeItem>[] = []): JunctionNode => ({
+export const createJunctionNode = (junction: Junction, arcs: Arc<JunctionNodeItem>[] = []): JunctionNode => ({
   id: junction.id,
-  item: createJunctionNodeItem(junction, companyId),
+  item: createJunctionNodeItem(junction),
   arcs
 })
 /**
@@ -64,11 +54,9 @@ export const createJunctionNode = (junction: Junction, companyId: CompanyId, arc
  * @param companyId - The ID of the company that owns the junction
  * @returns A junction node item
  */
-export const createJunctionNodeItem = (junction: Junction, companyId: CompanyId): JunctionNodeItem => ({
+export const createJunctionNodeItem = (junction: Junction): JunctionNodeItem => ({
   type: 'Junction',
-  junction,
-  companyId,
-  position: () => junction.position
+  junctionId: junction.id
 })
 
 export function isJunctionNodeItem(item: unknown): item is JunctionNodeItem {
@@ -76,11 +64,9 @@ export function isJunctionNodeItem(item: unknown): item is JunctionNodeItem {
 }
 
 /** Node item representing a station in the transportation network */
-export type RailroadStationNodeItem = NodeItem & {
-  /** Type discriminator for station nodes */
+export type RailroadStationNodeItem = {
   type: 'Station'
-  /** The station data */
-  station: Station
+  stationId: StationId
 }
 
 export function isRailroadStationNodeItem(item: unknown): item is RailroadStationNodeItem {
@@ -88,12 +74,9 @@ export function isRailroadStationNodeItem(item: unknown): item is RailroadStatio
 }
 
 /** Node item representing a busStop in the transportation network */
-export type BusStopNodeItem = NodeItem & {
-  /** Type discriminator for station nodes */
+export type BusStopNodeItem = {
   type: 'BusStop'
-  /** The station data */
-  busStops: Station[]
-  groupId: () => string | undefined
+  busStopIds: StationId[]
 }
 
 export function isBusStopNodeItem(item: unknown): item is BusStopNodeItem {
@@ -107,9 +90,9 @@ export function isBusStopNodeItem(item: unknown): item is BusStopNodeItem {
  * @param arcs      - The arcs
  * @returns A station node
  */
-export const createRailroadStationNode = (station: Station, companyId: CompanyId, arcs: Arc<StationNodeItem>[] = []): StationNode => ({
+export const createRailroadStationNode = (station: Station, arcs: Arc<StationNodeItem>[] = []): StationNode => ({
   id: station.id,
-  item: createStationNodeItem(station, companyId),
+  item: createStationNodeItem(station),
   arcs
 })
 
@@ -120,9 +103,9 @@ export const createRailroadStationNode = (station: Station, companyId: CompanyId
  * @param arcs      - The arcs
  * @returns A station node
  */
-export const createBusStopNode = (busStops: Station[], companyId: CompanyId, arcs: Arc<StationNodeItem>[] = []): StationNode => ({
+export const createBusStopNode = (busStops: Station[], arcs: Arc<StationNodeItem>[] = []): StationNode => ({
   id: busStops[0].id,
-  item: createBusStopNodeItem(busStops, companyId),
+  item: createBusStopNodeItem(busStops),
   arcs
 })
 
@@ -132,11 +115,9 @@ export const createBusStopNode = (busStops: Station[], companyId: CompanyId, arc
  * @param companyId - The ID of the company that owns the station
  * @returns A station node item
  */
-export const createStationNodeItem  = (station: Station, companyId: CompanyId): StationNodeItem => ({
+export const createStationNodeItem  = (station: Station): StationNodeItem => ({
   type: 'Station',
-  station,
-  companyId,
-  position: () => station.position
+  stationId: station.id,
 })
 
 /**
@@ -145,12 +126,9 @@ export const createStationNodeItem  = (station: Station, companyId: CompanyId): 
  * @param companyId - The ID of the company that owns the station
  * @returns A station node item
  */
-export const createBusStopNodeItem  = (busStops: Station[], companyId: CompanyId): BusStopNodeItem => ({
+export const createBusStopNodeItem  = (busStops: Station[]): BusStopNodeItem => ({
   type: 'BusStop',
-  busStops,
-  companyId,
-  position: () => busStops[0].position,
-  groupId: () => busStops[0].groupId
+  busStopIds: busStops.map(b => b.id),
 })
 
 /** Union type representing either a junction or station node item */

@@ -1,7 +1,10 @@
-import type { TrafficNode } from './trafficGraph.js';
+import type { BusStopNode, RailroadStationNode, TrafficNode } from './trafficGraph.js';
 import { connect } from '../../graph/graph.js';
 import { generateTransferOtherLineArc } from './trafficGraph.js';
 import type { Position2D } from '../../geometry/index.js';
+import { BusStop } from '../busroute.js';
+import { StationId } from '../transportation.js';
+import { RailroadStation } from '../railroad.js';
 
 /**
  * Connects bus nodes to their nearest station nodes within maximum distance
@@ -10,26 +13,31 @@ import type { Position2D } from '../../geometry/index.js';
  * @param maxDistance - Maximum connection distance threshold
  */
 export function mergeGraphNodes(
-  stationNodes: TrafficNode[],
-  busNodes: TrafficNode[],
+  stationNodes: RailroadStationNode[],
+  busNodes: BusStopNode[],
+  getRailroadStation: (id: StationId) => RailroadStation | undefined,
+  getBusStop: (id: StationId) => BusStop | undefined,
   maxDistance: number = 0.0012868993
 ): void {
-  const { grid, cellSize } = buildSpatialIndex(stationNodes, maxDistance);
+  const { grid, cellSize } = buildSpatialIndex(stationNodes, getRailroadStation, maxDistance);
 
   for (const busNode of busNodes) {
-    const position = busNode.item.position();
-    const nearestStation = findNearest(position, maxDistance, grid, cellSize);
+    const busStop = getBusStop(busNode.item.busStopIds[0])
+    if (!busStop) continue
+
+    const position = busStop.position;
+    const nearestStation = findNearest(position, maxDistance, grid, getRailroadStation, cellSize)
 
     if (nearestStation) {
-      const arc = generateTransferOtherLineArc(busNode, nearestStation, 1);
+      const arc = generateTransferOtherLineArc(busNode, nearestStation, 1)
       connect(busNode, nearestStation, arc);
     }
   }
 }
 
-type SpatialGrid = {
-  grid: Map<string, TrafficNode[]>;
-  cellSize: number;
+type SpatialGrid<T> = {
+  grid: Map<string, T[]>
+  cellSize: number
 }
 
 /**
@@ -39,25 +47,28 @@ type SpatialGrid = {
  * @returns Spatial grid data structure
  */
 function buildSpatialIndex(
-  nodes: TrafficNode[],
+  nodes: RailroadStationNode[],
+  getRailroadStation: (id: StationId) => RailroadStation | undefined,
   maxDistance: number
-): SpatialGrid {
-  const grid = new Map<string, TrafficNode[]>();
-  const cellSize = maxDistance * 2;
+): SpatialGrid<RailroadStationNode> {
+  const grid = new Map<string, RailroadStationNode[]>()
+  const cellSize = maxDistance * 2
 
   // Index all nodes
   for (const node of nodes) {
-    const position = node.item.position();
-    const cellKey = getCellKey(position, cellSize);
+    const railroadStation = getRailroadStation(node.item.stationId)
+    if (!railroadStation) continue
+
+    const cellKey = getCellKey(railroadStation.position, cellSize)
 
     if (!grid.has(cellKey)) {
-      grid.set(cellKey, []);
+      grid.set(cellKey, [])
     }
 
-    grid.get(cellKey)!.push(node);
+    grid.get(cellKey)!.push(node)
   }
 
-  return { grid, cellSize };
+  return { grid, cellSize }
 }
 
 /**
@@ -71,7 +82,8 @@ function buildSpatialIndex(
 function findNearest(
   position: Position2D,
   maxDistance: number,
-  grid: Map<string, TrafficNode[]>,
+  grid: Map<string, RailroadStationNode[]>,
+  getRailroadStation: (id: StationId) => RailroadStation | undefined,
   cellSize: number
 ): TrafficNode | null {
   const cellKey = getCellKey(position, cellSize);
@@ -85,9 +97,10 @@ function findNearest(
     const nodesInCell = grid.get(key) || [];
 
     for (const node of nodesInCell) {
-      const nodePosition = node.item.position();
-      const distance = calculateDistance(position, nodePosition);
+      const railroadStation = getRailroadStation(node.item.stationId)
+      if (!railroadStation) continue
 
+      const distance = calculateDistance(position, railroadStation.position);
       if (distance < minDistance) {
         minDistance = distance;
         nearestNode = node;

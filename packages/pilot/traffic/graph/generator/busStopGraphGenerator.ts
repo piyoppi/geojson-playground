@@ -27,7 +27,7 @@ export const buildBusStopGraphGenerator = (
       busStops,
       busStop => [
         busStop.id,
-        createBusStopNodeItem([busStop], route.companyId)
+        createBusStopNodeItem([busStop])
       ],
       busStop => busStop.position
     )
@@ -41,18 +41,22 @@ export const buildBusStopGraphGenerator = (
   //                  |                                  |
   //                  +-- [C (Route 2)]                  +--------------- [C (Route 2)]
   //
+  const busStopById = new Map(busStops.map(b => [b.id, b]))
   const mergeDuplicateBusStopNode = buildDuplicateNodesMarger<BusStopNodeItem>(
     buildNodeMerger(generateArc),
-    n => n.item.groupId()
+    n => {
+      const nodeItemId = n.item.busStopIds[0]
+      return nodeItemId ? busStopById.get(nodeItemId)?.groupId : undefined
+    }
   )
   const merged = await mergeDuplicateBusStopNode(
     nodes,
     (merged, targets) => {
       const busStops = []
       for (const target of targets) {
-        busStops.push(...target.item.busStops)
+        busStops.push(...target.item.busStopIds)
       }
-      merged.item.busStops = busStops
+      merged.item.busStopIds = busStops
     }
   )
 

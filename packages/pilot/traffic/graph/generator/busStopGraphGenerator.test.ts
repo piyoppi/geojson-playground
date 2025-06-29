@@ -59,12 +59,12 @@ describe('buildBusStopGraphGenerator', () => {
     const result = await busStopGraphGenerator([busRoute1, busRoute2])
     const busStopNodes = filterBusStopNodes(result)
 
-    // Filter nodes by route
+    // Filter nodes by route - check if node contains bus stop IDs from specific routes
     const route1Nodes = busStopNodes.filter(node =>
-      node.item.busStops.some(stop => stop.routeId === routeId1)
+      node.item.busStopIds.some(stopId => stopId === busStopA.id || stopId === busStopB.id)
     )
     const route2Nodes = busStopNodes.filter(node =>
-      node.item.busStops.some(stop => stop.routeId === routeId2)
+      node.item.busStopIds.some(stopId => stopId === busStopC.id || stopId === busStopD.id)
     )
 
     t.assert.ok(route1Nodes.length > 0, 'Route 1 should have nodes')
@@ -74,8 +74,10 @@ describe('buildBusStopGraphGenerator', () => {
 
     t.assert.equal(busStopNodes.length, 4, 'Should have 4 bus stop nodes total')
 
-    const busStopNames = busStopNodes.flatMap(n => n.item.busStops.map(s => s.name)).sort()
-    t.assert.deepEqual(busStopNames.sort(), ['Bus Stop A', 'Bus Stop B', 'Bus Stop C', 'Bus Stop D'])
+    // Verify that all expected bus stop IDs are present in the nodes
+    const allBusStopIds = busStopNodes.flatMap(n => n.item.busStopIds).sort()
+    const expectedIds = [busStopA.id, busStopB.id, busStopC.id, busStopD.id].sort() // Bus Stop A, B, C, D
+    t.assert.deepEqual(allBusStopIds, expectedIds, 'Should contain all expected bus stop IDs')
 
     // Check connections between nodes
     if (route1Nodes.length >= 2) {
@@ -177,36 +179,38 @@ describe('buildBusStopGraphGenerator', () => {
     const result = await generator(routes)
     const busStopNodes = filterBusStopNodes(result)
 
+    // Filter nodes by route - check if node contains bus stop IDs from specific routes
     const route1Nodes = busStopNodes.filter(node =>
-      node.item.busStops.some(stop => stop.routeId === routes[0].id)
+      node.item.busStopIds.some(stopId => stopId === busStop1Route1.id || stopId === busStop2Route1.id)
     )
     const route2Nodes = busStopNodes.filter(node =>
-      node.item.busStops.some(stop => stop.routeId === routes[1].id)
+      node.item.busStopIds.some(stopId => stopId === busStop1Route2.id || stopId === busStop3Route2.id)
     )
 
     t.assert.equal(route1Nodes.length, 2, 'Route 1 should have 2 nodes')
     t.assert.equal(route2Nodes.length, 2, 'Route 2 should have 2 nodes')
 
+    // Find central station nodes (should be shared between routes due to same groupId)
     const centralNode1 = route1Nodes.find(n =>
-      n.item.busStops.some(s => s.name === 'Central Station')
+      n.item.busStopIds.includes(busStop1Route1.id) // Central Station from Route 1
     )
     const centralNode2 = route2Nodes.find(n =>
-      n.item.busStops.some(s => s.name === 'Central Station')
+      n.item.busStopIds.includes(busStop1Route2.id) // Central Station from Route 2
     )
     t.assert.ok(centralNode1, 'Central Station node should exist in route 1')
     t.assert.ok(centralNode2, 'Central Station node should exist in route 2')
     t.assert.equal(centralNode1, centralNode2, 'Central Station should be the same node instance in both routes')
-    t.assert.equal(centralNode1.item.busStops.length, 2, 'Shared node should contain 2 bus stops')
+    t.assert.equal(centralNode1.item.busStopIds.length, 2, 'Shared node should contain 2 bus stop IDs')
 
-    const busStopIds = centralNode1.item.busStops.map(s => s.id).sort()
+    const busStopIds = centralNode1.item.busStopIds.sort()
     t.assert.deepEqual(
       busStopIds,
-      [busStop1Route1.id, busStop1Route2.id].sort(),
-      'Shared node should contain bus stops from both routes'
+      [busStop1Route1.id, busStop1Route2.id].sort(), // Central Station from both routes
+      'Shared node should contain bus stop IDs from both routes'
     )
 
     const northNode = route1Nodes.find(n =>
-      n.item.busStops.some(s => s.name === 'North Station')
+      n.item.busStopIds.includes(busStop2Route1.id) // North Station from Route 1
     )
     t.assert.ok(northNode, 'North Station node should exist in route 1')
 
@@ -217,7 +221,7 @@ describe('buildBusStopGraphGenerator', () => {
     t.assert.equal(centralToNorthArc.cost, expectedCostCentralToNorth, 'Arc cost should match distance')
 
     const southNode = route2Nodes.find(n =>
-      n.item.busStops.some(s => s.name === 'South Station')
+      n.item.busStopIds.includes(busStop3Route2.id) // South Station from Route 2
     )
     t.assert.ok(southNode, 'South Station node should exist in route 2')
 
@@ -308,19 +312,22 @@ describe('buildBusStopGraphGenerator', () => {
     const result = await generator(routes)
     const busStopNodes = filterBusStopNodes(result)
 
+    // Check that each route has nodes containing its bus stop IDs
     for (const route of routes) {
+      const routeStopIds = route.stations.map(s => s.id)
       const nodes = busStopNodes.filter(node =>
-        node.item.busStops.some(stop => stop.routeId === route.id)
+        node.item.busStopIds.some(stopId => routeStopIds.includes(stopId))
       )
       t.assert.ok(nodes.length > 0, `${route.name} should have nodes`)
       t.assert.equal(nodes.length, 2, `${route.name} should have 2 nodes`)
     }
 
+    // Find terminal nodes for each route (should be the same shared node)
     const terminalNodes = routes.map(route => {
-      const nodes = busStopNodes.filter(node =>
-        node.item.busStops.some(stop => stop.routeId === route.id)
+      const terminalStopId = route.stations.find(s => s.name === 'Major Terminal')?.id
+      return busStopNodes.find(n => 
+        n.item.busStopIds.includes(terminalStopId!) // Major Terminal stop from this route
       )
-      return nodes.find(n => n.item.busStops.some(s => s.name === 'Major Terminal'))
     })
 
     t.assert.ok(terminalNodes[0], 'Terminal node should exist')
@@ -328,12 +335,14 @@ describe('buildBusStopGraphGenerator', () => {
     t.assert.equal(terminalNodes[1], terminalNodes[2], 'Routes 2 and 3 should share terminal node')
 
     t.assert.equal(
-      terminalNodes[0]!.item.busStops.length,
+      terminalNodes[0]!.item.busStopIds.length,
       3,
-      'Shared terminal node should contain 3 bus stops (one from each route)'
+      'Shared terminal node should contain 3 bus stop IDs (one from each route)'
     )
 
-    const terminalStopNames = terminalNodes[0]!.item.busStops.map(s => s.routeId)
-    t.assert.equal(terminalStopNames.length, 3, 'Should have stops from 3 different routes')
+    // Verify all terminal stop IDs are included
+    const expectedTerminalIds = routes.map(r => r.stations.find(s => s.name === 'Major Terminal')!.id).sort()
+    const actualTerminalIds = terminalNodes[0]!.item.busStopIds.sort()
+    t.assert.deepEqual(actualTerminalIds, expectedTerminalIds, 'Should contain terminal stop IDs from all 3 routes')
   })
 })

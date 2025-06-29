@@ -4,13 +4,13 @@ import { buildGraphDeserializer } from "./graph/serialize.js"
 import { buildBusStopGraphGenerator } from "./traffic/graph/generator/busStopGraphGenerator.js"
 import { buildStationGraphGenerator } from "./traffic/graph/generator/stationGraphGenerator.js"
 import { buildTrafficGraphDeserializer } from "./traffic/graph/serialize.js"
-import { BusStopNodeItem, generateTransferOtherLineArc, generateTransferOwnLineArc, type TrafficNodeItem } from "./traffic/graph/trafficGraph.js"
+import { BusStopNodeItem, type TrafficNodeItem } from "./traffic/graph/trafficGraph.js"
 import { buildTrafficGraphFromFile } from "./traffic/trafficGraphFile.js"
 import { buildPartitionedRepositoryArcDeserializer, type PartitionedRepository } from "./graph/arc/partitionedRepositoryArc.js"
 import type { ArcGenerator } from "./graph/arc/index.js"
 
 export const buildDefaultStationGrpahGenerator = () => buildStationGraphGenerator(
-  defaultTrafficArcGenerator,
+  defaultTrafficArcGenerator(),
   () => 1,
   buildDuplicateNodesMarger(
     buildNodeMerger(
@@ -20,22 +20,12 @@ export const buildDefaultStationGrpahGenerator = () => buildStationGraphGenerato
 )
 
 export const buildDefaultBusStopGraphGenerator = () => buildBusStopGraphGenerator(
-  defaultTrafficArcGenerator as ArcGenerator<BusStopNodeItem>
+  defaultTrafficArcGenerator() as ArcGenerator<BusStopNodeItem>
 )
 
 const defaultArcGenerator = buildWeakRefArc
 
-const defaultTrafficArcGenerator: ArcGenerator<TrafficNodeItem> = (a, b, cost) => {
-  if (a.item.type === 'Station' && b.item.type === 'Station') {
-    if (a.item.companyId !== b.item.companyId) {
-      return generateTransferOtherLineArc(a, b, cost)
-    } else if (a.item.station.routeId !== b.item.station.routeId) {
-      return generateTransferOwnLineArc(a, b, cost)
-    }
-  }
-
-  return buildWeakRefArc(a, b, cost)
-}
+export const defaultTrafficArcGenerator = (): ArcGenerator<TrafficNodeItem> => (a, b, cost) => buildWeakRefArc(a, b, cost)
 
 type DefaultTrafficFromFileOptions = {
   repository?: PartitionedRepository<TrafficNodeItem>

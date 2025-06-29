@@ -22,7 +22,7 @@ type RailroadProperty = {
 export const fromMLITGeoJson = async (railroadsGeoJson: RailroadsGeoJson, stationsGeoJson: StationsGeoJson): Promise<[Company[], Railroad[]]> => {
   const railroadsFeature = Map.groupBy(railroadsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
   const stationsFeature = Map.groupBy(stationsGeoJson.features, (f) => `${f.properties.N02_003}-${f.properties.N02_004}`)
-  
+
   const routeIds = Array.from(railroadsFeature.keys());
 
   const companies = new Map<string, Company>(
@@ -53,7 +53,7 @@ export const fromMLITGeoJson = async (railroadsGeoJson: RailroadsGeoJson, statio
     if (!company) {
       throw new Error(`Company is not found for name: ${companyName}`)
     }
-    
+
     return createRailroad(railroadFeatures, company.id, stationFeatures, await toRouteId(routeId))
   })
 
@@ -68,14 +68,14 @@ const createRailroad = async (railroadFeatures: RailroadFeature[], companyId: Co
   }
   const lineName = railroadFeatures[0].properties.N02_003
   const stationsList = await createStations(stations, routeId)
- 
+
   return {
     id: routeId,
     name: lineName,
     kind: 'railroad',
     companyId,
     rails: railroadFeatures.map(r => r.geometry.coordinates),
-    stations: stationsList,
+    stations: stationsList
   }
 }
 
@@ -87,6 +87,6 @@ const createStations = async (stationFeatures: StationFeature[], routeId: RouteI
     groupId: s.properties.N02_005g,
     position: center([s.geometry.coordinates[0], s.geometry.coordinates[1]])
   }))
-  
+
   return Promise.all(stationPromises)
 }

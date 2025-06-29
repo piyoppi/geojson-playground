@@ -1,11 +1,10 @@
 import {
-  type SerializedArc,
   type GraphDeserializer as GraphNodeDeserializer,
   serialize as serializedGraphNode,
   SerializedGraph
 } from '../../graph/serialize.js'
 import { Junction, junctionIdToString, type Route, type Station, stationIdToString } from '../transportation.js'
-import { createJunctionNodeItem, createStationNodeItem, filterJunctionNodes, TrafficNode, TrafficNodeItem } from './trafficGraph.js'
+import { createJunctionNodeItem, createStationNodeItem, TrafficNode, TrafficNodeItem } from './trafficGraph.js'
 
 export type SerializedTrafficGraph = SerializedGraph
 
@@ -21,41 +20,45 @@ export const buildTrafficGraphDeserializer = (
 ) => async (
   serialized: SerializedTrafficGraph,
   routes: Route<Station>[],
+  junctions?: Junction[]
 ): Promise<TrafficNode[]> => {
-  const stations = routes.flatMap(r => r.stations)
-  const junctions = serialized.junctions
-  const nodeIdItemMap = serialized.
+  // Create maps for efficient lookups
+  const stationsById = new Map<string, Station>()
+  const routeByStationId = new Map<string, Route<Station>>()
+
+  routes.forEach(route => {
+    route.stations.forEach(station => {
+      stationsById.set(stationIdToString(station.id), station)
+      routeByStationId.set(stationIdToString(station.id), route)
+    })
+  })
+
+  const junctionsById = new Map<string, Junction>()
+  junctions?.forEach(junction => {
+    junctionsById.set(junctionIdToString(junction.id), junction)
+  })
 
   return deserializeGraphNode(
     serialized,
     serializedNode => {
+      const stringId = serializedNode.id
       const station = stationsById.get(stringId)
 
       if (station) {
-        const route = routeByStationId.get(stringId)
-        if (!route) {
-          throw new Error(`Route for station not found for id: ${stringId}`)
-        }
-
         return {
-          id: item.id,
+          id: serializedNode.id,
           arcs: [],
-          item: createStationNodeItem(station, route.companyId)
+          item: createStationNodeItem(station)
         }
       }
 
       const junction = junctionsById.get(stringId)
 
       if (junction) {
-        const route = routeByJunctionId.get(stringId)
-        if (!route) {
-          throw new Error(`Route for station not found for id: ${stringId}`)
-        }
-
         return {
-          id: item.id,
+          id: serializedNode.id,
           arcs: [],
-          item: createJunctionNodeItem(junction, route.companyId)
+          item: createJunctionNodeItem(junction)
         }
       }
 

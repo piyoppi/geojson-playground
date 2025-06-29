@@ -64,7 +64,7 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
             routeId,
             position: geometry.coordinates
           }))
-        ),
+        )
       }
     }))
 
