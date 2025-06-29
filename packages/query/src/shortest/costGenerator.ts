@@ -1,31 +1,31 @@
 import type { Arc } from '@piyoppi/sansaku-pilot/graph/arc/index.js'
-import type { BusRoute } from '@piyoppi/sansaku-pilot/traffic/busroute'
-import type { TrafficNode, TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
-import type { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
+import { isBusStopNodeItem, isRailroadStationNode, type TrafficNode, type TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
+import type { StationId } from '@piyoppi/sansaku-pilot/traffic/transportation'
 
 type CostGeneratorOption = {
   busRouteWeight: number
 }
 
 export const buildCostGenerator = (
-  getBusRoute: (id: RouteId) => BusRoute | undefined,
   startNode: TrafficNode,
+  getGroupId: (id: StationId) => string | undefined,
   option: CostGeneratorOption = {
     busRouteWeight: 3
   }
 ) => (
-  arc: Arc<TrafficNodeItem>, 
-  a: TrafficNode, 
+  arc: Arc<TrafficNodeItem>,
+  a: TrafficNode,
   b: TrafficNode
 ): number => {
-  if (a.item.type === 'Station' && b.item.type === 'Station') {
-    if (a.item.station.groupId !== undefined &&
-       a.item.station.groupId === b.item.station.groupId &&
+  if (isRailroadStationNode(a) && isRailroadStationNode(b)) {
+    if (getGroupId(a.item.stationId) !== undefined &&
+       getGroupId(a.item.stationId) === getGroupId(b.item.stationId) &&
        (a.id === startNode.id || b.id === startNode.id)) {
       return 0
     }
 
-    if (getBusRoute(a.item.station.routeId) && getBusRoute(b.item.station.routeId)) {
+    // Bus routes are slower than other transportation.
+    if (isBusStopNodeItem(a) && isBusStopNodeItem(b)) {
       return arc.cost * option.busRouteWeight
     }
   }

@@ -3,19 +3,25 @@ import { readFile } from 'node:fs/promises'
 import { findShortestPath } from '@piyoppi/sansaku-pilot/graph/graph.js'
 import { buildDefaultTrafficGraphFromFile } from '@piyoppi/sansaku-pilot'
 import { buildPartitionedRepository, PartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
-import { filterStationNodes, type TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
+import { isBusStopNode, isRailroadStationNode, type TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 import { buildCostGenerator } from './costGenerator.js'
-import { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
-import { BusRoute } from '@piyoppi/sansaku-pilot/traffic/busroute'
+import type { StationId } from '@piyoppi/sansaku-pilot/traffic/transportation'
+import type { BusStop } from '@piyoppi/sansaku-pilot/traffic/busroute'
+import type { RailroadStation } from '@piyoppi/sansaku-pilot/traffic/railroad'
 
 export const shortest = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {
-  const loadedBusRoutes = new Map<RouteId, BusRoute>()
+  const loadedBusStops = new Map<StationId, BusStop>()
+  const loadedRailroadStation = new Map<StationId, RailroadStation>
   const repository = buildPartitionedRepository<TrafficNodeItem>(
     async (partitionKey) => {
-      const { busRoutes, graph } = await loadPartialFile(inputGraphDir, partitionKey)
+      const { busRoutes, railroads, graph } = await loadPartialFile(inputGraphDir, partitionKey)
 
-      for (const busRoute of busRoutes) {
-        loadedBusRoutes.set(busRoute.id, busRoute)
+      for (const busStop of busRoutes.flatMap(r => r.stations)) {
+        loadedBusStops.set(busStop.id, busStop)
+      }
+
+      for (const railroadStation of railroads.flatMap(r => r.stations)) {
+        loadedRailroadStation.set(railroadStation.id, railroadStation)
       }
 
       return graph
@@ -43,18 +49,28 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
   }
 
   const costGenerator = buildCostGenerator(
-    id => loadedBusRoutes.get(id),
-    startNode
+    startNode,
+    id => loadedBusStops.get(id)?.groupId || loadedRailroadStation.get(id)?.groupId
   )
 
-  const shortest = filterStationNodes(await findShortestPath(startNode, endNode, costGenerator))
+  const shortest = await findShortestPath(startNode, endNode, costGenerator)
 
   // Exclude same stations
-  const grouped = shortest.reduce((acc, n, i, a) => {
+  const grouped = shortest.reduce((acc, node, i, a) => {
     const next = a[i + 1]
     if (next === undefined) return acc
 
-    if (n.item.station.groupId === undefined || n.item.station.groupId !== next.item.station.groupId) {
+    const groupId =
+      isRailroadStationNode(node) ? loadedRailroadStation.get(node.item.stationId)?.groupId :
+      isBusStopNode(node) ? loadedBusStops.get(node.item.busStopIds[0])?.groupId :
+      undefined
+
+    const nextGroupId =
+      isRailroadStationNode(next) ? loadedRailroadStation.get(next.item.stationId)?.groupId :
+      isBusStopNode(next) ? loadedBusStops.get(next.item.busStopIds[0])?.groupId :
+      undefined
+
+    if (groupId === undefined || groupId !== nextGroupId) {
       acc.push(i)
     }
 

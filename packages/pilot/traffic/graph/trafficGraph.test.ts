@@ -55,8 +55,8 @@ describe('filterStationNodes', () => {
     const result = filterStationNodes(mixedNodes)
     
     t.assert.equal(result.length, 2)
-    t.assert.equal(result[0].item.type, 'Station')
-    t.assert.equal(result[1].item.type, 'Station')
+    t.assert.equal(result[0].item.type, 'RailroadStation')
+    t.assert.equal(result[1].item.type, 'RailroadStation')
     t.assert.equal(result[0].id, 'node1')
     t.assert.equal(result[1].id, 'node2')
   })
@@ -81,7 +81,7 @@ describe('filterStationNodes', () => {
     
     t.assert.equal(result.length, 3)
     result.forEach(node => {
-      t.assert.equal(node.item.type, 'Station')
+      t.assert.equal(node.item.type, 'RailroadStation')
     })
   })
 

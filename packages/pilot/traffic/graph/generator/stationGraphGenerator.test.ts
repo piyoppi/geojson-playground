@@ -100,7 +100,7 @@ describe('buildStationGraphGenerator', () => {
     // Note: companyId is no longer stored in node items after type refactoring
 
     stationNodes.forEach(node => {
-      t.assert.equal(node.item.type, 'Station', 'Station nodes should have type Station')
+      t.assert.equal(node.item.type, 'RailroadStation', 'Station nodes should have type RailroadStation')
     })
 
     junctionNodes.forEach(node => {

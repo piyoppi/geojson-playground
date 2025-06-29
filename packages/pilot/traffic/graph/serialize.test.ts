@@ -92,8 +92,8 @@ describe('buildTrafficGraphDeserializer', () => {
         { aNodeId: 'AB', bNodeId: 'B', arcCost: '2' }
       ],
       nodes: [
-        { id: 'A', item: { t: 'S' as const, id: 'A' } },
-        { id: 'B', item: { t: 'S' as const, id: 'B' } },
+        { id: 'A', item: { t: 'RS' as const, id: 'A' } },
+        { id: 'B', item: { t: 'RS' as const, id: 'B' } },
         { id: 'AB', item: { t: 'J' as const, id: 'AB' } }
       ]
     }

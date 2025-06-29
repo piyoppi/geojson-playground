@@ -39,19 +39,19 @@ export function isBusStopNode(node: GraphNode<unknown>): node is BusStopNode {
 
 export type StationNodeItem = RailroadStationNodeItem | BusStopNodeItem
 
-export type SerializedRailroadStationNodeItem = { t: 'S', id: string }
+export type SerializedRailroadStationNodeItem = { t: 'RS', id: string }
 
 export function isSerializedRailroadStationNodeItem(item: unknown): item is SerializedRailroadStationNodeItem {
-  return (typeof item === 'object' && item !== null && 't' in item && item.t === 'S' && 'id' in item && typeof item.id === 'string')
+  return (typeof item === 'object' && item !== null && 't' in item && item.t === 'RS' && 'id' in item && typeof item.id === 'string')
 }
 
 export const serializeRailroadStationNodeItem = (item: RailroadStationNodeItem): SerializedRailroadStationNodeItem => ({
-  t: 'S',
+  t: 'RS',
   id: stationIdToString(item.stationId)
 })
 
 export const deserializeRailroadStationNodeItem = (serializedItem: SerializedRailroadStationNodeItem): RailroadStationNodeItem => ({
-  type: 'Station',
+  type: 'RailroadStation',
   stationId: stringToStationId(serializedItem.id)
 })
 
@@ -115,12 +115,12 @@ export function isJunctionNodeItem(item: unknown): item is JunctionNodeItem {
 
 /** Node item representing a station in the transportation network */
 export type RailroadStationNodeItem = {
-  type: 'Station'
+  type: 'RailroadStation'
   stationId: StationId
 }
 
 export function isRailroadStationNodeItem(item: unknown): item is RailroadStationNodeItem {
-  return (typeof item === 'object' && !!item && 'type' in item && item.type === 'Station')
+  return (typeof item === 'object' && !!item && 'type' in item && item.type === 'RailroadStation')
 }
 
 /** Node item representing a busStop in the transportation network */
@@ -166,7 +166,7 @@ export const createBusStopNode = (busStops: Station[], arcs: Arc<StationNodeItem
  * @returns A station node item
  */
 export const createStationNodeItem  = (station: Station): StationNodeItem => ({
-  type: 'Station',
+  type: 'RailroadStation',
   stationId: station.id,
 })
 
@@ -189,7 +189,7 @@ export type TrafficNodeItem = JunctionNodeItem | StationNodeItem
  * @param nodes - Array of traffic graph nodes to filter
  * @returns Array of station nodes
  */
-export const filterStationNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'Station') as GraphNode<RailroadStationNodeItem>[]
+export const filterStationNodes = (nodes: TrafficNode[]) => nodes.filter(n => n.item.type === 'RailroadStation') as GraphNode<RailroadStationNodeItem>[]
 
 /**
  * Filters an array of traffic nodes to return only busstop nodes
