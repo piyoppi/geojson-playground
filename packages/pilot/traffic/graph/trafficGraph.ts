@@ -1,8 +1,7 @@
 import { buildWeakRefArc } from "../../graph/arc/weakRefArc.js"
 import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { GraphNode } from "../../graph/graph.js"
-import type { CompanyId, Junction, JunctionId, Station, StationId } from "../transportation.js"
-import { Position2D } from "../../geometry/index.js"
+import { junctionIdToString, stringToJunctionId, stationIdToString, stringToStationId, type Junction, type JunctionId, type Station, type StationId } from "../transportation.js"
 
 /** Graph node representing a traffic element (station or junction) */
 export type TrafficNode = GraphNode<TrafficNodeItem>
@@ -18,11 +17,44 @@ export function isRailroadStationNode(node: GraphNode<unknown>): node is Railroa
 
 export type BusStopNode = GraphNode<BusStopNodeItem>
 
+export type SerializedBusStopNodeItem = { t: 'B', ids: string[] }
+
+export function isSerializedBusStopNodeItem(item: unknown): item is SerializedBusStopNodeItem {
+  return (typeof item === 'object' && item !== null && 't' in item && item.t === 'B' && 'ids' in item)
+}
+
+export const serializeBusStopNodeItem = (item: BusStopNodeItem): SerializedBusStopNodeItem => ({
+  t: 'B',
+  ids: item.busStopIds.map(stationIdToString)
+})
+
+export const deserializeBusStopNodeItem = (serializedItem: SerializedBusStopNodeItem): BusStopNodeItem => ({
+  type: 'BusStop',
+  busStopIds: serializedItem.ids.map(stringToStationId)
+})
+
 export function isBusStopNode(node: GraphNode<unknown>): node is BusStopNode {
   return isBusStopNodeItem(node.item)
 }
 
 export type StationNodeItem = RailroadStationNodeItem | BusStopNodeItem
+
+export type SerializedRailroadStationNodeItem = { t: 'S', id: string }
+
+export function isSerializedRailroadStationNodeItem(item: unknown): item is SerializedRailroadStationNodeItem {
+  return (typeof item === 'object' && item !== null && 't' in item && item.t === 'S' && 'id' in item && typeof item.id === 'string')
+}
+
+export const serializeRailroadStationNodeItem = (item: RailroadStationNodeItem): SerializedRailroadStationNodeItem => ({
+  t: 'S',
+  id: stationIdToString(item.stationId)
+})
+
+export const deserializeRailroadStationNodeItem = (serializedItem: SerializedRailroadStationNodeItem): RailroadStationNodeItem => ({
+  type: 'Station',
+  stationId: stringToStationId(serializedItem.id)
+})
+
 
 /** Graph node specifically representing a junction */
 export type JunctionNode = GraphNode<JunctionNodeItem>
@@ -36,6 +68,23 @@ type JunctionNodeItem = {
   type: 'Junction'
   junctionId: JunctionId
 }
+
+export type SerializedJunctionNodeItem = { t: 'J', id: string }
+
+export function isSerializedJunctionNodeItem(item: unknown): item is SerializedJunctionNodeItem {
+  return (typeof item === 'object' && item !== null && 't' in item && item.t === 'J' && 'id' in item && typeof item.id === 'string')
+}
+
+export const serializeJunctionNodeItem = (item: JunctionNodeItem): SerializedJunctionNodeItem => ({
+  t: 'J',
+  id: junctionIdToString(item.junctionId)
+})
+
+export const deserializeJunctionNodeItem = (serializedItem: SerializedJunctionNodeItem): JunctionNodeItem => ({
+  type: 'Junction',
+  junctionId: stringToJunctionId(serializedItem.id)
+})
+
 /**
  * Creates a station node
  * @param station - The station data
@@ -48,6 +97,7 @@ export const createJunctionNode = (junction: Junction, arcs: Arc<JunctionNodeIte
   item: createJunctionNodeItem(junction),
   arcs
 })
+
 /**
  * Creates a junction node item from junction data and company ID
  * @param junction - The junction data

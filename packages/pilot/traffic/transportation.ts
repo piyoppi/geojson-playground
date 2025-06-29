@@ -9,11 +9,12 @@ const stringToRouteId = (str: string) => RouteId(stringToId(str))
 export type StationId = Id & { readonly __brand: unique symbol }
 export const StationId = (stationId: Id): StationId => stationId as StationId
 export const stationIdToString = (id: StationId) => idToString(id)
-const stringToStationId = (str: string) => StationId(stringToId(str))
+export const stringToStationId = (str: string) => StationId(stringToId(str))
 
 export type JunctionId = Id & { readonly __brand: unique symbol }
 export const JunctionId = (junctionId: Id): JunctionId => junctionId as JunctionId
 export const junctionIdToString = (id: JunctionId) => idToString(id)
+export const stringToJunctionId = (str: string) => JunctionId(stringToId(str))
 
 export type CompanyId = Id & { readonly __brand: unique symbol }
 export const CompanyId = (companyId: Id): CompanyId => companyId as CompanyId
