@@ -29,8 +29,8 @@ export const execute = async (
     await loadBusStopGraph(inputBusStopFilename) :
     { busNodes: [], busCompanies: [], busRoutes: [] }
 
-  const railroadStationById = new Map(railroads.flatMap(r => r.stations.map(s => [s.id, s])))
-  const busStopById = new Map(railroads.flatMap(r => r.stations.map(s => [s.id, s])))
+  const railroadStationById = new Map(railroads.flatMap(r => r.route.stations.map(s => [s.id, s])))
+  const busStopById = new Map(busRoutes.flatMap(r => r.stations.map(s => [s.id, s])))
 
   mergeGraphNodes(
     filterStationNodes(stationNodes),
@@ -43,7 +43,7 @@ export const execute = async (
     await toTrafficGraphFile(
       [...stationNodes, ...busNodes],
       [...railroadCompanies, ...busCompanies],
-      railroads,
+      railroads.map(r => r.route),
       busRoutes
     )
   )
@@ -51,7 +51,11 @@ export const execute = async (
   writeFileSync(outputFileName, output, "utf-8")
 }
 
-export const loadStationGraph = async (inputRailroadFilename: string, inputStationFilename: string, overrideRailroadInputFilename?: string) => {
+export const loadStationGraph = async (
+  inputRailroadFilename: string,
+  inputStationFilename: string,
+  overrideRailroadInputFilename?: string
+) => {
   const buildStationGraph = buildDefaultStationGrpahGenerator()
 
   const railroadGeoJson = JSON.parse(readFileSync(inputRailroadFilename, "utf-8"))
