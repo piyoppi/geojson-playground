@@ -1,7 +1,7 @@
 import { buildWeakRefArc } from "../../graph/arc/weakRefArc.js"
 import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { GraphNode } from "../../graph/graph.js"
-import { junctionIdToString, stringToJunctionId, stationIdToString, stringToStationId, type Junction, type JunctionId, type Station, type StationId, CompanyId, RouteId } from "../transportation.js"
+import { junctionIdToString, stringToJunctionId, stationIdToString, stringToStationId, companyIdToString, stringToCompanyId, routeIdToString, stringToRouteId, type Junction, type JunctionId, type Station, type StationId, CompanyId, RouteId } from "../transportation.js"
 import { Position2D } from "../../geometry/index.js"
 
 /** Graph node representing a traffic element (station or junction) */
@@ -88,11 +88,17 @@ export function isSerializedJunctionNodeItem(item: unknown): item is SerializedJ
 export const serializeJunctionNodeItem = (item: JunctionNodeItem): SerializedJunctionNodeItem => ({
   t: 'J',
   id: junctionIdToString(item.junctionId),
+  position: item.position,
+  companyId: companyIdToString(item.companyId),
+  routeId: routeIdToString(item.routeId),
 })
 
 export const deserializeJunctionNodeItem = (serializedItem: SerializedJunctionNodeItem): JunctionNodeItem => ({
   type: 'Junction',
-  junctionId: stringToJunctionId(serializedItem.id)
+  junctionId: stringToJunctionId(serializedItem.id),
+  position: serializedItem.position,
+  companyId: stringToCompanyId(serializedItem.companyId),
+  routeId: stringToRouteId(serializedItem.routeId)
 })
 
 /**
@@ -102,9 +108,9 @@ export const deserializeJunctionNodeItem = (serializedItem: SerializedJunctionNo
  * @param arcs      - The arcs
  * @returns A station node
  */
-export const createJunctionNode = (junction: Junction, arcs: Arc<JunctionNodeItem>[] = []): JunctionNode => ({
+export const createJunctionNode = (junction: Junction, companyId: CompanyId, routeId: RouteId, arcs: Arc<JunctionNodeItem>[] = []): JunctionNode => ({
   id: junction.id,
-  item: createJunctionNodeItem(junction),
+  item: createJunctionNodeItem(junction, companyId, routeId),
   arcs
 })
 
@@ -112,11 +118,15 @@ export const createJunctionNode = (junction: Junction, arcs: Arc<JunctionNodeIte
  * Creates a junction node item from junction data and company ID
  * @param junction - The junction data
  * @param companyId - The ID of the company that owns the junction
+ * @param routeId - The ID of the route
  * @returns A junction node item
  */
-export const createJunctionNodeItem = (junction: Junction): JunctionNodeItem => ({
+export const createJunctionNodeItem = (junction: Junction, companyId: CompanyId, routeId: RouteId): JunctionNodeItem => ({
   type: 'Junction',
-  junctionId: junction.id
+  junctionId: junction.id,
+  position: junction.position,
+  companyId,
+  routeId
 })
 
 export function isJunctionNodeItem(item: unknown): item is JunctionNodeItem {

@@ -28,14 +28,15 @@ const createTestStationNode = async (nodeId: string, stationName: string, compan
   }
 }
 
-const createTestJunctionNode = async (nodeId: string, junctionIdStr: string, companyIdStr: string): Promise<GraphNode<any>> => {
+const createTestJunctionNode = async (nodeId: string, junctionIdStr: string, companyIdStr: string, routeIdStr: string = 'route1'): Promise<GraphNode<any>> => {
   const companyId = CompanyId(await toId(companyIdStr))
   const junctionId = JunctionId(await toId(junctionIdStr))
+  const routeId = RouteId(await toId(routeIdStr))
   
   const junctionItem = createJunctionNodeItem({
     id: junctionId,
     position: [0, 0]
-  })
+  }, companyId, routeId)
   
   return {
     id: nodeId,

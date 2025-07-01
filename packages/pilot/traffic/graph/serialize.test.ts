@@ -35,7 +35,7 @@ describe('serialize', () => {
     const nodeA = createNode('A', createStationNodeItem(stationA))
     const nodeB = createNode('B', createStationNodeItem(stationB))
     const nodeC = createNode('C', createStationNodeItem(stationC))
-    const nodeABC = createNode('ABC', createJunctionNodeItem(junctionABC))
+    const nodeABC = createNode('ABC', createJunctionNodeItem(junctionABC, companyId, RouteId('Route1')))
     connect(nodeA, nodeABC, 1)
     connect(nodeABC, nodeB, 1)
     connect(nodeABC, nodeC, 1)

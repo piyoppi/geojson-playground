@@ -4,7 +4,7 @@ import { toId, idToString, stringToId, type Id } from "../utils/Id.js"
 export type RouteId = Id & { readonly __brand: unique symbol }
 export const RouteId = (routeId: Id): RouteId => routeId as RouteId
 export const routeIdToString = (id: RouteId) => idToString(id)
-const stringToRouteId = (str: string) => RouteId(stringToId(str))
+export const stringToRouteId = (str: string) => RouteId(stringToId(str))
 
 export type StationId = Id & { readonly __brand: unique symbol }
 export const StationId = (stationId: Id): StationId => stationId as StationId
@@ -19,7 +19,7 @@ export const stringToJunctionId = (str: string) => JunctionId(stringToId(str))
 export type CompanyId = Id & { readonly __brand: unique symbol }
 export const CompanyId = (companyId: Id): CompanyId => companyId as CompanyId
 export const companyIdToString = (id: CompanyId) => idToString(id)
-const stringToCompanyId = (str: string) => CompanyId(stringToId(str))
+export const stringToCompanyId = (str: string) => CompanyId(stringToId(str))
 
 export const toRouteId = async (str: string) => RouteId(await toId(str))
 export const toStationId = async (str: string) => StationId(await toId(str))

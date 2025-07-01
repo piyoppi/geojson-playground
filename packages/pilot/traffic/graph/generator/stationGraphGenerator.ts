@@ -37,7 +37,7 @@ export const buildStationGraphGenerator = (
                 const id = await toJunctionId(`${p[0]}-${p[0]}`)
                 return [
                   id,
-                  createJunctionNodeItem({ id, position: p })
+                  createJunctionNodeItem({ id, position: p }, railroad.route.companyId, railroad.route.id)
                 ]
               },
               s => s.routeId,

@@ -104,8 +104,9 @@ describe('partitionByCompany', () => {
     const repository = await buildTestRepository()
 
     const companyId = CompanyId(await toId('company1'))
+    const routeId = RouteId(await toId('route1'))
     const junction = await createMockJunction('junction1')
-    const node1 = createJunctionNode(junction)
+    const node1 = createJunctionNode(junction, companyId, routeId)
     const junctionMap = new Map([[companyId, junction]])
 
     await partitionByCompany(repository, [node1], [], [], junctionMap)
@@ -146,7 +147,9 @@ describe('partitionByCompany', () => {
     const repository = await buildTestRepository()
 
     const orphanJunction = await createMockJunction('orphan_junction')
-    const orphanNode = createJunctionNode(orphanJunction)
+    const companyId = CompanyId(await toId('unknown_company'))
+    const routeId = RouteId(await toId('unknown_route'))
+    const orphanNode = createJunctionNode(orphanJunction, companyId, routeId)
 
     await t.assert.rejects(async () => {
       await partitionByCompany(repository, [orphanNode], [], [], new Map())
