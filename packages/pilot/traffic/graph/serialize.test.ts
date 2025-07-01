@@ -94,7 +94,7 @@ describe('buildTrafficGraphDeserializer', () => {
       nodes: [
         { id: 'A', item: { t: 'RS' as const, id: 'A' } },
         { id: 'B', item: { t: 'RS' as const, id: 'B' } },
-        { id: 'AB', item: { t: 'J' as const, id: 'AB' } }
+        { id: 'AB', item: { t: 'J' as const, id: 'AB', position: [0, 0] as [number, number], companyId: 'company1', routeId: 'route1' } }
       ]
     }
     

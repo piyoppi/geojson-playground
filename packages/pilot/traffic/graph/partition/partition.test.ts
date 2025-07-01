@@ -2,7 +2,7 @@ import { describe, it, type TestContext } from 'node:test'
 import { partition } from './partition.js'
 import { buildPartitionedRepository } from '../../../graph/arc/partitionedRepositoryArc.js'
 import type { TrafficNode, TrafficNodeItem } from '../trafficGraph.js'
-import { StationId, JunctionId } from '../../transportation.js'
+import { StationId, JunctionId, CompanyId, RouteId } from '../../transportation.js'
 import { toId } from '../../../utils/Id.js'
 
 const createMockTrafficItem = async (type: 'RailroadStation' | 'Junction', idStr: string): Promise<TrafficNodeItem> => {
@@ -14,7 +14,10 @@ const createMockTrafficItem = async (type: 'RailroadStation' | 'Junction', idStr
   } else {
     return {
       type: 'Junction',
-      junctionId: JunctionId(await toId(idStr))
+      junctionId: JunctionId(await toId(idStr)),
+      position: [0, 0],
+      companyId: CompanyId(await toId('testCompany')),
+      routeId: RouteId(await toId('testRoute'))
     }
   }
 }

@@ -53,8 +53,7 @@ const createMockRailroad = async (companyIdStr: string, stationIds: string[]): P
     name: 'Test Railroad',
     companyId: CompanyId(await toId(companyIdStr)),
     kind: 'railroad',
-    stations,
-    rails: []
+    stations
   }
 }
 
@@ -78,7 +77,7 @@ describe('partitionByCompany', () => {
     const node1 = createRailroadStationNode(railroad.stations[0])
     const node2 = createRailroadStationNode(railroad.stations[1])
 
-    await partitionByCompany(repository, [node1, node2], [railroad], [], new Map())
+    await partitionByCompany(repository, [node1, node2], [railroad], [])
 
     const company1Key = companyIdToString(railroad.companyId)
     t.assert.equal(await repository.get(node1.id, company1Key), node1)
@@ -93,7 +92,7 @@ describe('partitionByCompany', () => {
     const node1 = createBusStopNode([busRoute.stations[0]])
     const node2 = createBusStopNode([busRoute.stations[1]])
 
-    await partitionByCompany(repository, [node1, node2], [], [busRoute], new Map())
+    await partitionByCompany(repository, [node1, node2], [], [busRoute])
 
     const company2Key = companyIdToString(busRoute.companyId)
     t.assert.equal(await repository.get(node1.id, company2Key), node1)
@@ -109,7 +108,7 @@ describe('partitionByCompany', () => {
     const node1 = createJunctionNode(junction, companyId, routeId)
     const junctionMap = new Map([[companyId, junction]])
 
-    await partitionByCompany(repository, [node1], [], [], junctionMap)
+    await partitionByCompany(repository, [node1], [], [])
 
     const company1Key = companyIdToString(companyId)
     t.assert.equal(await repository.get(node1.id, company1Key), node1)
@@ -124,7 +123,7 @@ describe('partitionByCompany', () => {
     const railNode = createRailroadStationNode(railroad.stations[0])
     const busNode = createBusStopNode([busRoute.stations[0]])
 
-    await partitionByCompany(repository, [railNode, busNode], [railroad], [busRoute], new Map())
+    await partitionByCompany(repository, [railNode, busNode], [railroad], [busRoute])
 
     const company1Key = companyIdToString(railroad.companyId)
     const company2Key = companyIdToString(busRoute.companyId)
@@ -139,7 +138,7 @@ describe('partitionByCompany', () => {
     const orphanNode = createRailroadStationNode(orphanStation)
 
     await t.assert.rejects(async () => {
-      await partitionByCompany(repository, [orphanNode], [], [], new Map())
+      await partitionByCompany(repository, [orphanNode], [], [])
     }, { message: 'CompanyId is not found.' })
   })
 
@@ -152,7 +151,7 @@ describe('partitionByCompany', () => {
     const orphanNode = createJunctionNode(orphanJunction, companyId, routeId)
 
     await t.assert.rejects(async () => {
-      await partitionByCompany(repository, [orphanNode], [], [], new Map())
+      await partitionByCompany(repository, [orphanNode], [], [])
     }, { message: 'CompanyId is not found.' })
   })
 
@@ -162,7 +161,7 @@ describe('partitionByCompany', () => {
     const busRoute = await createMockBusRoute('company1', ['busstop1', 'busstop2'])
     const combinedNode = createBusStopNode([busRoute.stations[0], busRoute.stations[1]])
 
-    await partitionByCompany(repository, [combinedNode], [], [busRoute], new Map())
+    await partitionByCompany(repository, [combinedNode], [], [busRoute])
 
     const company1Key = companyIdToString(busRoute.companyId)
     t.assert.equal(await repository.get(combinedNode.id, company1Key), combinedNode)
