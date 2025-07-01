@@ -1,6 +1,5 @@
 import { Company, Route, Station } from "@piyoppi/sansaku-pilot/traffic/transportation"
 import { DatabaseHandler } from "../../database.js"
-import { getTrafficGraphPartitionKey } from "@piyoppi/sansaku-pilot/traffic/graph/partition/index.js"
 import { StationKind } from "./model.js"
 import { transaction } from "../../helpers/query.js"
 
@@ -120,7 +119,7 @@ export const insert = (database: DatabaseHandler, companies: Company[], routes: 
     transaction(database, () => {
       for (const route of routes) {
         for (const station of route.stations) {
-          insertStmt.run(station.id, station.groupId || station.id, getTrafficGraphPartitionKey(route), station.name, route.kind, route.id)
+          insertStmt.run(station.id, station.groupId || station.id, route.companyId, station.name, route.kind, route.id)
         }
       }
     })

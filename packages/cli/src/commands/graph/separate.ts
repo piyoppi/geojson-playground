@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { partitionByCompany } from '@piyoppi/sansaku-pilot/traffic/graph/partition/partitionByCompany.js'
+import { partition } from '@piyoppi/sansaku-pilot/traffic/graph/partition.js'
 import { buildPartitionedRepository } from '@piyoppi/sansaku-pilot/graph/arc/partitionedRepositoryArc.js'
 import { join as pathJoin } from 'node:path'
 import { toTrafficGraphFile, TrafficGraphFile } from '@piyoppi/sansaku-pilot/traffic/trafficGraphFile.js'
@@ -28,7 +28,7 @@ export const execute = async (
     }
   )
 
-  await partitionByCompany(repository, graph, railroads, busRoutes)
+  await partition(repository, graph)
 
   await repository.store()
 }

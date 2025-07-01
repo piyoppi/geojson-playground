@@ -18,7 +18,7 @@ export const buildStationGraphGenerator = (
   railroads: Railroad[]
 ): Promise<TrafficNode[]> => {
   const stationNodes = (await Promise.all(
-        railroads.map(railroad => buildPathchain(railroad.rails).then(g => [railroad, g] as const))
+        railroads.map(railroad => buildPathchain(railroad.track).then(g => [railroad, g] as const))
       ).then(results => Promise.all(
         results.flatMap(([railroad, isolatedPathChains]) => {
           const fromPathChain = buildGraphBuilder(generateArc)
@@ -26,7 +26,7 @@ export const buildStationGraphGenerator = (
             const end = ends(pathchains)[0]
 
             return fromPathChain(
-              railroad.stations.map(s => ({...s})),
+              railroad.route.stations.map(s => ({...s})),
               pathchains,
               end.from,
               s => Promise.resolve([
@@ -71,7 +71,7 @@ export const buildStationGraphGenerator = (
   //                    =>    |
   // [A(2)] ------ [B]      [A(2)] ------ [B]
   //
-  const stationById = new Map(railroads.flatMap(r => r.stations.map(s => [s.id, s])))
+  const stationById = new Map(railroads.flatMap(r => r.route.stations.map(s => [s.id, s])))
   const nodesByGroup = Map.groupBy(mergedStationNodes, n => (isRailroadStationNode(n) && stationById.get(n.item.stationId)?.groupId) ?? '')
   for (const sameGroupNodes of nodesByGroup.values()) {
     for (const current of sameGroupNodes) {

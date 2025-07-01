@@ -12,6 +12,7 @@ import type { RailroadStation } from '@piyoppi/sansaku-pilot/traffic/railroad'
 export const shortest = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {
   const loadedBusStops = new Map<StationId, BusStop>()
   const loadedRailroadStation = new Map<StationId, RailroadStation>
+
   const repository = buildPartitionedRepository<TrafficNodeItem>(
     async (partitionKey) => {
       const { busRoutes, railroads, graph } = await loadPartialFile(inputGraphDir, partitionKey)
@@ -80,7 +81,32 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
   const firstRange = grouped.at(0) ?? 0
   const lastRange = (grouped.at(-1) ?? shortest.length - 1) + 1
 
-  return shortest.slice(firstRange, lastRange + 1)
+  const nodes = shortest.slice(firstRange, lastRange + 1)
+
+  return {
+    nodes,
+    stations: new Map(
+      nodes
+        .filter(isRailroadStationNode)
+        .flatMap(node => {
+          const { stationId } = node.item
+          const station = loadedRailroadStation.get(stationId)
+          return station ? [[stationId, station] as const] : []
+        })
+    ),
+    busRoutes: new Map(
+      nodes
+        .filter(isBusStopNode)
+        .flatMap(node => {
+          const { busStopIds } = node.item
+          return busStopIds.flatMap(busStopId => {
+            const busStop = loadedBusStops.get(busStopId)
+            return busStop ? [[busStopId, busStop] as const] : []
+          })
+        })
+    )
+  }
+
 }
 
 const buildPartialFileLoader = (repository: PartitionedRepository<TrafficNodeItem>) => {

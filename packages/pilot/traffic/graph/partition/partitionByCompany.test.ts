@@ -18,7 +18,7 @@ import {
   type Junction
 } from '../../transportation.js'
 import { toId } from '../../../utils/Id.js'
-import type { Railroad } from '../../railroad.js'
+import type { RailroadRoute } from '../../railroad.js'
 import type { BusRoute } from '../../busroute.js'
 
 const buildTestRepository = async () => {
@@ -45,7 +45,7 @@ const createMockJunction = async (junctionIdStr: string): Promise<Junction> => (
   position: [0, 0]
 })
 
-const createMockRailroad = async (companyIdStr: string, stationIds: string[]): Promise<Railroad> => {
+const createMockRailroad = async (companyIdStr: string, stationIds: string[]): Promise<RailroadRoute> => {
   const stations = await Promise.all(stationIds.map(id => createMockStation(id, 'route1')))
 
   return {

@@ -29,15 +29,17 @@ const createTestStation = async (name: string, routeId: RouteId, position: Posit
   groupId: groupId || `group-${name}`
 })
 
-const createTestRailroad = async (name: string, companyId: CompanyId, stations: Station[], rails: Path[]): Promise<Railroad> => {
+const createTestRailroad = async (name: string, companyId: CompanyId, stations: Station[], track: Path[]): Promise<Railroad> => {
   const routeId = RouteId(await toId(`route-${name}`))
   return {
-    id: routeId,
-    name: `Test Railroad ${name}`,
-    companyId,
-    kind: 'railroad' as const,
-    stations,
-    rails
+    route: {
+      id: routeId,
+      name: `Test Railroad ${name}`,
+      companyId,
+      kind: 'railroad' as const,
+      stations,
+    },
+    track
   }
 }
 

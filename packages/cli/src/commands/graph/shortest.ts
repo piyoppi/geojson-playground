@@ -1,4 +1,5 @@
 import { shortest } from '@piyoppi/sansaku-query'
+import { isRailroadStationNode, isBusStopNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const execute = async (
   inputGraphDir: string,
@@ -7,9 +8,18 @@ export const execute = async (
   toId: string,
   toPk: string
 ) => {
+  const result = await shortest(inputGraphDir, fromId, fromPk, toId, toPk)
   console.log(
-    (await shortest(inputGraphDir, fromId, fromPk, toId, toPk))
-      .map(node => `${node.item.station.name}(${node.id}) \n ↓ ${node.item.station.routeId} \n`)
+    result.nodes
+      .map((node) => {
+        if (isRailroadStationNode(node)) {
+          return `Station: ${node.id}\n ↓\n`
+        } else if (isBusStopNode(node)) {
+          return `Bus Stop: ${node.id}\n ↓\n`
+        } else {
+          return `Junction: ${node.id}\n ↓\n`
+        }
+      })
       .join('')
   )
 }

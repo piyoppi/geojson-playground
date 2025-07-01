@@ -1,6 +1,6 @@
 import { PartitionedRepository } from "../../../graph/arc/partitionedRepositoryArc";
 import { BusRoute } from "../../busroute";
-import { Railroad } from "../../railroad";
+import { RailroadRoute } from "../../railroad";
 import { CompanyId, companyIdToString, Junction } from "../../transportation";
 import { filterJunctionNodes, isBusStopNode, isJunctionNode, isRailroadStationNode, TrafficNode, TrafficNodeItem } from "../trafficGraph";
 import { partition } from "./partition";
@@ -8,13 +8,13 @@ import { partition } from "./partition";
 export const partitionByCompany = async (
   repository: PartitionedRepository<TrafficNodeItem>,
   trafficNodes: TrafficNode[],
-  railroads: Railroad[],
+  railroads: RailroadRoute[],
   busRoutes: BusRoute[],
 ) => {
   const companyIdByRailroadStationId = new Map(railroads.flatMap(r => r.stations.map(s => [s.id, r.companyId])))
   const companyIdByBusStopId = new Map(busRoutes.flatMap(r => r.stations.map(b => [b.id, r.companyId])))
   // [FIXME]
-  const companyIdByJunctionId = new Map(filterJunctionNodes(trafficNodes).map(n => [n.item.junctionId, n.item.]))
+ //  const companyIdByJunctionId = new Map(filterJunctionNodes(trafficNodes).map(n => [n.item.junctionId, n.item.]))
 
   await partition(
     repository,

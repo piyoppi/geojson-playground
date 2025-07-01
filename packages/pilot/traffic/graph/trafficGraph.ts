@@ -1,7 +1,8 @@
 import { buildWeakRefArc } from "../../graph/arc/weakRefArc.js"
 import type { Arc, ArcGenerator } from "../../graph/arc/index.js"
 import type { GraphNode } from "../../graph/graph.js"
-import { junctionIdToString, stringToJunctionId, stationIdToString, stringToStationId, type Junction, type JunctionId, type Station, type StationId } from "../transportation.js"
+import { junctionIdToString, stringToJunctionId, stationIdToString, stringToStationId, type Junction, type JunctionId, type Station, type StationId, CompanyId, RouteId } from "../transportation.js"
+import { Position2D } from "../../geometry/index.js"
 
 /** Graph node representing a traffic element (station or junction) */
 export type TrafficNode = GraphNode<TrafficNodeItem>
@@ -67,9 +68,18 @@ export function isJunctionNode(node: GraphNode<unknown>): node is JunctionNode {
 type JunctionNodeItem = {
   type: 'Junction'
   junctionId: JunctionId
+  position: Position2D
+  companyId: CompanyId
+  routeId: RouteId
 }
 
-export type SerializedJunctionNodeItem = { t: 'J', id: string }
+export type SerializedJunctionNodeItem = {
+  t: 'J',
+  id: string
+  position: Position2D
+  companyId: string
+  routeId: string
+}
 
 export function isSerializedJunctionNodeItem(item: unknown): item is SerializedJunctionNodeItem {
   return (typeof item === 'object' && item !== null && 't' in item && item.t === 'J' && 'id' in item && typeof item.id === 'string')
@@ -77,7 +87,7 @@ export function isSerializedJunctionNodeItem(item: unknown): item is SerializedJ
 
 export const serializeJunctionNodeItem = (item: JunctionNodeItem): SerializedJunctionNodeItem => ({
   t: 'J',
-  id: junctionIdToString(item.junctionId)
+  id: junctionIdToString(item.junctionId),
 })
 
 export const deserializeJunctionNodeItem = (serializedItem: SerializedJunctionNodeItem): JunctionNodeItem => ({

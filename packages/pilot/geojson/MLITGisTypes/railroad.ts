@@ -1,5 +1,5 @@
 import { type Company, type CompanyId, type RouteId, toCompanyId, toRouteId, toStationId } from "../../traffic/transportation.js"
-import type { Railroad, RailroadStation } from "../../traffic/railroad.js"
+import type { Railroad, RailroadRoute, RailroadStation } from "../../traffic/railroad.js"
 import type { Feature, LineString2D } from "../index.js"
 import type { StationFeature, StationsGeoJson } from './station.js'
 import { center } from "../../geometry/index.js"
@@ -70,12 +70,14 @@ const createRailroad = async (railroadFeatures: RailroadFeature[], companyId: Co
   const stationsList = await createStations(stations, routeId)
 
   return {
-    id: routeId,
-    name: lineName,
-    kind: 'railroad',
-    companyId,
-    rails: railroadFeatures.map(r => r.geometry.coordinates),
-    stations: stationsList
+    route: {
+      id: routeId,
+      name: lineName,
+      kind: 'railroad',
+      companyId,
+      stations: stationsList
+    },
+    track: railroadFeatures.map(r => r.geometry.coordinates),
   }
 }
 

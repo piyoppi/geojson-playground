@@ -1,6 +1,7 @@
 import { findRouteSummariesFromId, findStationSummariesFromGroupId } from "@piyoppi/sansaku-viewmodel"
 import { DatabaseHandler } from "@piyoppi/sansaku-viewmodel/dist/database"
 import { shortest } from '@piyoppi/sansaku-query'
+import { isRailroadStationNode, isBusStopNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 
 export const createGetTransferHandler = (
   databaseHandler: DatabaseHandler,
@@ -17,7 +18,7 @@ export const createGetTransferHandler = (
     throw new Error('')
   }
 
-  const results = await shortest(
+  const { nodes, stations, busRoutes } = await shortest(
     inputGraphDir,
     fromStationSummary.id,
     fromStationSummary.partitionKey,
@@ -25,17 +26,39 @@ export const createGetTransferHandler = (
     toStationSummary.partitionKey
   )
 
-  const routeIds = Array.from(new Set(results.map(node => node.item.station.routeId)))
+  const routeIds = Array.from(new Set([
+    ...Array.from(stations.values()).map(s => s.routeId),
+    ...Array.from(busRoutes.values()).map(b => b.routeId)
+  ]))
   const routeSummaries = new Map(
     findRouteSummariesFromId(databaseHandler, routeIds)
       .map(r => [r.id, r.name])
   )
 
   return {
-    items: results.map(node => ({
-      id: node.item.station.id,
-      name: node.item.station.name,
-      routeName: routeSummaries.get(node.item.station.routeId) || '',
-    })),
+    items: nodes.map(node => {
+      if (isRailroadStationNode(node)) {
+        const station = stations.get(node.item.stationId)
+        return station ? {
+          id: station.id,
+          name: station.name,
+          routeName: routeSummaries.get(station.routeId) || '',
+        } : null
+      } else if (isBusStopNode(node)) {
+        // For bus stops, use the first bus stop ID
+        const busStop = busRoutes.get(node.item.busStopIds[0])
+        return busStop ? {
+          id: busStop.id,
+          name: busStop.name,
+          routeName: routeSummaries.get(busStop.routeId) || '',
+        } : null
+      }
+      // Junction nodes
+      return {
+        id: node.id,
+        name: 'Junction',
+        routeName: '',
+      }
+    }).filter((item): item is NonNullable<typeof item> => item !== null),
   }
 }
