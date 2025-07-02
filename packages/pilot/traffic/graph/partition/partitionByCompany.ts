@@ -1,9 +1,9 @@
-import { PartitionedRepository } from "../../../graph/arc/partitionedRepositoryArc";
-import { BusRoute } from "../../busroute";
-import { RailroadRoute } from "../../railroad";
-import { companyIdToString } from "../../transportation";
-import { filterJunctionNodes, isBusStopNode, isJunctionNode, isRailroadStationNode, TrafficNode, TrafficNodeItem } from "../trafficGraph";
-import { partition } from "./partition";
+import { PartitionedRepository } from "../../../graph/arc/partitionedRepositoryArc.js"
+import { BusRoute } from "../../busroute.js"
+import { RailroadRoute } from "../../railroad.js"
+import { companyIdToString } from "../../transportation.js"
+import { filterJunctionNodes, isBusStopNode, isJunctionNode, isRailroadStationNode, TrafficNode, TrafficNodeItem } from "../trafficGraph.js"
+import { partition } from "./partition.js"
 
 export const partitionByCompany = async (
   repository: PartitionedRepository<TrafficNodeItem>,

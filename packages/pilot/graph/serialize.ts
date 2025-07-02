@@ -83,7 +83,7 @@ export const buildGraphDeserializer = <I>(
       (await weakRefArcDeserializer(serializedArc, arcResolvedHandler))
 
     if (!arc) {
-      throw new Error(`Arc deserialization failed for nodes`)
+      throw new Error(`Arc deserialization failed for nodes ${serializedArc.aNodeId} -- ${serializedArc.bNodeId} (cost: ${serializedArc.arcCost}`)
     }
   }
 
