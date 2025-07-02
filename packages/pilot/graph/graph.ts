@@ -55,7 +55,9 @@ export const removeNode = async (node: GraphNode<unknown>) => {
     }
   }
 
-  connectedNodes.forEach(connectedNode => disconnect(node, connectedNode))
+  for (const connectedNode of connectedNodes) {
+    await disconnect(node, connectedNode)
+  }
 }
 
 export const to = async <T>(fromNode: GraphNode<T>, arc: Arc<T>): Promise<GraphNode<T> | null> => {
@@ -92,7 +94,7 @@ export const buildNodeMerger = <IG>(
   ...nodes: GraphNode<I>[]
 ): Promise<GraphNode<I>> => {
   const mergedNode = {...nodes[0], arcs: []}
-  const arcMap = new Map<GraphNode<I>, { totalCost: number, count: number }>()
+  const arcMap = new Map<GraphNode<I>, { totalCost: number, count: number, targetNode: GraphNode<I> }>()
 
   for (const node of nodes) {
     for (const arc of node.arcs) {
@@ -107,7 +109,7 @@ export const buildNodeMerger = <IG>(
       if (!otherNode) continue
 
       if (!arcMap.has(otherNode)) {
-        arcMap.set(otherNode, { totalCost: arc.cost, count: 1 })
+        arcMap.set(otherNode, { totalCost: arc.cost, count: 1, targetNode: node })
       } else {
         const current = arcMap.get(otherNode)!
         current.totalCost += arc.cost
@@ -116,9 +118,10 @@ export const buildNodeMerger = <IG>(
     }
   }
 
-  for (const [otherNode, { totalCost, count }] of arcMap.entries()) {
+  for (const [otherNode, { totalCost, count, targetNode }] of arcMap.entries()) {
     const averageCost = totalCost / count
     const newArc = generateArc(mergedNode, otherNode, averageCost)
+    await disconnect(targetNode, otherNode)
     connect(mergedNode, otherNode, newArc)
   }
 
@@ -144,10 +147,10 @@ export const buildDuplicateNodesMarger = <IG>(
         const mergedNode = await mergeNodes(...nodes)
         mergedNodeHook(mergedNode, nodes)
         targetNodes.push(mergedNode)
-        nodes.forEach(node => {
-          removeNode(node)
+        for (const node of nodes) {
+          await removeNode(node)
           duplicatedNodes.add(node)
-        })
+        }
       }
     })
   )
