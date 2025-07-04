@@ -21,18 +21,18 @@ export const partitionByCompany = async (
     node => {
       if (isRailroadStationNode(node)) {
         const companyId = companyIdByRailroadStationId.get(node.item.stationId)
-        if (!companyId) throw new Error('CompanyId is not found.')
+        if (!companyId) throw new Error('CompanyId is not found in RailroadStationNode.')
         return companyIdToString(companyId)
       } else if (isBusStopNode(node)) {
         const companyIds = node.item.busStopIds.map(id => companyIdByBusStopId.get(id))
         const companyId = companyIds[0]
         // Expected: All companyIds is same
         const isValid = companyId && companyIds.every(c => c === companyIds[0])
-        if (!isValid) throw new Error('CompanyId is not found.')
+        if (!isValid) throw new Error('CompanyId is not found in BusStopNode.')
         return companyIdToString(companyId)
       } else if (isJunctionNode(node)) {
         const companyId = companyIdByJunctionId.get(node.item.junctionId)
-        if (!companyId) throw new Error('CompanyId is not found.')
+        if (!companyId) throw new Error('CompanyId is not found in JunctionNode.')
         return companyIdToString(companyId)
       }
 
