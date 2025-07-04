@@ -125,7 +125,7 @@ export const buildPartitionedRepository = <I>(
     },
     store: async () => {
       for (const [partitionKey, repository] of repositoryByPartition.entries()) {
-        storePartitionedNodes(partitionKey, repository.values().toArray())
+        await storePartitionedNodes(partitionKey, repository.values().toArray())
       }
     }
   }

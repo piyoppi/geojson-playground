@@ -191,12 +191,8 @@ describe('buildBusStopGraphGenerator', () => {
     t.assert.equal(route2Nodes.length, 2, 'Route 2 should have 2 nodes')
 
     // Find central station nodes (should be shared between routes due to same groupId)
-    const centralNode1 = route1Nodes.find(n =>
-      n.item.busStopIds.includes(busStop1Route1.id) // Central Station from Route 1
-    )
-    const centralNode2 = route2Nodes.find(n =>
-      n.item.busStopIds.includes(busStop1Route2.id) // Central Station from Route 2
-    )
+    const centralNode1 = route1Nodes.find(n => n.item.busStopIds.includes(busStop1Route1.id)) // Central Station from Route 1
+    const centralNode2 = route2Nodes.find(n => n.item.busStopIds.includes(busStop1Route2.id)) // Central Station from Route 2
     t.assert.ok(centralNode1, 'Central Station node should exist in route 1')
     t.assert.ok(centralNode2, 'Central Station node should exist in route 2')
     t.assert.equal(centralNode1, centralNode2, 'Central Station should be the same node instance in both routes')
@@ -209,27 +205,19 @@ describe('buildBusStopGraphGenerator', () => {
       'Shared node should contain bus stop IDs from both routes'
     )
 
-    const northNode = route1Nodes.find(n =>
-      n.item.busStopIds.includes(busStop2Route1.id) // North Station from Route 1
-    )
+    const northNode = route1Nodes.find(n => n.item.busStopIds.includes(busStop2Route1.id)) // North Station from Route 1
     t.assert.ok(northNode, 'North Station node should exist in route 1')
 
     const centralToNorthArc = await findConnectingArc(centralNode1, northNode)
     t.assert.ok(centralToNorthArc, 'Central Station should be connected to North Station in Route 1')
+    t.assert.equal(centralToNorthArc.cost, Math.sqrt(Math.pow(1 - 0, 2) + Math.pow(0 - 0, 2)), 'Arc cost should match distance')
 
-    const expectedCostCentralToNorth = Math.sqrt(Math.pow(1 - 0, 2) + Math.pow(0 - 0, 2))
-    t.assert.equal(centralToNorthArc.cost, expectedCostCentralToNorth, 'Arc cost should match distance')
-
-    const southNode = route2Nodes.find(n =>
-      n.item.busStopIds.includes(busStop3Route2.id) // South Station from Route 2
-    )
+    const southNode = route2Nodes.find(n => n.item.busStopIds.includes(busStop3Route2.id)) // South Station from Route 2
     t.assert.ok(southNode, 'South Station node should exist in route 2')
 
     const centralToSouthArc = await findConnectingArc(centralNode2, southNode)
     t.assert.ok(centralToSouthArc, 'Central Station should be connected to South Station in Route 2')
-
-    const expectedCostCentralToSouth = Math.sqrt(Math.pow(-1 - 0, 2) + Math.pow(0 - 0, 2))
-    t.assert.equal(centralToSouthArc.cost, expectedCostCentralToSouth, 'Arc cost should match distance')
+    t.assert.equal(centralToSouthArc.cost, Math.sqrt(Math.pow(-1 - 0, 2) + Math.pow(0 - 0, 2)), 'Arc cost should match distance')
 
     const northToSouthConnected = await arcExists(northNode, southNode)
     t.assert.equal(northToSouthConnected, false, 'North Station and South Station should not be directly connected')
@@ -325,7 +313,7 @@ describe('buildBusStopGraphGenerator', () => {
     // Find terminal nodes for each route (should be the same shared node)
     const terminalNodes = routes.map(route => {
       const terminalStopId = route.stations.find(s => s.name === 'Major Terminal')?.id
-      return busStopNodes.find(n => 
+      return busStopNodes.find(n =>
         n.item.busStopIds.includes(terminalStopId!) // Major Terminal stop from this route
       )
     })
