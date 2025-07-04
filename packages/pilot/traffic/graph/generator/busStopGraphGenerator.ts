@@ -49,6 +49,7 @@ export const buildBusStopGraphGenerator = (
       return nodeItemId ? busStopById.get(nodeItemId)?.groupId : undefined
     }
   )
+
   const merged = await mergeDuplicateBusStopNode(
     nodes,
     (merged, targets) => {

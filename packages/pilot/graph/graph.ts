@@ -93,6 +93,7 @@ export const buildNodeMerger = <IG>(
 ) => async <I extends IG>(
   ...nodes: GraphNode<I>[]
 ): Promise<GraphNode<I>> => {
+  // TODO: Check nodes length
   const mergedNode = {...nodes[0], arcs: []}
   const arcMap = new Map<GraphNode<I>, { totalCost: number, count: number }>()
 
@@ -136,25 +137,32 @@ export const buildDuplicateNodesMarger = <IG>(
   mergedNodeHook: (merged: GraphNode<IG>, targetNodes: GraphNode<IG>[]) => void = () => {}
 ): Promise<GraphNode<I>[]> => {
   const duplicatedNodes = new Set()
+  const mergedNodes: GraphNode<I>[]= []
+  const nodesToRemove: GraphNode<I>[] = []
 
-  await Promise.all(
-    Map.groupBy(targetNodes, n => getGroupKey(n))
-    .entries()
-    .flatMap(([k, v]) => k ? [v] : [])
-    .map(async nodes => {
-      if (nodes.length === 0) return
+  const groups = Map.groupBy(targetNodes, n => getGroupKey(n))
 
-      const mergedNode = await mergeNodes(...nodes)
-      mergedNodeHook(mergedNode, nodes)
-      targetNodes.push(mergedNode)
-      for (const node of nodes) {
-        await removeNode(node)
-        duplicatedNodes.add(node)
-      }
-    })
-  )
+  for (const [k, nodes] of groups.entries()) {
+    if (!k || nodes.length < 2) continue
 
-  return targetNodes.filter(node => !duplicatedNodes.has(node))
+    const mergedNode = await mergeNodes(...nodes)
+    mergedNodeHook(mergedNode, nodes)
+    mergedNodes.push(mergedNode)
+
+    for (const node of nodes) {
+      nodesToRemove.push(node)
+      duplicatedNodes.add(node)
+    }
+  }
+
+  for (const node of nodesToRemove) {
+    await removeNode(node)
+  }
+
+  return [
+    ...mergedNodes,
+    ...targetNodes.filter(node => !duplicatedNodes.has(node))
+  ]
 }
 
 export const findShortestPath = async <I>(

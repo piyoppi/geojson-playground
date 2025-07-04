@@ -305,6 +305,7 @@ describe('disconnect', () => {
     t.assert.strictEqual(nodeA.arcs.length, 0)
     t.assert.strictEqual(nodeB.arcs.length, 0)
   })
+
 })
 
 describe('findShortestPath', () => {
@@ -388,202 +389,54 @@ describe('buildDuplicateNodesMarger', () => {
   it('should merge nodes with the same group key', async (t: TestContext) => {
     // Create nodes with same group key
     // Initial graph structure:
-    // [A1] ---- [B]
+    // [A1] ---- [B1]
     //
     // [A2] ---- [C]
     //
+    // [A3] ---- [B2]
+    //
     // Expected after merge:
     //
-    // ( [A1] [A2]: Removed )
+    // ( [A1] [A2] [A3] [B1] [B2] : Removed )
     //
     // [A] ---- [B]
     //  |
     //  +------ [C]
     const nodeA1 = createNode('A', { name: 'Node A1' })
     const nodeA2 = createNode('A', { name: 'Node A2' })
-    const nodeB  = createNode('B', { name: 'Node B' })
+    const nodeA3 = createNode('A', { name: 'Node A3' })
+    const nodeB1 = createNode('B', { name: 'Node B1' })
+    const nodeB2 = createNode('B', { name: 'Node B2' })
     const nodeC  = createNode('C', { name: 'Node C' })
 
-    connect(nodeA1, nodeB, generateArc(nodeA1, nodeB, 10))
+    connect(nodeA1, nodeB1, generateArc(nodeA1, nodeB1, 10))
     connect(nodeA2, nodeC, generateArc(nodeA2, nodeC, 20))
+    connect(nodeA3, nodeB2, generateArc(nodeA3, nodeB2, 10))
 
     const mergeDuplicatedNode = buildDuplicateNodesMarger(
       buildNodeMerger(generateArc)
     )
 
-    const result = await mergeDuplicatedNode([nodeA1, nodeA2])
-    t.assert.equal(result.length, 1)
+    const result = await mergeDuplicatedNode([nodeA1, nodeA2, nodeA3, nodeB1, nodeB2, nodeC])
+    t.assert.equal(result.length, 3)
 
-    const nodeA = result[0]
+    const nodeA = result.find(n => n.id === 'A')
+    const nodeB = result.find(n => n.id === 'B')
+    t.assert.ok(nodeA)
+    t.assert.ok(nodeB)
+    t.assert.ok(nodeA !== nodeA1)
+    t.assert.ok(nodeA !== nodeA2)
+    t.assert.ok(nodeA !== nodeA3)
 
     t.assert.ok(await arcExists(nodeA, nodeB))
     t.assert.ok(await arcExists(nodeA, nodeC))
 
     t.assert.ok(!(await arcExists(nodeA1, nodeB)))
     t.assert.ok(!(await arcExists(nodeA2, nodeC)))
+    t.assert.ok(!(await arcExists(nodeA3, nodeB)))
+    t.assert.ok(!(await arcExists(nodeB1, nodeA)))
+    t.assert.ok(!(await arcExists(nodeB2, nodeA)))
   })
-
-  // it('should use custom group key function', async (t: TestContext) => {
-  //   // Group by 'group' property instead of node ID
-  //   // Initial: [1 (group:A)] [2 (group:A)] [3 (group:B)]
-  //   // After merge: [1 (group:A)] [3 (group:B)]
-  //   const node1 = createNode('1', { group: 'A', value: 10 })
-  //   const node2 = createNode('2', { group: 'A', value: 20 })
-  //   const node3 = createNode('3', { group: 'B', value: 30 })
-
-  //   const mergeNodes = buildNodeMerger(generateArc)
-  //   const duplicateNodesMerger = buildDuplicateNodesMarger(
-  //     mergeNodes,
-  //     (n) => n.item.group
-  //   )
-
-  //   const result = await duplicateNodesMerger([node1, node2, node3])
-
-  //   // Should have 2 nodes: merged node for group 'A' and node3 for group 'B'
-  //   t.assert.equal(result.length, 2)
-
-  //   // The merged node should have id '1' (from first node in group)
-  //   const mergedNode = result.find(n => n.id === '1')
-  //   const nodeBGroup = result.find(n => n.id === '3')
-
-  //   t.assert.ok(mergedNode)
-  //   t.assert.ok(nodeBGroup)
-  // })
-
-  // it('should handle nodes with undefined group keys', async (t: TestContext) => {
-  //   // Undefined group keys are not merged
-  //   // Initial: [1 (group:A)] [2 (group:undefined)] [3 (group:A)] [4 (group:undefined)]
-  //   // After merge: [1 (group:A)] [2 (group:undefined)] [4 (group:undefined)]
-  //   const node1 = createNode('1', { group: 'A' })
-  //   const node2 = createNode('2', { group: undefined })
-  //   const node3 = createNode('3', { group: 'A' })
-  //   const node4 = createNode('4', { group: undefined })
-
-  //   const mergeNodes = buildNodeMerger(generateArc)
-  //   const duplicateNodesMerger = buildDuplicateNodesMarger(
-  //     mergeNodes,
-  //     (n) => n.item.group
-  //   )
-
-  //   const result = await duplicateNodesMerger([node1, node2, node3, node4])
-
-  //   // Should have 3 nodes: merged node for 'A', and individual nodes with undefined group
-  //   t.assert.equal(result.length, 3)
-
-  //   const mergedNode = result.find(n => n.id === '1')
-  //   const node2Result = result.find(n => n.id === '2')
-  //   const node4Result = result.find(n => n.id === '4')
-
-  //   t.assert.ok(mergedNode)
-  //   t.assert.ok(node2Result)
-  //   t.assert.ok(node4Result)
-  // })
-
-  // it('should call mergedNodeHook with correct parameters', async (t: TestContext) => {
-  //   // Hook is called when merging occurs
-  //   // Initial: [A] [A] [B]
-  //   // Merge: A + A -> hook called with merged node and [A, A]
-  //   const node1 = createNode('A', { value: 1 })
-  //   const node2 = createNode('A', { value: 2 })
-  //   const node3 = createNode('B', { value: 3 })
-
-  //   const mergeNodes = buildNodeMerger(generateArc)
-  //   const duplicateNodesMerger = buildDuplicateNodesMarger(mergeNodes)
-
-  //   let hookCalled = false
-  //   let hookMergedNode = null
-  //   let hookTargetNodes = null
-
-  //   await duplicateNodesMerger(
-  //     [node1, node2, node3],
-  //     (merged, targetNodes) => {
-  //       hookCalled = true
-  //       hookMergedNode = merged
-  //       hookTargetNodes = targetNodes
-  //     }
-  //   )
-
-  //   t.assert.ok(hookCalled)
-  //   t.assert.ok(hookMergedNode)
-  //   t.assert.ok(hookTargetNodes)
-  //   t.assert.equal(hookTargetNodes?.length, 2)
-  //   t.assert.ok(hookTargetNodes?.includes(node1))
-  //   t.assert.ok(hookTargetNodes?.includes(node2))
-  // })
-
-  // it('should not merge when all nodes have unique keys', async (t: TestContext) => {
-  //   // No merging when all keys are unique
-  //   // Initial: [A] [B] [C]
-  //   // After: [A] [B] [C] (no change)
-  //   const node1 = createNode('A', { value: 1 })
-  //   const node2 = createNode('B', { value: 2 })
-  //   const node3 = createNode('C', { value: 3 })
-
-  //   const mergeNodes = buildNodeMerger(generateArc)
-  //   const duplicateNodesMerger = buildDuplicateNodesMarger(mergeNodes)
-
-  //   const result = await duplicateNodesMerger([node1, node2, node3])
-
-  //   t.assert.equal(result.length, 3)
-  //   t.assert.ok(result.includes(node1))
-  //   t.assert.ok(result.includes(node2))
-  //   t.assert.ok(result.includes(node3))
-  // })
-
-  // it('should handle empty array', async (t: TestContext) => {
-  //   // Empty input should return empty output
-  //   // Initial: []
-  //   // After: []
-  //   const mergeNodes = buildNodeMerger(generateArc)
-  //   const duplicateNodesMerger = buildDuplicateNodesMarger(mergeNodes)
-
-  //   const result = await duplicateNodesMerger([])
-
-  //   t.assert.equal(result.length, 0)
-  // })
-
-  // it('should merge nodes with connections', async (t: TestContext) => {
-  //   // Merge nodes with connections and calculate average cost
-  //   // Initial graph:
-  //   //    [A]--10--[X]
-  //   //             /
-  //   //    [A]--20--/
-  //   //
-  //   // After merge:
-  //   //    [A]--15--[X]  (average of 10 and 20)
-  //   const node1 = createNode('A', { name: 'Node 1' })
-  //   const node2 = createNode('A', { name: 'Node 2' })
-  //   const nodeX = createNode('X', { name: 'Node X' })
-
-  //   // Add connections
-  //   const arc1X = generateArc(node1, nodeX, 10)
-  //   const arc2X = generateArc(node2, nodeX, 20)
-
-  //   connect(node1, nodeX, arc1X)
-  //   connect(node2, nodeX, arc2X)
-
-  //   const mergeNodes = buildNodeMerger(generateArc)
-  //   const duplicateNodesMerger = buildDuplicateNodesMarger(mergeNodes)
-
-  //   const result = await duplicateNodesMerger([node1, node2, nodeX])
-
-  //   // Should have 2 nodes: merged node for 'A' and nodeX
-  //   t.assert.equal(result.length, 2)
-
-  //   const mergedNode = result.find(n => n.id === 'A')
-  //   const nodeXResult = result.find(n => n.id === 'X')
-
-  //   t.assert.ok(mergedNode)
-  //   t.assert.ok(nodeXResult)
-
-  //   // Check that merged node has connection to X with average cost
-  //   t.assert.equal(mergedNode?.arcs.length, 1)
-  //   t.assert.equal(mergedNode?.arcs[0].cost, 15) // (10 + 20) / 2
-
-  //   // Verify original nodes were disconnected
-  //   t.assert.equal(node1.arcs.length, 0)
-  //   t.assert.equal(node2.arcs.length, 0)
-  // })
 })
 
 describe('removeNode', () => {
