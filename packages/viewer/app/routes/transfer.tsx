@@ -1,13 +1,13 @@
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect } from "react"
 import { Card, CardFooter } from "~/components/ui/card"
 import type { Route } from "./+types/home"
-import { Button } from "~/components/ui/button"
 import { StationCombobox } from "~/components/stationCombobox"
 import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { TransferResult } from "~/components/transferResult"
+import { useSearchParams } from "react-router"
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -19,8 +19,20 @@ export function meta({}: Route.MetaArgs) {
 export const queryClient = new QueryClient()
 
 export default function Transfer() {
-  const [fromStationId, setFromStationId] = useState<string | undefined>(undefined)
-  const [toStationId, setToStationId] = useState<string | undefined>(undefined)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [fromStationId, setFromStationId] = useState<string | undefined>(
+    searchParams.get('from') || undefined
+  )
+  const [toStationId, setToStationId] = useState<string | undefined>(
+    searchParams.get('to') || undefined
+  )
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (fromStationId) params.set('from', fromStationId)
+    if (toStationId) params.set('to', toStationId)
+    setSearchParams(params, { replace: true })
+  }, [fromStationId, toStationId, setSearchParams])
 
   const handleFromStationSelected = useCallback((stationId: string) => {
     setFromStationId(stationId)

@@ -96,16 +96,27 @@ export const buildPartitionedRepository = <I>(
 ) => {
   const repositoryByPartition = new Map<string, Map<NodeId, GraphNode<I>>>
 
-  const getRepositoryFromPartition = (partitionKey: string) => repositoryByPartition.get(partitionKey) || (() => {
+  const getPartitionedItems = (partitionKey: string) => repositoryByPartition.get(partitionKey) || (() => {
     const partition = new Map<NodeId, GraphNode<I>>()
     repositoryByPartition.set(partitionKey, partition)
 
     return partition
   })()
 
-  return {
+  const load = async (partitionKey: string) => {
+     const nodes = await fetchPartitionedNodes(partitionKey)
+     const partitionedItems = getPartitionedItems(partitionKey)
+
+     for (const node of nodes) {
+       partitionedItems.set(node.id, node)
+     }
+
+     return partitionedItems
+  }
+
+  const repository = {
     register(node: GraphNode<I>, partitionKey: string) {
-      getRepositoryFromPartition(partitionKey).set(node.id, node)
+      getPartitionedItems(partitionKey).set(node.id, node)
       return Promise.resolve()
     },
     get: async (id: NodeId, partitionKey: string) => {
@@ -113,20 +124,17 @@ export const buildPartitionedRepository = <I>(
 
       if (inMemoryItem) return inMemoryItem
 
-      const nodes = await fetchPartitionedNodes(partitionKey)
+      const partitionedItems = await load(partitionKey)
 
-      const repository = getRepositoryFromPartition(partitionKey)
-
-      for (const node of nodes) {
-        repository.set(node.id, node)
-      }
-
-      return repository.get(id)
+      return partitionedItems.get(id)
     },
+    load,
     store: async () => {
       for (const [partitionKey, repository] of repositoryByPartition.entries()) {
         await storePartitionedNodes(partitionKey, repository.values().toArray())
       }
     }
   }
+
+  return repository
 }

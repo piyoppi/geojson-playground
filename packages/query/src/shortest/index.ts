@@ -31,22 +31,14 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
   )
   const loadPartialFile = buildPartialFileLoader(repository)
 
-  const fromFile = await loadPartialFile(inputGraphDir, fromPk)
-  const toFile = await loadPartialFile(inputGraphDir, toPk)
+  const fromFile = await repository.load(fromPk)
+  const toFile = await repository.load(toPk)
 
-  const startNode = fromFile.graph.find(n => n.id === fromId)
-  const endNode = toFile.graph.find(n => n.id === toId)
+  const startNode = fromFile.get(fromId)
+  const endNode = toFile.get(toId)
 
   if (!startNode || !endNode) {
     throw new Error("Start or end node not found");
-  }
-
-  for (const node of fromFile.graph) {
-    repository.register(node, fromPk)
-  }
-
-  for (const node of toFile.graph) {
-    repository.register(node, toPk)
   }
 
   const costGenerator = buildCostGenerator(
@@ -83,6 +75,8 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
 
   const nodes = shortest.slice(firstRange, lastRange + 1)
 
+  console.log('loadedRailroadStation', loadedRailroadStation)
+
   return {
     nodes,
     stations: new Map(
@@ -110,12 +104,12 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
 }
 
 const buildPartialFileLoader = (repository: PartitionedRepository<TrafficNodeItem>) => {
-  const buildTrafficGraphFromFile = buildDefaultTrafficGraphFromFile({
+  const trafficGraphFromFile = buildDefaultTrafficGraphFromFile({
     repository
   })
 
   return async (baseDir: string, partitionKey: string) => {
     const fileContent = await readFile(pathJoin(baseDir, `${partitionKey}.json`), "utf-8")
-    return await buildTrafficGraphFromFile(JSON.parse(fileContent))
+    return await trafficGraphFromFile(JSON.parse(fileContent))
   }
 }

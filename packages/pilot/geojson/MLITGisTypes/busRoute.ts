@@ -62,33 +62,12 @@ export const fromMLITGeoJson = async (busStopGeoJson: BusStopsGeoJson): Promise<
             id: await toStationId(`${companyName}-${routeName}-${stopName}-${geometry.coordinates[0]}-${geometry.coordinates[1]}`),
             name: stopName,
             routeId,
+            groupId: await toId([stopName, geometry.coordinates, companyName].join(',')),
             position: geometry.coordinates
           }))
         )
       }
     }))
 
-  const allStations = busStops.flatMap(route => route.stations)
-  await assignBusStopGroupIds(allStations)
-
   return [companies.values().toArray(), busStops]
 }
-
-const assignBusStopGroupIds = async (busStops: BusStop[]): Promise<BusStop[]> => {
-  const nodePositionIndex = Map.groupBy(
-    busStops,
-    s => [s.name, ...s.position].join(',')
-  )
-
-  for (const [key, stations] of nodePositionIndex) {
-    if (stations.length > 1) {
-      const groupId = await toId(key)
-      for (const station of stations) {
-        station.groupId = groupId
-      }
-    }
-  }
-
-  return busStops
-}
-

@@ -28,7 +28,9 @@ export const partitionByCompany = async (
         const companyId = companyIds[0]
         // Expected: All companyIds is same
         const isValid = companyId && companyIds.every(c => c === companyIds[0])
-        if (!isValid) throw new Error('CompanyId is not found in BusStopNode.')
+        if (!isValid) {
+          throw new Error(`CompanyId is not found in BusStopNode. companyIds: ${companyIds.join(',')} | busStopIds: ${node.item.busStopIds}`)
+        }
         return companyIdToString(companyId)
       } else if (isJunctionNode(node)) {
         const companyId = companyIdByJunctionId.get(node.item.junctionId)
