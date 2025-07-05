@@ -1,8 +1,8 @@
-import type { Railroad } from "@piyoppi/sansaku-pilot/traffic/railroad";
+import type { RailroadRoute } from "@piyoppi/sansaku-pilot/traffic/railroad";
 
 type PropTypes = {
-  railroads: Railroad[],
-  onRailroadSelected?: (railroad: Railroad) => void
+  railroads: RailroadRoute[],
+  onRailroadSelected?: (railroad: RailroadRoute) => void
 }
 
 export function RailroadList({ railroads, onRailroadSelected }: PropTypes) {

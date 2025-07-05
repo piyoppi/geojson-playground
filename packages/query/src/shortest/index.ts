@@ -6,17 +6,26 @@ import { buildPartitionedRepository, PartitionedRepository } from '@piyoppi/sans
 import { isBusStopNode, isRailroadStationNode, type TrafficNodeItem } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph.js'
 import { buildCostGenerator } from './costGenerator.js'
 import type { StationId } from '@piyoppi/sansaku-pilot/traffic/transportation'
-import type { BusStop } from '@piyoppi/sansaku-pilot/traffic/busroute'
-import type { RailroadStation } from '@piyoppi/sansaku-pilot/traffic/railroad'
+import type { BusRoute, BusStop } from '@piyoppi/sansaku-pilot/traffic/busroute'
+import type { RailroadRoute, RailroadStation } from '@piyoppi/sansaku-pilot/traffic/railroad'
 
-export const shortest = async (inputGraphDir: string, fromId: string, fromPk: string, toId: string, toPk: string) => {
+export const shortest = async (
+  inputGraphDir: string,
+  fromId: string,
+  fromPk: string,
+  toId: string,
+  toPk: string
+) => {
+  const repository = buildPartitionedRepository<TrafficNodeItem>(
+    async (partitionKey) => (await loadPartialFile(inputGraphDir, partitionKey)).graph,
+    async () => {}
+  )
+
   const loadedBusStops = new Map<StationId, BusStop>()
   const loadedRailroadStation = new Map<StationId, RailroadStation>
-
-  const repository = buildPartitionedRepository<TrafficNodeItem>(
-    async (partitionKey) => {
-      const { busRoutes, railroads, graph } = await loadPartialFile(inputGraphDir, partitionKey)
-
+  const loadPartialFile = buildPartialFileLoader(
+    repository,
+    (railroads, busRoutes) => {
       for (const busStop of busRoutes.flatMap(r => r.stations)) {
         loadedBusStops.set(busStop.id, busStop)
       }
@@ -24,12 +33,8 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
       for (const railroadStation of railroads.flatMap(r => r.stations)) {
         loadedRailroadStation.set(railroadStation.id, railroadStation)
       }
-
-      return graph
-    },
-    async () => {}
+    }
   )
-  const loadPartialFile = buildPartialFileLoader(repository)
 
   const fromFile = await repository.load(fromPk)
   const toFile = await repository.load(toPk)
@@ -75,8 +80,6 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
 
   const nodes = shortest.slice(firstRange, lastRange + 1)
 
-  console.log('loadedRailroadStation', loadedRailroadStation)
-
   return {
     nodes,
     stations: new Map(
@@ -103,13 +106,20 @@ export const shortest = async (inputGraphDir: string, fromId: string, fromPk: st
 
 }
 
-const buildPartialFileLoader = (repository: PartitionedRepository<TrafficNodeItem>) => {
+const buildPartialFileLoader = (
+  repository: PartitionedRepository<TrafficNodeItem>,
+  loadedHook: (railroadRoutes: RailroadRoute[], busRoutes: BusRoute[]) => void
+) => {
   const trafficGraphFromFile = buildDefaultTrafficGraphFromFile({
     repository
   })
 
   return async (baseDir: string, partitionKey: string) => {
     const fileContent = await readFile(pathJoin(baseDir, `${partitionKey}.json`), "utf-8")
-    return await trafficGraphFromFile(JSON.parse(fileContent))
+    const item = await trafficGraphFromFile(JSON.parse(fileContent))
+
+    loadedHook(item.railroads, item.busRoutes)
+
+    return item
   }
 }
