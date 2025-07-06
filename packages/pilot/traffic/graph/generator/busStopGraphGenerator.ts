@@ -54,10 +54,13 @@ export const buildBusStopGraphGenerator = (
     nodes,
     (merged, targets) => {
       const busStops = []
+      const routeIds = []
       for (const target of targets) {
         busStops.push(...target.item.busStopIds)
+        routeIds.push(...target.item.routeIds)
       }
       merged.item.busStopIds = busStops
+      merged.item.routeIds = routeIds
     }
   )
 

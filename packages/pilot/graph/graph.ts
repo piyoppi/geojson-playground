@@ -168,9 +168,13 @@ export const buildDuplicateNodesMarger = <IG>(
 export const findShortestPath = async <I>(
   startNode: GraphNode<I>,
   endNode: GraphNode<I>,
-  getCost: (arc: Arc<I>, a: GraphNode<I>, b: GraphNode<I>) => number = (arc) => arc.cost
+  getCost: (arc: Arc<I>, a: GraphNode<I>, b: GraphNode<I>) => number | Promise<number> = (arc) => arc.cost
 ): Promise<GraphNode<I>[]> => {
-  const visited = new Set<NodeId>()
+  if (startNode.id === endNode.id) {
+    return [startNode]
+  }
+
+  const costFixed = new Set<NodeId>()
 
   const distances = new Map<NodeId, number>()
   distances.set(startNode.id, 0)
@@ -180,10 +184,11 @@ export const findShortestPath = async <I>(
   const queue: [GraphNode<I>, number][] = [[startNode, 0]]
 
   while (queue.length > 0) {
+    // FIXME: Using Priority Queue
     queue.sort((a, b) => a[1] - b[1])
     const [currentNode, currentCost] = queue.shift()!
 
-    if (visited.has(currentNode.id)) {
+    if (costFixed.has(currentNode.id)) {
       continue
     }
 
@@ -191,18 +196,13 @@ export const findShortestPath = async <I>(
       break
     }
 
-    visited.add(currentNode.id)
+    costFixed.add(currentNode.id)
 
     for (const arc of currentNode.arcs) {
-      const [nodeA, nodeB] = await Promise.all([arc.a(), arc.b()])
+      const nextNode = await to(currentNode, arc)
+      if (!nextNode || costFixed.has(nextNode.id)) continue
 
-      if (!nodeA || !nodeB) continue
-
-      const nextNode = nodeA.id === currentNode.id ? nodeB : nodeA
-
-      if (visited.has(nextNode.id)) continue
-
-      const newCost = currentCost + getCost(arc, nodeA, nodeB)
+      const newCost = currentCost + await getCost(arc, currentNode, nextNode)
       const existingCost = distances.get(nextNode.id) ?? Infinity
 
       if (newCost < existingCost) {
@@ -211,10 +211,6 @@ export const findShortestPath = async <I>(
         queue.push([nextNode, newCost])
       }
     }
-  }
-
-  if (!previous.has(endNode.id) && startNode.id !== endNode.id) {
-    return []
   }
 
   const path: GraphNode<I>[] = [endNode]

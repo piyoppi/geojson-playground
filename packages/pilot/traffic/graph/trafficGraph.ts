@@ -18,20 +18,22 @@ export function isRailroadStationNode(node: GraphNode<unknown>): node is Railroa
 
 export type BusStopNode = GraphNode<BusStopNodeItem>
 
-export type SerializedBusStopNodeItem = { t: 'B', ids: string[] }
+export type SerializedBusStopNodeItem = { t: 'B', ids: string[], routeIds: string[] }
 
 export function isSerializedBusStopNodeItem(item: unknown): item is SerializedBusStopNodeItem {
-  return (typeof item === 'object' && item !== null && 't' in item && item.t === 'B' && 'ids' in item)
+  return (typeof item === 'object' && item !== null && 't' in item && item.t === 'B' && 'ids' in item && 'routeIds' in item)
 }
 
 export const serializeBusStopNodeItem = (item: BusStopNodeItem): SerializedBusStopNodeItem => ({
   t: 'B',
-  ids: item.busStopIds.map(stationIdToString)
+  ids: item.busStopIds.map(stationIdToString),
+  routeIds: item.routeIds.map(routeIdToString)
 })
 
 export const deserializeBusStopNodeItem = (serializedItem: SerializedBusStopNodeItem): BusStopNodeItem => ({
   type: 'BusStop',
-  busStopIds: serializedItem.ids.map(stringToStationId)
+  busStopIds: serializedItem.ids.map(stringToStationId),
+  routeIds: serializedItem.routeIds.map(stringToRouteId)
 })
 
 export function isBusStopNode(node: GraphNode<unknown>): node is BusStopNode {
