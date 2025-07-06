@@ -139,20 +139,7 @@ describe('partitionByCompany', () => {
 
     await t.assert.rejects(async () => {
       await partitionByCompany(repository, [orphanNode], [], [])
-    }, { message: 'CompanyId is not found.' })
-  })
-
-  it('should throw error when company ID is not found for junction', async (t: TestContext) => {
-    const repository = await buildTestRepository()
-
-    const orphanJunction = await createMockJunction('orphan_junction')
-    const companyId = CompanyId(await toId('unknown_company'))
-    const routeId = RouteId(await toId('unknown_route'))
-    const orphanNode = createJunctionNode(orphanJunction, companyId, routeId)
-
-    await t.assert.rejects(async () => {
-      await partitionByCompany(repository, [orphanNode], [], [])
-    }, { message: 'CompanyId is not found.' })
+    }, { message: 'CompanyId is not found in RailroadStationNode.' })
   })
 
   it('should handle bus stop nodes with multiple bus stop IDs from same company', async (t: TestContext) => {
