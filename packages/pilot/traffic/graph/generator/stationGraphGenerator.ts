@@ -7,8 +7,6 @@ import { Station, toJunctionId, type RouteId } from "../../transportation.js"
 import { createJunctionNodeItem, createStationNodeItem, isRailroadStationNode, TrafficNode, type TrafficNodeItem } from "../trafficGraph.js"
 
 type TransferCostGenerator = (aStation: Station, bStation: Station) => number
-// type RailroadStationNode = GraphNode<RailroadStationNodeItem>
-// type RailroadStationNodeItem = TrafficNodeItem
 
 export const buildStationGraphGenerator = (
   generateArc: ArcGenerator<TrafficNodeItem>,

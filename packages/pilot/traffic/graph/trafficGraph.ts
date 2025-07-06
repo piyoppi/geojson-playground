@@ -147,6 +147,7 @@ export function isRailroadStationNodeItem(item: unknown): item is RailroadStatio
 export type BusStopNodeItem = {
   type: 'BusStop'
   busStopIds: StationId[]
+  routeIds: RouteId[]
 }
 
 export function isBusStopNodeItem(item: unknown): item is BusStopNodeItem {
@@ -199,6 +200,7 @@ export const createStationNodeItem  = (station: Station): StationNodeItem => ({
 export const createBusStopNodeItem  = (busStops: Station[]): BusStopNodeItem => ({
   type: 'BusStop',
   busStopIds: busStops.map(b => b.id),
+  routeIds: busStops.map(b => b.routeId),
 })
 
 /** Union type representing either a junction or station node item */
