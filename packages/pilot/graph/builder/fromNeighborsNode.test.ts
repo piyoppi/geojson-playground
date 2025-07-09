@@ -1,6 +1,6 @@
 import { describe, it, type TestContext } from 'node:test'
 import { buildGraphBuilder } from './fromNeighborsNode.js'
-import { to, arcExists, type GraphNode } from '../graph.js'
+import { arcExists, findConnectingArc } from '../graph.js'
 import type { Position2D } from '../../geometry/index.js'
 import type { ArcGenerator } from '../arc/index.js'
 
@@ -12,21 +12,6 @@ const arcGenerator: ArcGenerator<TestDataNode> = (a, b, cost) => ({
   b: () => Promise.resolve(b),
   cost
 })
-
-// Helper function to find arc between two specific nodes
-const findArcBetween = async (fromNode: GraphNode<TestDataNode>, toNodeId: string) => {
-  for (const arc of fromNode.arcs) {
-    const targetNode = await arc.b()
-    if (targetNode?.id === toNodeId) {
-      return arc
-    }
-    const sourceNode = await arc.a()
-    if (sourceNode?.id === toNodeId) {
-      return arc
-    }
-  }
-  throw new Error(`No arc found between ${fromNode.id} and ${toNodeId}`)
-}
 
 describe('buildGraphBuilder (fromNeighborsNode)', () => {
   it('should connect nodes to their nearest neighbors in a line', async (t: TestContext) => {
@@ -43,7 +28,7 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     //
     // Each node tries to connect to its 2 nearest neighbors:
     // A → B, C (distances: 1, 2)
-    // B → A, C (distances: 1, 1) 
+    // B → A, C (distances: 1, 1)
     // C → B, D (distances: 1, 1)
     // D → C, B (distances: 1, 2)
     //
@@ -70,7 +55,7 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     const nodeD = nodeById.get('D')
 
     t.assert.ok(nodeA, 'Node A should exist')
-    t.assert.ok(nodeB, 'Node B should exist') 
+    t.assert.ok(nodeB, 'Node B should exist')
     t.assert.ok(nodeC, 'Node C should exist')
     t.assert.ok(nodeD, 'Node D should exist')
 
@@ -84,16 +69,21 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     // B-C: distance = 1
     // C-D: distance = 1
     // A-C: distance = 2
-    
-    const arcAB = await findArcBetween(nodeA, 'B')
-    const arcBC = await findArcBetween(nodeB, 'C')
-    const arcCD = await findArcBetween(nodeC, 'D')
-    const arcAC = await findArcBetween(nodeA, 'C')
 
-    t.assert.equal(arcAB.cost, 1, 'A-B arc cost should be 1')
-    t.assert.equal(arcBC.cost, 1, 'B-C arc cost should be 1') 
-    t.assert.equal(arcCD.cost, 1, 'C-D arc cost should be 1')
-    t.assert.equal(arcAC.cost, 2, 'A-C arc cost should be 2')
+    const arcAB = await findConnectingArc(nodeA, nodeB)
+    const arcBC = await findConnectingArc(nodeB, nodeC)
+    const arcCD = await findConnectingArc(nodeC, nodeD)
+    const arcAC = await findConnectingArc(nodeA, nodeC)
+
+    t.assert.ok(arcAB, 'Arc A-B should exist')
+    t.assert.ok(arcBC, 'Arc B-C should exist')
+    t.assert.ok(arcCD, 'Arc C-D should exist')
+    t.assert.ok(arcAC, 'Arc A-C should exist')
+
+    t.assert.equal(arcAB!.cost, 1, 'A-B arc cost should be 1')
+    t.assert.equal(arcBC!.cost, 1, 'B-C arc cost should be 1')
+    t.assert.equal(arcCD!.cost, 1, 'C-D arc cost should be 1')
+    t.assert.equal(arcAC!.cost, 2, 'A-C arc cost should be 2')
   })
 
   it('should handle two points correctly', async (t: TestContext) => {
@@ -118,7 +108,7 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     const nodeById = new Map(nodes.map(n => [n.id, n]))
     const nodeA = nodeById.get('A')
     const nodeB = nodeById.get('B')
-    
+
     t.assert.ok(nodeA, 'Node A should exist')
     t.assert.ok(nodeB, 'Node B should exist')
 
@@ -130,8 +120,9 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     t.assert.equal(await arcExists(nodeA, nodeB), true, 'A and B should be connected')
 
     // Verify arc cost: A-B distance = 1, squared = 1² = 1
-    const arcAB = await findArcBetween(nodeA, 'B')
-    t.assert.equal(arcAB.cost, 1, 'A-B arc cost should be 1')
+    const arcAB = await findConnectingArc(nodeA, nodeB)
+    t.assert.ok(arcAB, 'Arc A-B should exist')
+    t.assert.equal(arcAB!.cost, 1, 'A-B arc cost should be 1')
   })
 
   it('should handle single point with no connections', async (t: TestContext) => {
@@ -168,14 +159,14 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     //   0 A ----------- B
     //   1       |     /
     //   2       |   /
-    //          C 
+    //          C
     //
     // Distances:
     // A-B: 2, A-C: √5 ≈ 2.24, B-C: √5 ≈ 2.24
     //
     // Each node connects to the other 2 (only 2 neighbors available):
     // A → B, C
-    // B → A, C  
+    // B → A, C
     // C → A, B
     // Result: Complete triangle with all nodes connected
 
@@ -206,13 +197,17 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     // A-B: distance = 2, squared = 2² = 4
     // A-C: distance = √5 ≈ 2.24
     // B-C: distance = √5 ≈ 2.24
-    const arcAB = await findArcBetween(nodeA, 'B')
-    const arcAC = await findArcBetween(nodeA, 'C')
-    const arcBC = await findArcBetween(nodeB, 'C')
+    const arcAB = await findConnectingArc(nodeA, nodeB)
+    const arcAC = await findConnectingArc(nodeA, nodeC)
+    const arcBC = await findConnectingArc(nodeB, nodeC)
 
-    t.assert.equal(arcAB.cost, 2, 'A-B arc cost should be 2')
-    t.assert.equal(Math.round(arcAC.cost * 100), 224, 'A-C arc cost should be 5')
-    t.assert.equal(Math.round(arcBC.cost * 100), 224, 'B-C arc cost should be 5')
+    t.assert.ok(arcAB, 'Arc A-B should exist')
+    t.assert.ok(arcAC, 'Arc A-C should exist')
+    t.assert.ok(arcBC, 'Arc B-C should exist')
+
+    t.assert.equal(arcAB!.cost, 2, 'A-B arc cost should be 2')
+    t.assert.equal(Math.round(arcAC!.cost * 100), 224, 'A-C arc cost should be ~2.24')
+    t.assert.equal(Math.round(arcBC!.cost * 100), 224, 'B-C arc cost should be ~2.24')
   })
 
   it('should connect based on distance calculation', async (t: TestContext) => {
@@ -223,14 +218,12 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
 
     // Layout:
     //     0     1     2     3     x
-    //   0 A               
-    //   1                 
-    //   2                 
-    //   3                 
-    //   4                 B
+    //   0 A
+    //   1
+    //   2
+    //   3
+    //   4                   B
     //
-    // Distance A-B = √(3² + 4²) = √25 = 5
-    // But the function uses squared distance for performance: 3² + 4² = 25
 
     const graphBuilder = buildGraphBuilder(arcGenerator)
     const nodes = await graphBuilder(
@@ -244,10 +237,14 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
 
     // Should have connection to B
     t.assert.ok(nodeA.arcs.length > 0, 'Node A should have connections')
-    
+
     // Verify arc cost: A-B distance = √(3² + 4²) = √25 = 5
-    const arcAB = await findArcBetween(nodeA, 'B')
-    t.assert.equal(arcAB.cost, 5, 'A-B arc cost should be 5')
+    const nodeB = nodes.find(n => n.id === 'B')
+    t.assert.ok(nodeB, 'Node B should exist')
+
+    const arcAB = await findConnectingArc(nodeA, nodeB!)
+    t.assert.ok(arcAB, 'Arc A-B should exist')
+    t.assert.equal(arcAB!.cost, 5, 'A-B arc cost should be 5')
   })
 
   it('should handle grid layout with nearest neighbor selection', async (t: TestContext) => {
@@ -267,7 +264,7 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
     // Distances from each point:
     // A: B(1), C(1), D(√2≈1.41) → connects to B, C
     // B: A(1), D(1), C(√2≈1.41) → connects to A, D
-    // C: A(1), D(1), B(√2≈1.41) → connects to A, D  
+    // C: A(1), D(1), B(√2≈1.41) → connects to A, D
     // D: B(1), C(1), A(√2≈1.41) → connects to B, C
 
     const graphBuilder = buildGraphBuilder(arcGenerator)
@@ -297,14 +294,19 @@ describe('buildGraphBuilder (fromNeighborsNode)', () => {
 
     // Verify arc costs match expected squared distances
     // A-B, A-C, B-D, C-D: distance = 1, squared = 1² = 1
-    const arcAB = await findArcBetween(nodeA, 'B')
-    const arcAC = await findArcBetween(nodeA, 'C')
-    const arcBD = await findArcBetween(nodeB, 'D')
-    const arcCD = await findArcBetween(nodeC, 'D')
+    const arcAB = await findConnectingArc(nodeA, nodeB)
+    const arcAC = await findConnectingArc(nodeA, nodeC)
+    const arcBD = await findConnectingArc(nodeB, nodeD)
+    const arcCD = await findConnectingArc(nodeC, nodeD)
 
-    t.assert.equal(arcAB.cost, 1, 'A-B arc cost should be 1')
-    t.assert.equal(arcAC.cost, 1, 'A-C arc cost should be 1')
-    t.assert.equal(arcBD.cost, 1, 'B-D arc cost should be 1')
-    t.assert.equal(arcCD.cost, 1, 'C-D arc cost should be 1')
+    t.assert.ok(arcAB, 'Arc A-B should exist')
+    t.assert.ok(arcAC, 'Arc A-C should exist')
+    t.assert.ok(arcBD, 'Arc B-D should exist')
+    t.assert.ok(arcCD, 'Arc C-D should exist')
+
+    t.assert.equal(arcAB!.cost, 1, 'A-B arc cost should be 1')
+    t.assert.equal(arcAC!.cost, 1, 'A-C arc cost should be 1')
+    t.assert.equal(arcBD!.cost, 1, 'B-D arc cost should be 1')
+    t.assert.equal(arcCD!.cost, 1, 'C-D arc cost should be 1')
   })
 })
