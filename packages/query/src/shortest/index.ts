@@ -22,7 +22,7 @@ export const shortest = async (
   )
 
   const loadedBusStops = new Map<StationId, BusStop>()
-  const loadedRailroadStation = new Map<StationId, RailroadStation>
+  const loadedRailroadStation = new Map<StationId, RailroadStation>()
   const loadPartialFile = buildPartialFileLoader(
     repository,
     (railroads, busRoutes) => {
@@ -51,7 +51,13 @@ export const shortest = async (
     id => loadedBusStops.get(id)?.groupId || loadedRailroadStation.get(id)?.groupId
   )
 
-  const shortest = await findShortestPath(startNode, endNode, costGenerator)
+  const shortest = await findShortestPath(
+    startNode,
+    endNode,
+    {
+      getCost: costGenerator
+    }
+  )
 
   // Exclude same stations
   const grouped = shortest.reduce((acc, node, i, a) => {

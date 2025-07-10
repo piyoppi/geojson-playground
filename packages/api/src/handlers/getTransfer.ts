@@ -54,11 +54,7 @@ export const createGetTransferHandler = (
         } : null
       }
       // Junction nodes
-      return {
-        id: node.id,
-        name: 'Junction',
-        routeName: '',
-      }
+      return null
     }).filter((item): item is NonNullable<typeof item> => item !== null),
   }
 }
