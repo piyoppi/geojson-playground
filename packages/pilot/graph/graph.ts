@@ -165,11 +165,18 @@ export const buildDuplicateNodesMarger = <IG>(
   ]
 }
 
+export type FindShortestPathOptions<I> = {
+  getCost?: (arc: Arc<I>, a: GraphNode<I>, b: GraphNode<I>) => number | Promise<number>
+  maxCost?: number
+}
+
 export const findShortestPath = async <I>(
   startNode: GraphNode<I>,
   endNode: GraphNode<I>,
-  getCost: (arc: Arc<I>, a: GraphNode<I>, b: GraphNode<I>) => number | Promise<number> = (arc) => arc.cost
+  options: FindShortestPathOptions<I> = {}
 ): Promise<GraphNode<I>[]> => {
+  const { getCost = (arc) => arc.cost, maxCost } = options
+
   if (startNode.id === endNode.id) {
     return [startNode]
   }
@@ -203,6 +210,11 @@ export const findShortestPath = async <I>(
       if (!nextNode || costFixed.has(nextNode.id)) continue
 
       const newCost = currentCost + await getCost(arc, currentNode, nextNode)
+
+      if (maxCost !== undefined && newCost > maxCost) {
+        continue
+      }
+
       const existingCost = distances.get(nextNode.id) ?? Infinity
 
       if (newCost < existingCost) {

@@ -383,6 +383,67 @@ describe('findShortestPath', () => {
     t.assert.equal(path?.length, 1)
     t.assert.equal(path?.[0].id, 'A')
   })
+
+  it('should respect maxCost limit and not explore paths beyond it', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
+    const nodeD = { id: 'D', item: {}, arcs: [] }
+
+    // Path structure:
+    // A --5--> B --10--> D (total: 15)
+    // A --20--> C --1--> D (total: 21)
+    const arcAB = generateArc(nodeA, nodeB, 5)
+    const arcBD = generateArc(nodeB, nodeD, 10)
+    const arcAC = generateArc(nodeA, nodeC, 20)
+    const arcCD = generateArc(nodeC, nodeD, 1)
+
+    connect(nodeA, nodeB, arcAB)
+    connect(nodeB, nodeD, arcBD)
+    connect(nodeA, nodeC, arcAC)
+    connect(nodeC, nodeD, arcCD)
+
+    // With maxCost = 12, only A->B can be explored (cost 5)
+    // B->D would be 5+10=15 (exceeds maxCost)
+    // A->C would be 20      (exceeds maxCost)
+    const pathWithLimit = await findShortestPath(nodeA, nodeD, { maxCost: 12 })
+    t.assert.equal(pathWithLimit.length, 0)
+
+    // Without maxCost limit, should find the shortest path A->B->D
+    const pathNoLimit = await findShortestPath(nodeA, nodeD)
+    t.assert.equal(pathNoLimit.length, 3)
+    t.assert.equal(pathNoLimit[0].id, 'A')
+    t.assert.equal(pathNoLimit[1].id, 'B')
+    t.assert.equal(pathNoLimit[2].id, 'D')
+  })
+
+  it('should find alternative paths when some paths exceed maxCost', async (t: TestContext) => {
+    const nodeA = { id: 'A', item: {}, arcs: [] }
+    const nodeB = { id: 'B', item: {}, arcs: [] }
+    const nodeC = { id: 'C', item: {}, arcs: [] }
+    const nodeD = { id: 'D', item: {}, arcs: [] }
+
+    // Path structure:
+    // A --3--> B --8--> D (total: 11)
+    // A --2--> C --3--> D (total: 5)
+    const arcAB = generateArc(nodeA, nodeB, 3)
+    const arcBD = generateArc(nodeB, nodeD, 8)
+    const arcAC = generateArc(nodeA, nodeC, 2)
+    const arcCD = generateArc(nodeC, nodeD, 3)
+
+    connect(nodeA, nodeB, arcAB)
+    connect(nodeB, nodeD, arcBD)
+    connect(nodeA, nodeC, arcAC)
+    connect(nodeC, nodeD, arcCD)
+
+    // With maxCost = 10, path A->B->D (cost 11) (exceeds limit)
+    // But path A->C->D (cost 5) (valid)
+    const path = await findShortestPath(nodeA, nodeD, { maxCost: 10 })
+    t.assert.equal(path.length, 3)
+    t.assert.equal(path[0].id, 'A')
+    t.assert.equal(path[1].id, 'C')
+    t.assert.equal(path[2].id, 'D')
+  })
 })
 
 describe('buildDuplicateNodesMarger', () => {
