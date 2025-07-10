@@ -10,7 +10,7 @@ type PropTypes = {
 export function RailroadItem({ stations, start, end }: PropTypes) {
   const from = stations.at(0)
   const to = stations.at(-1)
-  const between = stations.slice(1, -2)
+  const between = stations.slice(1, -1)
 
   return (
     <ol>

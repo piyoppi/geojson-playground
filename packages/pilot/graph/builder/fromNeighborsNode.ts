@@ -1,38 +1,8 @@
-import { distance, findNearestPoint, type Position2D } from "../../geometry/index.js"
-import { arcExists, connect, createNode, type GraphNode, type NodeId } from "../graph.js"
-import type { Arc, ArcGenerator } from "../arc/index.js"
+import { distance, type Position2D } from "../../geometry/index.js"
+import { connect, createNode, type GraphNode, type NodeId } from "../graph.js"
+import type { ArcGenerator } from "../arc/index.js"
 
 type CallbackGenerated<I> = [NodeId, I]
-
-// export const buildGraphBuilder = <I>(
-//   generateArc: ArcGenerator<I>
-// ) => async <T>(
-//   point: T[],
-//   createNodeCallback: (node: T) => CallbackGenerated<I>,
-//   getPointCallback: (node: T) => Position2D,
-// ): Promise<GraphNode<I>[]> => {
-//   const items: [GraphNode<I>, Position2D][] =
-//     point
-//       .map(n => [getPointCallback(n), createNodeCallback(n)] as const)
-//       .map(([p, [id, item]]) => [{id, item, arcs: []}, p])
-//
-//   for (const [item, position] of items) {
-//     const nearest = findNearestPoint(
-//       position,
-//       items.map(([item, p]) => [() => p, () => item]),
-//       2,
-//     ).filter(async ({item: pair}) => !(await arcExists(item, pair)))
-//
-//     if (nearest.length > 0) {
-//       for (const { item: nearestItem, distance } of nearest) {
-//         connect(item, nearestItem, generateArc(item, nearestItem, distance))
-//       }
-//     }
-//   }
-//
-//   return items.map(([item]) => item)
-// }
-
 
 export const buildGraphBuilder = <I>(
   generateArc: ArcGenerator<I>
@@ -80,26 +50,31 @@ const unionFind = <T>() => {
 
   const isRoot = (item: T) => parents.get(item) === item
 
+  const compress = (item: T) => {
+    const path: T[] = []
+    let currentItem = item
+
+    while(currentItem !== undefined && !isRoot(currentItem)) {
+      path.push(currentItem)
+      const parent = parents.get(currentItem)
+      if (!parent) return undefined
+      currentItem = parent
+    }
+
+    const root = currentItem
+
+    for (const node of path) {
+      parents.set(node, root)
+    }
+
+    return root
+  }
+
   const find = (item: T) => {
-    const parentSet: T[] = [item]
-    let failed = false
+    const root = compress(item)
+    if (!root) return undefined
 
-    while(isRoot(item)) {
-      const parent = parents.get(item)
-      if (!parent) {
-        failed = true
-        break
-      }
-      parentSet.push(parent)
-    }
-
-    if (failed) return undefined
-
-    for (let i = 0; i < parentSet.length; i++) {
-      parents.set(parentSet[i], parentSet[i + 1])
-    }
-
-    return parents.get(item)
+    return root
   }
 
   const union = (item1: T, item2: T) => {
@@ -109,18 +84,19 @@ const unionFind = <T>() => {
     const rootItem1 = find(item1)
     const rootItem2 = find(item2)
 
+    if (!rootItem1 || !rootItem2) return false
     if (rootItem1 === rootItem2) return false
 
-    const rank1 = ranks.get(item1) || 0
-    const rank2 = ranks.get(item2) || 0
+    const rank1 = ranks.get(rootItem1) || 0
+    const rank2 = ranks.get(rootItem2) || 0
 
     if (rank1 > rank2) {
-      parents.set(item2, item1)
+      parents.set(rootItem2, rootItem1)
     } else if (rank1 < rank2) {
-      parents.set(item1, item2)
+      parents.set(rootItem1, rootItem2)
     } else {
-      parents.set(item1, item2)
-      ranks.set(item2, rank2 + 1)
+      parents.set(rootItem1, rootItem2)
+      ranks.set(rootItem2, rank2 + 1)
     }
 
     return true
