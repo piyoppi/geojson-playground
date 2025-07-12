@@ -42,7 +42,14 @@ export default function Home() {
         <TrafficFileReader onFileLoaded={handleFileLoaded} />
         <NodeSizeControl nodeSize={nodeSize} onNodeSizeChange={setNodeSize} />
       </div>
-      <MapViewer nodeSet={nodes} stations={stations} busStops={busStops} nodeSize={nodeSize} />
+      <MapViewer
+        nodeSet={nodes}
+        stations={stations}
+        busStops={busStops}
+        railroads={railroads}
+        busRoutes={busRoutes}
+        nodeSize={nodeSize}
+      />
     </div>
   </>;
 }

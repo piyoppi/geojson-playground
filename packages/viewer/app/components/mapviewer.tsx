@@ -3,17 +3,21 @@ import Sigma from "sigma"
 import Graph from "graphology"
 import { isBusStopNode, isJunctionNode, isRailroadStationNode, type TrafficNode } from '@piyoppi/sansaku-pilot/traffic/graph/trafficGraph'
 import type { RouteId, Station } from '@piyoppi/sansaku-pilot/traffic/transportation'
-import type { BusStop } from '@piyoppi/sansaku-pilot/traffic/busroute'
+import type { BusStop, BusRoute } from '@piyoppi/sansaku-pilot/traffic/busroute'
+import type { RailroadRoute } from '@piyoppi/sansaku-pilot/traffic/railroad'
+import { createRouteNameResolver } from '~/utils/routeNameResolver'
 
 type PropTypes = {
   nodeSet: TrafficNode[][],
   stations: Station[],
   busStops: BusStop[],
+  railroads: RailroadRoute[],
+  busRoutes: BusRoute[],
   activeRouteId?: RouteId,
   nodeSize?: number,
 }
 
-export function MapViewer({ nodeSet, stations, busStops, activeRouteId, nodeSize = 0.45 }: PropTypes) {
+export function MapViewer({ nodeSet, stations, busStops, railroads, busRoutes, activeRouteId, nodeSize = 0.45 }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
   const sigmaRef = useRef<Sigma | null>(null)
 
@@ -22,6 +26,16 @@ export function MapViewer({ nodeSet, stations, busStops, activeRouteId, nodeSize
 
   const stationMap = useMemo(() => new Map(stations.map(s => [s.id, s])), [stations])
   const busStopMap = useMemo(() => new Map(busStops.map(s => [s.id, s])), [busStops])
+  const routeMap = useMemo(() => {
+    const map = new Map<string, string>()
+    railroads.forEach(r => map.set(r.id, r.name))
+    busRoutes.forEach(r => map.set(r.id, r.name))
+    return map
+  }, [railroads, busRoutes])
+  const getRouteNameFromNode = useMemo(() =>
+    createRouteNameResolver(routeMap, stationMap),
+    [routeMap, stationMap]
+  )
 
   useEffect(() => {
     const nodes = nodeSet.filter(rendered => !renderedNodeSet.some(nodes => rendered === nodes)).flat()
@@ -76,11 +90,19 @@ export function MapViewer({ nodeSet, stations, busStops, activeRouteId, nodeSize
       for (const arc of node.arcs) {
         Promise.all([arc.a(), arc.b()]).then((([aNode, bNode]) => {
           if (!aNode || !bNode) return
-            try {
-          graph.addEdge(aNode.id, bNode.id, { label: Math.ceil(arc.cost * 1000000000.0), labelColor: "black", size: 0.2, color: "darkgray" })
-            } catch(e) {
-              console.log("err", aNode, bNode)
-            }
+
+          const routeName = getRouteNameFromNode(aNode)
+
+          try {
+            graph.addEdge(aNode.id, bNode.id, {
+              label: routeName,
+              labelColor: "black",
+              size: 0.2,
+              color: "darkgray"
+            })
+          } catch(e) {
+            console.log("err", aNode, bNode)
+          }
         }))
       }
     }
