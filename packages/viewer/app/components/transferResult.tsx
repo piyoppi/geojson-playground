@@ -30,9 +30,10 @@ export function TransferResult({ fromStationId, toStationId }: PropTypes) {
       let currentRouteName = ''
 
       for (const item of result.data?.items ?? []) {
-        if (currentRouteName !== item.routeName) {
+        const itemRouteName = item.routeNames.join(', ')
+        if (currentRouteName !== itemRouteName) {
           routes.push([])
-          currentRouteName = item.routeName
+          currentRouteName = itemRouteName
         }
 
         routes.at(-1)?.push(item)

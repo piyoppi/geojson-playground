@@ -58,7 +58,7 @@ export const createGetTransferHandler = (
           return station ? [{
             id: node.id,
             name: station.name,
-            routeName: routeSummaries.get(station.routeId) || '',
+            routeNames: [routeSummaries.get(station.routeId) || ''],
           }] : []
         })
       } else if (isBusStopNode(nodes[0])) {
@@ -66,35 +66,44 @@ export const createGetTransferHandler = (
         const { determinedRouteMap, transferredBusStopNodes } = determineBusRoute(busStopNodes)
         return busStopNodes.flatMap(node => {
           const busStop = busRoutes.get(node.item.busStopIds[0])
-          const routeId = determinedRouteMap.get(node)?.values().next().value
-          if (!busStop || !routeId) {
+          const determinedRouteIds = determinedRouteMap.get(node)
+          if (!busStop || !determinedRouteIds) {
             throw new Error('busStop or routeId is not found.')
           }
-          const transfering = transferredBusStopNodes.get(node)
-          if (transfering) {
-            const nextRouteId = determinedRouteMap.get(transfering)?.values().next().value
 
-            if (!nextRouteId) {
-              throw new Error('nextRouteId is not found.')
+          const currentRouteNames = Array.from(determinedRouteIds)
+            .map(routeId => routeSummaries.get(routeId) || '')
+            .filter(name => name !== '')
+
+          const transferedFirstNode = transferredBusStopNodes.get(node)
+          if (transferedFirstNode) {
+            const nextRouteIds = determinedRouteMap.get(transferedFirstNode)
+
+            if (!nextRouteIds) {
+              throw new Error('nextRouteIds is not found.')
             }
+
+            const nextRouteNames = Array.from(nextRouteIds)
+              .map(routeId => routeSummaries.get(routeId) || '')
+              .filter(name => name !== '')
 
             return [
               {
                 id: node.id,
                 name: busStop.name,
-                routeName: routeSummaries.get(routeId) || '',
+                routeNames: currentRouteNames,
               },
               {
                 id: node.id,
                 name: busStop.name,
-                routeName: routeSummaries.get(nextRouteId) || '',
+                routeNames: nextRouteNames,
               },
             ]
           } else {
             return [{
               id: node.id,
               name: busStop.name,
-              routeName: routeSummaries.get(routeId) || '',
+              routeNames: currentRouteNames,
             }]
           }
         })
@@ -117,14 +126,16 @@ const determineBusRoute = (nodes: BusStopNode[]) => {
   for (let i = 1; i < nodes.length; i++) {
     const current = nodes[i]
     const previous = nodes[i - 1]
-    const intersectedRouteIds = currentRouteSet.intersection(new Set(current.item.routeIds))
+    const currentRouteIds = new Set(current.item.routeIds)
+    const intersectedRouteIds = currentRouteSet.intersection(currentRouteIds)
 
     if (intersectedRouteIds.size === 0) {
       transferredBusStopNodes.set(previous, current)
       current.item.routeIds.forEach(id => currentRouteSet.add(id))
+      narrowingRouteMap.set(current, currentRouteIds)
+    } else {
+      narrowingRouteMap.set(current, intersectedRouteIds)
     }
-
-    narrowingRouteMap.set(current, intersectedRouteIds)
   }
 
   const last = nodes.at(-1)!
@@ -146,4 +157,3 @@ const determineBusRoute = (nodes: BusStopNode[]) => {
     transferredBusStopNodes
   }
 }
-

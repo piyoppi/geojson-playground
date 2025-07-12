@@ -18,7 +18,7 @@ export function RailroadItem({ stations, start, end }: PropTypes) {
         from &&
         <li className="bg-gray-100 rounded-sm pl-3">
           <StationListItem type={start ? 'stationStart' : 'station'}>
-            <p>{from.routeName}</p>
+            <p>{from.routeNames.join(', ')}</p>
             <p>{from.name}</p>
           </StationListItem>
         </li>
@@ -45,7 +45,7 @@ export function RailroadItem({ stations, start, end }: PropTypes) {
         to &&
         <li className="bg-gray-100 rounded-sm pl-3">
           <StationListItem type={end ? 'stationEnd' : 'station'}>
-            <p>{to.routeName}</p>
+            <p>{to.routeNames.join(', ')}</p>
             <p>{to.name}</p>
           </StationListItem>
         </li>

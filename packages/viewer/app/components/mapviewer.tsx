@@ -47,7 +47,7 @@ export function MapViewer({ nodeSet, stations, busStops, railroads, busRoutes, a
           graph.addNode(
             node.id,
             {
-              label: `${station.name}(${station.routeId})`,
+              label: `${station.name}(${node.id})`,
               routeId: station.routeId,
               size: nodeSize,
               x: station.position[0],
@@ -62,7 +62,7 @@ export function MapViewer({ nodeSet, stations, busStops, railroads, busRoutes, a
           graph.addNode(
             node.id,
             {
-              label: `${busStop.name}(${busStop.routeId})`,
+              label: `${busStop.name}(${node.id})`,
               routeId: busStop.routeId,
               size: nodeSize,
               x: busStop.position[0],

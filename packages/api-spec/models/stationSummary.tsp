@@ -12,8 +12,7 @@ model StationSummaryGroup {
 model StationSummary {
   id: string;
   name: string;
-  kind: string;
-  routeName: string;
+  routeNames: string[];
 }
 
 model StationSummaryList {
