@@ -1,3 +1,5 @@
+import { RouteId } from "@piyoppi/sansaku-pilot/traffic/transportation"
+
 export type StationKind = 'station' | 'busStop'
 
 export type StationSummaryGroup = {
@@ -16,7 +18,7 @@ export type StationSummary = {
 }
 
 export type RouteSummary = {
-  id: string,
+  id: RouteId,
   name: string,
   CompanySummaries: CompanySummary[],
 }

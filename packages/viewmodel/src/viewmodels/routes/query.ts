@@ -2,14 +2,15 @@ import type { DatabaseHandler } from '../../database.js'
 import { buildPlaceholder } from '../../helpers/query.js'
 import { CompanySummaryRecord, StationSummaryRecord } from './table.js'
 import { CompanySummary, RouteSummary, StationSummary, StationSummaryGroup } from './model.js'
+import { RouteId } from '@piyoppi/sansaku-pilot/traffic/transportation'
 
 export const findRouteSummariesFromId = (database: DatabaseHandler, ids: string[]): RouteSummary[] => {
   if (ids.length === 0) return [];
-  
+
   const query = `
-    SELECT routes.id as route_id, routes.name as route_name, 
+    SELECT routes.id as route_id, routes.name as route_name,
            companies.id as company_id, companies.name as company_name
-    FROM routes 
+    FROM routes
     JOIN companies ON routes.company_id = companies.id
     WHERE routes.id in (${ids.map(_ => '?').join(',')})
   `
@@ -39,7 +40,7 @@ export const findCompanySummariesFromId = (database: DatabaseHandler, ids: strin
 export const findStationSummariesFromGroupId = (database: DatabaseHandler, groupIds: string[]): StationSummary[] => {
   const query = `
     SELECT id, group_id, partition_key, name, kind
-    FROM stations 
+    FROM stations
     WHERE group_id in (${buildPlaceholder(groupIds)})
     ORDER BY name
   `
@@ -53,15 +54,15 @@ export const findStationSummariesFromGroupId = (database: DatabaseHandler, group
 export const findStationSummariesFromKeyword = (database: DatabaseHandler, stationNamePart: string, limit: number): StationSummary[] => {
   const query = `
     SELECT id, group_id, partition_key, name, kind
-    FROM stations 
-    WHERE name LIKE ? 
+    FROM stations
+    WHERE name LIKE ?
     ORDER BY name
     LIMIT ?
   `
-  
+
   const stmt = database.prepare(query)
   const searchPattern = `${stationNamePart}%`
-  
+
   const items: any[] = stmt.all(searchPattern, limit) as StationSummaryRecord[]
 
   return convertStationSummaryRecordsToModel(items)
@@ -70,7 +71,7 @@ export const findStationSummariesFromKeyword = (database: DatabaseHandler, stati
 export const findStationSummariesFromId = (database: DatabaseHandler, ids: string[]): StationSummary[] => {
   const query = `
     SELECT id, group_id, partition_key, name, kind
-    FROM stations 
+    FROM stations
     WHERE id in (${buildPlaceholder(ids)})
     ORDER BY name
   `
@@ -96,7 +97,7 @@ export const findStationSummaryGroupsFromKeyword = (database: DatabaseHandler, s
 
   const stmt = database.prepare(query)
   const searchPattern = `${stationNamePart}%`
-  
+
   const items: any[] = stmt.all(searchPattern, limit)
 
   return structureStationSummaryGroups(items);
@@ -115,7 +116,7 @@ const createCompanySummaries = (
   items: { company_id: string; company_name: string }[]
 ): CompanySummary[] => {
   return [...new Map(items.map(item => [
-    item.company_id, 
+    item.company_id,
     { id: item.company_id, name: item.company_name }
   ])).values()];
 };
@@ -124,9 +125,9 @@ const createRouteSummaries = (
   items: { route_id: string; route_name: string; company_id: string; company_name: string }[]
 ): RouteSummary[] => {
   const routeGroups = Object.groupBy(items, item => item.route_id);
-  
+
   return Object.entries(routeGroups).map(([routeId, routeItems]) => ({
-    id: routeId,
+    id: RouteId(routeId),
     name: routeItems![0].route_name,
     CompanySummaries: createCompanySummaries(routeItems!)
   }));
@@ -134,9 +135,9 @@ const createRouteSummaries = (
 
 const structureStationSummaryGroups = (items: any[]): StationSummaryGroup[] => {
   if (items.length === 0) return [];
-  
+
   const stationGroups = Object.groupBy(items, item => item.id);
-  
+
   return Object.entries(stationGroups).map(([groupId, groupItems]) => ({
     id: groupId,
     name: groupItems![0].name,

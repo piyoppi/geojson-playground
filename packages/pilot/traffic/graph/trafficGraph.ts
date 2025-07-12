@@ -10,6 +10,12 @@ export type TrafficNode = GraphNode<TrafficNodeItem>
 /** Graph node specifically representing a station */
 export type StationNode = GraphNode<StationNodeItem>
 
+export const nodeKind = (node: GraphNode<unknown>) =>
+  isRailroadStationNode(node) ? 'RailroadStationNode' :
+  isBusStopNode(node) ? 'BusStopNode' :
+  isJunctionNode(node) ? 'JunctionNode' :
+  'Unknown'
+
 export type RailroadStationNode = GraphNode<RailroadStationNodeItem>
 
 export function isRailroadStationNode(node: GraphNode<unknown>): node is RailroadStationNode {
