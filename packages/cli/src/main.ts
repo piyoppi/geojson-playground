@@ -40,9 +40,15 @@ const main = defineCommand({
               description: "Output file path",
               required: true,
             },
+            companyIds: {
+              type: "string",
+              description: "Comma-separated list of company IDs to filter",
+              required: false,
+            },
           },
           run({ args }) {
-            executeGenerate(args.output, args.railroads, args.stations, args.busstops)
+            const companyIds = args.companyIds ? (args.companyIds as string).split(',').map((id: string) => id.trim()) : undefined
+            executeGenerate(args.output, args.railroads, args.stations, args.busstops, { companyIds })
           }
         },
         separate: {

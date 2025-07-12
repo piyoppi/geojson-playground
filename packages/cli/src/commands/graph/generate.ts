@@ -10,6 +10,7 @@ import { filterBusStopNodes, filterJunctionNodes, filterStationNodes } from '@pi
 
 type Option = {
   overrideRailroadInputFilename?: string
+  companyIds?: string[]
 }
 
 export const execute = async (
@@ -20,13 +21,13 @@ export const execute = async (
   option?: Option
 ) => {
   const { stationNodes, railroads, railroadCompanies } = inputRailroadFilename && inputStationFilename ?
-    await loadStationGraph(inputRailroadFilename, inputStationFilename, option?.overrideRailroadInputFilename) :
+    await loadStationGraph(inputRailroadFilename, inputStationFilename, option?.overrideRailroadInputFilename, option?.companyIds) :
     { stationNodes: [], railroads: [], railroadCompanies: [] }
 
   console.log('stationNodeJunction', filterJunctionNodes(stationNodes).length)
 
   const { busNodes, busCompanies, busRoutes } = inputBusStopFilename ?
-    await loadBusStopGraph(inputBusStopFilename) :
+    await loadBusStopGraph(inputBusStopFilename, option?.companyIds) :
     { busNodes: [], busCompanies: [], busRoutes: [] }
 
   const railroadStationById = new Map(railroads.flatMap(r => r.route.stations.map(s => [s.id, s])))
@@ -54,7 +55,8 @@ export const execute = async (
 export const loadStationGraph = async (
   inputRailroadFilename: string,
   inputStationFilename: string,
-  overrideRailroadInputFilename?: string
+  overrideRailroadInputFilename?: string,
+  companyIds?: string[]
 ) => {
   const buildStationGraph = buildDefaultStationGrpahGenerator()
 
@@ -70,25 +72,43 @@ export const loadStationGraph = async (
   } as RailroadsGeoJson
 
   const [railroadCompanies, railroads] = await toRailRoads(railroadsGeoJson, stationsGeoJson)
-  const stationNodes = await buildStationGraph(railroads)
+
+  const filteredRailroadCompanies = companyIds ?
+    railroadCompanies.filter(company => companyIds.includes(company.id)) :
+    railroadCompanies
+
+  const filteredRailroads = companyIds ?
+    railroads.filter(railroad => companyIds.includes(railroad.route.companyId)) :
+    railroads
+
+  const stationNodes = await buildStationGraph(filteredRailroads)
 
   return {
     stationNodes,
-    railroads,
-    railroadCompanies
+    railroads: filteredRailroads,
+    railroadCompanies: filteredRailroadCompanies
   }
 }
 
-export const loadBusStopGraph = async (inputBusStopFilename: string) => {
+export const loadBusStopGraph = async (inputBusStopFilename: string, companyIds?: string[]) => {
   const buildBusStopGraph = buildDefaultBusStopGraphGenerator()
 
   const inputBusStopJson = JSON.parse(readFileSync(inputBusStopFilename, "utf-8"))
   const [busCompanies, busRoutes] = await toBusStops(inputBusStopJson)
-  const busNodes = (await buildBusStopGraph(busRoutes)).values().toArray().flat()
+
+  const filteredBusCompanies = companyIds ?
+    busCompanies.filter(company => companyIds.includes(company.id)) :
+    busCompanies
+
+  const filteredBusRoutes = companyIds ?
+    busRoutes.filter(route => companyIds.includes(route.companyId)) :
+    busRoutes
+
+  const busNodes = (await buildBusStopGraph(filteredBusRoutes)).values().toArray().flat()
 
   return {
     busNodes,
-    busCompanies,
-    busRoutes
+    busCompanies: filteredBusCompanies,
+    busRoutes: filteredBusRoutes
   }
 }
