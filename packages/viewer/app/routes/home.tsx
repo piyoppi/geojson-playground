@@ -5,7 +5,6 @@ import type { TrafficNode } from "@piyoppi/sansaku-pilot/traffic/graph/trafficGr
 import { useCallback, useMemo, useState } from "react"
 import type { RailroadRoute } from "@piyoppi/sansaku-pilot/traffic/railroad"
 import type { BusRoute } from "@piyoppi/sansaku-pilot/traffic/busroute"
-import type { RouteId } from "@piyoppi/sansaku-pilot/traffic/transportation"
 
 export function meta({}: Route.MetaArgs) {
   return [

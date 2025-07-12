@@ -5,7 +5,8 @@ import { isRailroadStationNode, isBusStopNode } from '@piyoppi/sansaku-pilot/tra
 
 export const createGetTransferHandler = (
   databaseHandler: DatabaseHandler,
-  inputGraphDir: string
+  inputGraphDir: string,
+  maxSteps?: number
 ) => async (
   from: string,
   to: string
@@ -23,7 +24,8 @@ export const createGetTransferHandler = (
     fromStationSummary.id,
     fromStationSummary.partitionKey,
     toStationSummary.id,
-    toStationSummary.partitionKey
+    toStationSummary.partitionKey,
+    { maxSteps }
   )
 
   const routeIds = Array.from(new Set([

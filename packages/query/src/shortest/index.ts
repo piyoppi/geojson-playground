@@ -9,12 +9,17 @@ import type { StationId } from '@piyoppi/sansaku-pilot/traffic/transportation'
 import type { BusRoute, BusStop } from '@piyoppi/sansaku-pilot/traffic/busroute'
 import type { RailroadRoute, RailroadStation } from '@piyoppi/sansaku-pilot/traffic/railroad'
 
+export type ShortestOptions = {
+  maxSteps?: number
+}
+
 export const shortest = async (
   inputGraphDir: string,
   fromId: string,
   fromPk: string,
   toId: string,
-  toPk: string
+  toPk: string,
+  options: ShortestOptions = {}
 ) => {
   const repository = buildPartitionedRepository<TrafficNodeItem>(
     async (partitionKey) => (await loadPartialFile(inputGraphDir, partitionKey)).graph,
@@ -55,7 +60,8 @@ export const shortest = async (
     startNode,
     endNode,
     {
-      getCost: costGenerator
+      getCost: costGenerator,
+      maxSteps: options.maxSteps
     }
   )
 

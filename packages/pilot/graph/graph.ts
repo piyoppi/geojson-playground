@@ -168,6 +168,7 @@ export const buildDuplicateNodesMarger = <IG>(
 export type FindShortestPathOptions<I> = {
   getCost?: (arc: Arc<I>, a: GraphNode<I>, b: GraphNode<I>) => number | Promise<number>
   maxCost?: number
+  maxSteps?: number
 }
 
 export const findShortestPath = async <I>(
@@ -175,7 +176,7 @@ export const findShortestPath = async <I>(
   endNode: GraphNode<I>,
   options: FindShortestPathOptions<I> = {}
 ): Promise<GraphNode<I>[]> => {
-  const { getCost = (arc) => arc.cost, maxCost } = options
+  const { getCost = (arc) => arc.cost, maxCost, maxSteps } = options
 
   if (startNode.id === endNode.id) {
     return [startNode]
@@ -186,14 +187,17 @@ export const findShortestPath = async <I>(
   const distances = new Map<NodeId, number>()
   distances.set(startNode.id, 0)
 
+  const steps = new Map<NodeId, number>()
+  steps.set(startNode.id, 0)
+
   const previous = new Map<NodeId, GraphNode<I>>()
 
-  const queue: [GraphNode<I>, number][] = [[startNode, 0]]
+  const queue: [GraphNode<I>, number, number][] = [[startNode, 0, 0]]
 
   while (queue.length > 0) {
     // FIXME: Using Priority Queue
     queue.sort((a, b) => a[1] - b[1])
-    const [currentNode, currentCost] = queue.shift()!
+    const [currentNode, currentCost, currentSteps] = queue.shift()!
 
     if (costFixed.has(currentNode.id)) {
       continue
@@ -210,8 +214,13 @@ export const findShortestPath = async <I>(
       if (!nextNode || costFixed.has(nextNode.id)) continue
 
       const newCost = currentCost + await getCost(arc, currentNode, nextNode)
+      const newSteps = currentSteps + 1
 
       if (maxCost !== undefined && newCost > maxCost) {
+        continue
+      }
+
+      if (maxSteps !== undefined && newSteps > maxSteps) {
         continue
       }
 
@@ -219,8 +228,9 @@ export const findShortestPath = async <I>(
 
       if (newCost < existingCost) {
         distances.set(nextNode.id, newCost)
+        steps.set(nextNode.id, newSteps)
         previous.set(nextNode.id, currentNode)
-        queue.push([nextNode, newCost])
+        queue.push([nextNode, newCost, newSteps])
       }
     }
   }

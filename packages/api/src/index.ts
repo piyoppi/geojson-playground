@@ -12,17 +12,22 @@ type Paths = paths & {
   [key: string]: never
 }
 
+export type CreateAppOptions = {
+  maxTransferSteps?: number
+}
+
 export const createApp = (
   app: Hono,
   databaseFileName: string,
-  inputGraphDir: string
+  inputGraphDir: string,
+  options: CreateAppOptions = {}
 ) => {
   const queryValidator = buildQueryValidator<Paths>(oas as OpenAPIV3_1.Document)
 
   const database = createHandlerFromFile(databaseFileName)
 
   const getStationSummaryGroupsFromKeywordHandler = createKeywordHandler(database)
-  const getTransferHandler = createGetTransferHandler(database, inputGraphDir)
+  const getTransferHandler = createGetTransferHandler(database, inputGraphDir, options.maxTransferSteps)
 
   app.use('*', cors())
 
@@ -52,4 +57,3 @@ export const createApp = (
 
   return app
 }
-

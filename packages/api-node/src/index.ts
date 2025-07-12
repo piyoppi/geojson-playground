@@ -19,7 +19,10 @@ const app = new Hono()
 createApp(
   app,
   databaseFileName,
-  inputGraphDir
+  inputGraphDir,
+  {
+    maxTransferSteps: process.env.MAX_TRANSFER_STEPS ? parseInt(process.env.MAX_TRANSFER_STEPS, 10) : undefined
+  }
 )
 
 serve({
