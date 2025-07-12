@@ -10,9 +10,10 @@ type PropTypes = {
   stations: Station[],
   busStops: BusStop[],
   activeRouteId?: RouteId,
+  nodeSize?: number,
 }
 
-export function MapViewer({ nodeSet, stations, busStops, activeRouteId }: PropTypes) {
+export function MapViewer({ nodeSet, stations, busStops, activeRouteId, nodeSize = 0.45 }: PropTypes) {
   const entry = useRef<HTMLDivElement>(null)
   const sigmaRef = useRef<Sigma | null>(null)
 
@@ -34,7 +35,7 @@ export function MapViewer({ nodeSet, stations, busStops, activeRouteId }: PropTy
             {
               label: `${station.name}(${station.routeId})`,
               routeId: station.routeId,
-              size: 0.45,
+              size: nodeSize,
               x: station.position[0],
               y: station.position[1],
               color: "blue"
@@ -49,7 +50,7 @@ export function MapViewer({ nodeSet, stations, busStops, activeRouteId }: PropTy
             {
               label: `${busStop.name}(${busStop.routeId})`,
               routeId: busStop.routeId,
-              size: 0.45,
+              size: nodeSize,
               x: busStop.position[0],
               y: busStop.position[1],
               color: "yellow"
@@ -94,13 +95,16 @@ export function MapViewer({ nodeSet, stations, busStops, activeRouteId }: PropTy
         return {
           ...data,
           color: 'red',
-          size: 1,
+          size: nodeSize * 2,
         }
       }
 
-      return data
+      return {
+        ...data,
+        size: nodeSize,
+      }
     })
-  }, [activeRouteId])
+  }, [activeRouteId, nodeSize])
 
   useEffect(() => {
     if (!entry.current) return
