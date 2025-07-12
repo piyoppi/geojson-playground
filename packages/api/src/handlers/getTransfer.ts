@@ -56,7 +56,7 @@ export const createGetTransferHandler = (
           const station = stations.get(node.item.stationId)
 
           return station ? [{
-            id: station.id,
+            id: node.id,
             name: station.name,
             routeName: routeSummaries.get(station.routeId) || '',
           }] : []
@@ -80,19 +80,19 @@ export const createGetTransferHandler = (
 
             return [
               {
-                id: busStop.id,
+                id: node.id,
                 name: busStop.name,
                 routeName: routeSummaries.get(routeId) || '',
               },
               {
-                id: busStop.id,
+                id: node.id,
                 name: busStop.name,
                 routeName: routeSummaries.get(nextRouteId) || '',
               },
             ]
           } else {
             return [{
-              id: busStop.id,
+              id: node.id,
               name: busStop.name,
               routeName: routeSummaries.get(routeId) || '',
             }]
